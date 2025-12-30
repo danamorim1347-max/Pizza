@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pizzaria Pro | Gestão & GPS</title>
+    <title>Pizzaria Pro | Gestão Completa</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
@@ -141,6 +142,98 @@
             from { left: -100%; }
             to { left: 100%; }
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        /* Badge Status */
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-ativo {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-inativo {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        /* Drag and Drop */
+        .draggable-item {
+            cursor: grab;
+            transition: transform 0.2s;
+        }
+        
+        .draggable-item:active {
+            cursor: grabbing;
+        }
+        
+        .draggable-item.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+        
+        .dropzone {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            color: #6b7280;
+            transition: all 0.3s;
+        }
+        
+        .dropzone.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        /* Transition effects */
+        .slide-enter {
+            transform: translateX(100%);
+        }
+        
+        .slide-enter-active {
+            transform: translateX(0);
+            transition: transform 300ms;
+        }
+        
+        .slide-exit {
+            transform: translateX(0);
+        }
+        
+        .slide-exit-active {
+            transform: translateX(100%);
+            transition: transform 300ms;
+        }
     </style>
 </head>
 <body>
@@ -148,13 +241,22 @@
     <!-- [CANAIS DE ÁUDIO] -->
     <audio id="alerta-som" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
+    <!-- [MODAL GLOBAL] -->
+    <div id="modal-global" class="modal-overlay hidden">
+        <div class="modal-content">
+            <!-- Conteúdo será injetado dinamicamente -->
+        </div>
+    </div>
+
     <!-- [VISÃO CLIENTE] -->
     <div id="view-cliente" class="max-w-md mx-auto min-h-screen pb-32">
         <header class="bg-white p-6 rounded-b-[45px] shadow-sm text-center relative border-b">
             <img id="cli-logo" src="" alt="Logo da Pizzaria" class="h-16 w-16 mx-auto mb-2 object-contain hidden rounded-2xl shadow">
             <h1 id="cli-nome" class="text-xl font-black italic uppercase tracking-tighter">Carregando...</h1>
             <div id="cli-status" class="inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border italic uppercase"></div>
-            <button onclick="abrirAdmin()" class="absolute top-4 right-4 text-gray-200 bg-gray-800/20 rounded-full p-2 hover:bg-gray-800/30 transition-colors" aria-label="Abrir administração">⚙️</button>
+            <button onclick="abrirAdmin()" class="absolute top-4 right-4 text-gray-200 bg-gray-800/20 rounded-full p-2 hover:bg-gray-800/30 transition-colors" aria-label="Abrir administração">
+                <i class="fas fa-cog"></i>
+            </button>
         </header>
 
         <nav id="filtros" class="flex gap-2 p-4 overflow-x-auto no-scrollbar sticky top-0 z-20 glass"></nav>
@@ -179,14 +281,16 @@
         <div class="bg-white w-full max-w-md mx-auto rounded-t-[40px] p-6 space-y-4 max-h-[94vh] overflow-y-auto fade-in">
             <div class="flex justify-between items-center">
                 <h2 class="font-black italic uppercase">Finalizar Pedido</h2>
-                <button onclick="fecharCheckout()" class="p-2 text-gray-400 hover:bg-gray-100 rounded-full transition-colors" aria-label="Fechar">✕</button>
+                <button onclick="fecharCheckout()" class="p-2 text-gray-400 hover:bg-gray-100 rounded-full transition-colors" aria-label="Fechar">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             
             <div class="space-y-3">
                 <input id="f-nome" type="text" placeholder="Seu Nome *" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" required>
                 
                 <button id="btn-gps-cli" onclick="obterGPSCliente()" class="w-full bg-black text-white p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                    📍 Calcular Frete por Distância
+                    <i class="fas fa-map-marker-alt"></i> Calcular Frete por Distância
                 </button>
                 
                 <div id="res-km" class="hidden bg-green-50 p-4 rounded-2xl flex justify-between text-[10px] font-black text-green-700 border border-green-100">
@@ -224,7 +328,7 @@
             </div>
             
             <button onclick="enviarPedido()" id="btn-enviar" class="w-full bg-green-600 text-white py-5 rounded-[25px] font-black uppercase tracking-widest shadow-lg shadow-green-100 border-b-4 border-green-800 hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                ENVIAR NO WHATSAPP
+                <i class="fab fa-whatsapp mr-2"></i> ENVIAR NO WHATSAPP
             </button>
             
             <p class="text-center text-[10px] text-gray-500 mt-2">
@@ -236,14 +340,32 @@
     <!-- [PAINEL ADM] -->
     <div id="view-admin" class="hidden bg-gray-50 min-h-screen pb-20">
         <header class="bg-black text-white p-4 flex justify-between items-center sticky top-0 z-50">
-            <h1 class="font-black italic text-red-500">PAINEL ADM</h1>
-            <button onclick="location.reload()" class="text-[10px] font-bold border px-3 py-1 rounded-full hover:bg-white/10 transition-colors">SAIR</button>
+            <h1 class="font-black italic text-red-500 flex items-center gap-2">
+                <i class="fas fa-crown"></i> PAINEL ADM
+            </h1>
+            <div class="flex gap-2">
+                <button onclick="voltarParaCliente()" class="text-[10px] font-bold border px-3 py-1 rounded-full hover:bg-white/10 transition-colors">
+                    <i class="fas fa-store mr-1"></i> Loja
+                </button>
+                <button onclick="location.reload()" class="text-[10px] font-bold border px-3 py-1 rounded-full hover:bg-white/10 transition-colors">
+                    <i class="fas fa-sign-out-alt mr-1"></i> Sair
+                </button>
+            </div>
         </header>
 
         <div class="flex bg-white border-b sticky top-14 z-40 overflow-x-auto no-scrollbar shadow-sm">
-            <button onclick="switchTab('pedidos')" id="tab-pedidos" class="flex-1 p-4 font-bold text-[10px] tab-active uppercase hover:bg-gray-50 transition-colors">Pedidos</button>
-            <button onclick="switchTab('produtos')" id="tab-produtos" class="flex-1 p-4 font-bold text-[10px] uppercase hover:bg-gray-50 transition-colors">Cardápio</button>
-            <button onclick="switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[10px] uppercase hover:bg-gray-50 transition-colors">Configuração</button>
+            <button onclick="switchTab('pedidos')" id="tab-pedidos" class="flex-1 p-4 font-bold text-[10px] tab-active uppercase hover:bg-gray-50 transition-colors">
+                <i class="fas fa-shopping-cart mr-1"></i> Pedidos
+            </button>
+            <button onclick="switchTab('produtos')" id="tab-produtos" class="flex-1 p-4 font-bold text-[10px] uppercase hover:bg-gray-50 transition-colors">
+                <i class="fas fa-pizza-slice mr-1"></i> Cardápio
+            </button>
+            <button onclick="switchTab('categorias')" id="tab-categorias" class="flex-1 p-4 font-bold text-[10px] uppercase hover:bg-gray-50 transition-colors">
+                <i class="fas fa-tags mr-1"></i> Categorias
+            </button>
+            <button onclick="switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[10px] uppercase hover:bg-gray-50 transition-colors">
+                <i class="fas fa-cog mr-1"></i> Configuração
+            </button>
         </div>
 
         <div class="p-4 max-w-md mx-auto space-y-6">
@@ -258,9 +380,48 @@
             
             <!-- ABA PRODUTOS -->
             <div id="sec-produtos" class="hidden space-y-4">
-                <div id="adm-prod-list" class="space-y-4">
-                    <div class="text-center py-8 text-gray-500">
-                        Carregando produtos...
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-[12px] font-black text-gray-800 uppercase">Gerenciar Produtos</h2>
+                    <button onclick="abrirModalProduto()" class="bg-red-600 text-white px-4 py-2 rounded-xl text-[10px] font-black hover:bg-red-700 transition-colors">
+                        <i class="fas fa-plus mr-1"></i> Novo Produto
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-2xl p-4 shadow-sm">
+                    <div class="mb-4">
+                        <input type="text" id="filtro-produtos" placeholder="Buscar produto..." 
+                               class="w-full p-3 bg-gray-50 rounded-xl border text-sm" 
+                               onkeyup="filtrarProdutos(this.value)">
+                    </div>
+                    
+                    <div id="lista-produtos" class="space-y-3">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-pizza-slice text-2xl mb-2"></i>
+                            <p>Carregando produtos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ABA CATEGORIAS -->
+            <div id="sec-categorias" class="hidden space-y-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-[12px] font-black text-gray-800 uppercase">Gerenciar Categorias</h2>
+                    <button onclick="abrirModalCategoria()" class="bg-red-600 text-white px-4 py-2 rounded-xl text-[10px] font-black hover:bg-red-700 transition-colors">
+                        <i class="fas fa-plus mr-1"></i> Nova Categoria
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-2xl p-4 shadow-sm">
+                    <div class="mb-4">
+                        <p class="text-[10px] text-gray-500 mb-2">Arraste para reordenar as categorias (a ordem afeta o cardápio)</p>
+                    </div>
+                    
+                    <div id="lista-categorias" class="space-y-3">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-tags text-2xl mb-2"></i>
+                            <p>Carregando categorias...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -270,7 +431,10 @@
                 <div class="bg-white p-6 rounded-[35px] shadow-sm space-y-6">
                     <!-- STATUS LOJA -->
                     <div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border">
-                        <span class="font-black text-xs uppercase italic">Loja Aberta?</span>
+                        <div>
+                            <span class="font-black text-xs uppercase italic">Loja Aberta?</span>
+                            <p class="text-[10px] text-gray-500 mt-1">Controla se clientes podem fazer pedidos</p>
+                        </div>
                         <label class="switch">
                             <input type="checkbox" id="adm-check-loja" onchange="alterarStatusLoja(this.checked)">
                             <span class="slider"></span>
@@ -281,7 +445,7 @@
                     <div class="space-y-2">
                         <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Localização da Pizzaria</p>
                         <button id="btn-gps-loja" onclick="obterGPSLoja()" class="w-full text-white p-4 rounded-2xl text-[10px] font-black uppercase transition-colors hover:opacity-90">
-                            📍 Definir GPS da Loja
+                            <i class="fas fa-map-marker-alt mr-2"></i> Definir GPS da Loja
                         </button>
                         <div class="flex gap-2 text-[10px] text-gray-400 font-bold justify-center">
                             <span id="txt-lat">0</span> , <span id="txt-lng">0</span>
@@ -292,22 +456,38 @@
                     </div>
 
                     <div class="space-y-3 pt-4 border-t border-dashed">
-                        <input id="adm-nome" type="text" placeholder="Nome da Loja *" class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" required>
-                        <input id="adm-zap" type="text" placeholder="WhatsApp (55...) *" class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" required>
-                        <div class="flex gap-2">
-                            <div class="flex-1">
-                                <input id="adm-base" type="number" placeholder="Taxa Base R$" class="w-full p-3 border rounded-xl text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" min="0" step="0.01">
-                                <label class="text-[9px] text-gray-500">Frete mínimo</label>
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600 uppercase">Nome da Loja *</label>
+                            <input id="adm-nome" type="text" placeholder="Ex: Pizzaria do João" class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" required>
+                        </div>
+                        
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600 uppercase">WhatsApp para Pedidos *</label>
+                            <input id="adm-zap" type="text" placeholder="5511999999999" class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" required>
+                            <p class="text-[9px] text-gray-500 mt-1">Formato: 55 + DDD + Número (sem espaços)</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-600 uppercase">Taxa Base R$</label>
+                                <input id="adm-base" type="number" placeholder="0.00" min="0" step="0.01" class="w-full p-3 border rounded-xl text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors">
+                                <p class="text-[9px] text-gray-500 mt-1">Frete mínimo</p>
                             </div>
-                            <div class="flex-1">
-                                <input id="adm-km" type="number" placeholder="Preço/KM R$" class="w-full p-3 border rounded-xl text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" min="0" step="0.01">
-                                <label class="text-[9px] text-gray-500">Por km rodado</label>
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-600 uppercase">Preço por KM R$</label>
+                                <input id="adm-km" type="number" placeholder="0.00" min="0" step="0.01" class="w-full p-3 border rounded-xl text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors">
+                                <p class="text-[9px] text-gray-500 mt-1">Por km rodado</p>
                             </div>
                         </div>
-                        <input id="adm-logo" type="text" placeholder="Link Logo PNG/JPEG" class="w-full p-3 border rounded-xl text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors">
+                        
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600 uppercase">URL da Logo</label>
+                            <input id="adm-logo" type="text" placeholder="https://exemplo.com/logo.png" class="w-full p-3 border rounded-xl text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors">
+                            <p class="text-[9px] text-gray-500 mt-1">Recomendado: imagem PNG transparente</p>
+                        </div>
                         
                         <button onclick="salvarConfig()" class="w-full bg-black text-white p-4 rounded-2xl font-black text-xs uppercase hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                            Salvar Configurações
+                            <i class="fas fa-save mr-2"></i> Salvar Configurações
                         </button>
                         
                         <p class="text-[9px] text-gray-500 text-center">
@@ -347,7 +527,7 @@
     </div>
 
     <script>
-        // Configuração do Supabase - ⚠️ ATENÇÃO: Em produção, mova para backend!
+        // Configuração do Supabase
         const SB_URL = "https://psqssqfyqqlumdllmosg.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXNzcWZ5cXFsdW1kbGxtb3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjEwNzMsImV4cCI6MjA4MjY5NzA3M30.fzrGu0P0gSjP3SDoNiM3qnceSKyuMngry42zGqlJRpQ";
         const _sb = supabase.createClient(SB_URL, SB_KEY);
@@ -356,10 +536,14 @@
         let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {};
         let dKM = 0, tFRETE = 0, latCli = 0, lngCli = 0;
         let isCalculatingFrete = false;
+        let draggedItem = null;
 
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
             init();
+            
+            // Configurar drag and drop para categorias
+            setupDragAndDrop();
         });
 
         async function init() {
@@ -480,6 +664,16 @@
                 
                 renderFiltros();
                 renderCardapio('todos');
+                
+                // Se estiver na aba produtos ou categorias, atualizar
+                if (document.getElementById('sec-produtos') && !document.getElementById('sec-produtos').classList.contains('hidden')) {
+                    renderProdutosAdmin();
+                }
+                
+                if (document.getElementById('sec-categorias') && !document.getElementById('sec-categorias').classList.contains('hidden')) {
+                    renderCategoriasAdmin();
+                }
+                
             } catch (error) {
                 console.error('Erro ao carregar dados:', error);
             }
@@ -498,262 +692,767 @@
                         loadPedidos();
                     }
                 )
+                .on('postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'produtos'
+                    },
+                    () => {
+                        // Recarregar produtos quando houver mudanças
+                        _sb.from('produtos').select('*').order('nome').then(({ data }) => {
+                            PRODS = data || [];
+                            if (document.getElementById('sec-produtos') && !document.getElementById('sec-produtos').classList.contains('hidden')) {
+                                renderProdutosAdmin();
+                            }
+                            renderFiltros();
+                            renderCardapio('todos');
+                        });
+                    }
+                )
+                .on('postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'categorias'
+                    },
+                    () => {
+                        // Recarregar categorias quando houver mudanças
+                        _sb.from('categorias').select('*').order('ordem').then(({ data }) => {
+                            CATS = data || [];
+                            if (document.getElementById('sec-categorias') && !document.getElementById('sec-categorias').classList.contains('hidden')) {
+                                renderCategoriasAdmin();
+                            }
+                            renderFiltros();
+                        });
+                    }
+                )
                 .subscribe();
         }
 
-        // --- CÁLCULO DE DISTÂNCIA ---
-        function calcDist(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                     Math.sin(dLon/2) * Math.sin(dLon/2);
-            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        // --- MODAL FUNCTIONS ---
+        function abrirModal(conteudo) {
+            const modal = document.getElementById('modal-global');
+            const modalContent = modal.querySelector('.modal-content');
+            modalContent.innerHTML = conteudo;
+            modal.classList.remove('hidden');
         }
 
-        function obterGPSLoja() {
-            if (!navigator.geolocation) {
-                alert('Geolocalização não suportada pelo navegador.');
-                return;
-            }
+        function fecharModal() {
+            document.getElementById('modal-global').classList.add('hidden');
+        }
+
+        // --- GERENCIAMENTO DE PRODUTOS ---
+        function abrirModalProduto(produtoId = null) {
+            const produto = produtoId ? PRODS.find(p => p.id === produtoId) : null;
             
-            const btn = document.getElementById('btn-gps-loja');
-            const originalText = btn.innerText;
-            btn.innerText = '📍 OBTENDO LOCALIZAÇÃO...';
-            btn.disabled = true;
-            
-            navigator.geolocation.getCurrentPosition(
-                async (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
+            const modalContent = `
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-black text-lg">${produto ? 'Editar Produto' : 'Novo Produto'}</h3>
+                        <button onclick="fecharModal()" class="p-2 text-gray-400 hover:bg-gray-100 rounded-full">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                     
-                    try {
-                        await _sb.from('configuracoes').update({ 
-                            lat_pizzaria: lat, 
-                            lng_pizzaria: lng 
-                        }).eq('id', CONFIG.id || 1);
+                    <form id="form-produto" onsubmit="salvarProduto(event, '${produtoId}')" class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600 uppercase block mb-2">Nome do Produto *</label>
+                            <input type="text" name="nome" value="${produto ? produto.nome : ''}" 
+                                   class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500" 
+                                   placeholder="Ex: Pizza Marguerita" required>
+                        </div>
                         
-                        CONFIG.lat_pizzaria = lat;
-                        CONFIG.lng_pizzaria = lng;
-                        updateAdminUI();
-                        alert('Localização da loja atualizada com sucesso!');
-                    } catch (error) {
-                        console.error('Erro ao salvar localização:', error);
-                        alert('Erro ao salvar localização.');
-                    } finally {
-                        btn.innerText = originalText;
-                        btn.disabled = false;
-                    }
-                },
-                (error) => {
-                    console.error('Erro ao obter localização:', error);
-                    alert('Não foi possível obter a localização. Verifique as permissões do navegador.');
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                },
-                { 
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                }
-            );
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600 uppercase block mb-2">Descrição</label>
+                            <textarea name="descricao" rows="2" 
+                                      class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                      placeholder="Descreva o produto...">${produto ? produto.descricao || '' : ''}</textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-600 uppercase block mb-2">Preço R$ *</label>
+                                <input type="number" name="preco" value="${produto ? produto.preco : ''}" 
+                                       step="0.01" min="0"
+                                       class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500" 
+                                       placeholder="0.00" required>
+                            </div>
+                            
+                            <div>
+                                <label class="text-[10px] font-bold text-gray-600 uppercase block mb-2">Categoria *</label>
+                                <select name="categoria_id" class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500" required>
+                                    <option value="">Selecione...</option>
+                                    ${CATS.map(cat => `
+                                        <option value="${cat.id}" ${produto && produto.categoria_id === cat.id ? 'selected' : ''}>
+                                            ${cat.nome}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600 uppercase block mb-2">URL da Imagem</label>
+                            <input type="text" name="imagem_url" value="${produto ? produto.imagem_url || '' : ''}" 
+                                   class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500" 
+                                   placeholder="https://exemplo.com/imagem.jpg">
+                            <p class="text-[9px] text-gray-500 mt-1">Imagem quadrada funciona melhor (ex: 500x500px)</p>
+                        </div>
+                        
+                        <div class="flex items-center justify-between pt-4 border-t">
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="disponivel" ${produto ? (produto.disponivel !== false ? 'checked' : '') : 'checked'} 
+                                       class="h-5 w-5 rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700">Disponível para venda</span>
+                            </label>
+                            
+                            <div class="flex gap-2">
+                                ${produtoId ? `
+                                    <button type="button" onclick="confirmarExclusaoProduto('${produtoId}')" 
+                                            class="px-4 py-2 bg-red-100 text-red-700 rounded-xl text-sm font-bold hover:bg-red-200">
+                                        Excluir
+                                    </button>
+                                ` : ''}
+                                
+                                <button type="submit" class="px-6 py-2 bg-black text-white rounded-xl text-sm font-bold hover:bg-gray-800">
+                                    ${produto ? 'Atualizar' : 'Salvar'}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            abrirModal(modalContent);
         }
 
-        function obterGPSCliente() {
-            if (!CONFIG.lat_pizzaria || !CONFIG.lng_pizzaria) {
-                alert('A loja precisa configurar sua localização primeiro no painel administrativo.');
-                return;
-            }
+        async function salvarProduto(event, produtoId = null) {
+            event.preventDefault();
             
-            if (isCalculatingFrete) return;
-            
-            isCalculatingFrete = true;
-            const btn = document.getElementById('btn-gps-cli');
-            const originalText = btn.innerText;
-            btn.innerText = "⏳ LOCALIZANDO...";
-            btn.disabled = true;
-            
-            if (!navigator.geolocation) {
-                alert('Geolocalização não suportada pelo navegador.');
-                isCalculatingFrete = false;
-                btn.innerText = originalText;
-                btn.disabled = false;
-                return;
-            }
-            
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    latCli = pos.coords.latitude;
-                    lngCli = pos.coords.longitude;
-                    
-                    dKM = calcDist(
-                        Number(CONFIG.lat_pizzaria), 
-                        Number(CONFIG.lng_pizzaria), 
-                        latCli, 
-                        lngCli
-                    );
-                    
-                    const taxaBase = Number(CONFIG.taxa_base) || 0;
-                    const precoKm = Number(CONFIG.preco_km) || 0;
-                    tFRETE = taxaBase + (dKM * precoKm);
-                    
-                    // Atualizar UI
-                    document.getElementById('res-km').classList.remove('hidden');
-                    document.getElementById('dist-txt').innerText = `${dKM.toFixed(1)} km`;
-                    document.getElementById('taxa-txt').innerText = `R$ ${tFRETE.toFixed(2).replace('.', ',')}`;
-                    
-                    btn.innerText = "✅ FRETE CALCULADO";
-                    btn.classList.remove('bg-black');
-                    btn.classList.add('bg-green-600');
-                    
-                    renderCheckoutTotal();
-                    isCalculatingFrete = false;
-                    btn.disabled = false;
-                },
-                (error) => {
-                    console.error('Erro ao obter localização:', error);
-                    alert('Não foi possível obter sua localização. Verifique as permissões do navegador.');
-                    btn.innerText = originalText;
-                    btn.disabled = false;
-                    isCalculatingFrete = false;
-                },
-                { 
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: 0
-                }
-            );
-        }
-
-        // --- GERENCIAMENTO DO PEDIDO ---
-        async function enviarPedido() {
-            // Validações
-            const nome = document.getElementById('f-nome').value.trim();
-            const rua = document.getElementById('f-rua').value.trim();
-            const numero = document.getElementById('f-num').value.trim();
-            const bairro = document.getElementById('f-bairro').value.trim();
-            
-            if (!nome) {
-                alert('Por favor, informe seu nome.');
-                document.getElementById('f-nome').focus();
-                return;
-            }
-            
-            if (!rua || !numero || !bairro) {
-                alert('Por favor, preencha o endereço completo.');
-                return;
-            }
-            
-            if (tFRETE === 0 && CONFIG.taxa_base > 0) {
-                alert('Por favor, calcule o frete antes de continuar.');
-                return;
-            }
-            
-            if (CARRINHO.length === 0) {
-                alert('Seu carrinho está vazio.');
-                return;
-            }
-            
-            // Salvar em memória local
-            localStorage.setItem('p_nome', nome);
-            localStorage.setItem('p_rua', rua);
-            localStorage.setItem('p_num', numero);
-            localStorage.setItem('p_bairro', bairro);
-            localStorage.setItem('p_comp', document.getElementById('f-comp').value.trim());
-            
-            const complemento = document.getElementById('f-comp').value.trim();
-            const pagamento = document.getElementById('f-pag').value;
-            const troco = document.getElementById('f-troco').value || "Não precisa";
-            
-            // Calcular total
-            const subtotal = CARRINHO.reduce((total, item) => total + Number(item.preco), 0);
-            const total = subtotal + tFRETE;
-            
-            // Desabilitar botão durante processamento
-            const btnEnviar = document.getElementById('btn-enviar');
-            const originalText = btnEnviar.innerText;
-            btnEnviar.innerText = "PROCESSANDO...";
-            btnEnviar.disabled = true;
+            const form = event.target;
+            const formData = new FormData(form);
+            const produtoData = {
+                nome: formData.get('nome'),
+                descricao: formData.get('descricao'),
+                preco: parseFloat(formData.get('preco')),
+                categoria_id: formData.get('categoria_id'),
+                imagem_url: formData.get('imagem_url') || null,
+                disponivel: formData.get('disponivel') === 'on'
+            };
             
             try {
-                // Inserir pedido no banco
-                const { data: ped, error: pedError } = await _sb.from('pedidos').insert([{
-                    cliente_nome: nome,
-                    rua: rua,
-                    numero: numero,
-                    bairro: bairro,
-                    complemento: complemento,
-                    distancia_km: parseFloat(dKM.toFixed(1)),
-                    taxa_entrega: parseFloat(tFRETE.toFixed(2)),
-                    total: parseFloat(total.toFixed(2)),
-                    pagamento: pagamento,
-                    troco: troco,
-                    status: 'Novo'
-                }]).select();
+                if (produtoId) {
+                    // Atualizar produto existente
+                    await _sb.from('produtos').update(produtoData).eq('id', produtoId);
+                } else {
+                    // Criar novo produto
+                    await _sb.from('produtos').insert([produtoData]);
+                }
                 
-                if (pedError) throw pedError;
-                
-                // Inserir itens do pedido
-                const itens = CARRINHO.map(item => ({
-                    pedido_id: ped[0].id,
-                    produto_nome: item.nome,
-                    preco: item.preco,
-                    produto_id: item.id
-                }));
-                
-                const { error: itensError } = await _sb.from('itens_pedido').insert(itens);
-                if (itensError) throw itensError;
-                
-                // Preparar mensagem para WhatsApp
-                const telefone = CONFIG.whatsapp || '5511999999999';
-                const mensagem = `
-*NOVO PEDIDO - ${CONFIG.nome_pizzaria}*
-
-*Cliente:* ${nome}
-*Endereço:* ${rua}, ${numero}
-*Bairro:* ${bairro}
-${complemento ? `*Referência:* ${complemento}` : ''}
-
-*ITENS:*
-${CARRINHO.map(item => `• 1x ${item.nome} - R$ ${Number(item.preco).toFixed(2)}`).join('\n')}
-
-*Distância:* ${dKM.toFixed(1)} km
-*Taxa de entrega:* R$ ${tFRETE.toFixed(2)}
-*Subtotal:* R$ ${subtotal.toFixed(2)}
-*TOTAL:* R$ ${total.toFixed(2)}
-
-*Forma de pagamento:* ${pagamento}
-${pagamento === 'Dinheiro' ? `*Troco para:* R$ ${troco}` : ''}
-
-*Localização do cliente:*
-https://www.google.com/maps?q=${latCli},${lngCli}
-                `.trim();
-                
-                // Abrir WhatsApp
-                const urlWhatsapp = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
-                window.open(urlWhatsapp, '_blank');
-                
-                // Limpar carrinho e recarregar
-                CARRINHO = [];
-                document.getElementById('cart-fixed').classList.add('hidden');
-                document.getElementById('modal-checkout').classList.add('hidden');
-                
-                alert('Pedido enviado com sucesso! Verifique o WhatsApp.');
-                
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                fecharModal();
+                await loadData(); // Recarregar dados
                 
             } catch (error) {
-                console.error('Erro ao enviar pedido:', error);
-                alert('Erro ao enviar pedido. Tente novamente.');
-                btnEnviar.innerText = originalText;
-                btnEnviar.disabled = false;
+                console.error('Erro ao salvar produto:', error);
+                alert('Erro ao salvar produto. Tente novamente.');
             }
         }
 
-        // --- PAINEL ADMINISTRATIVO ---
+        async function confirmarExclusaoProduto(produtoId) {
+            if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+            
+            try {
+                await _sb.from('produtos').delete().eq('id', produtoId);
+                fecharModal();
+                await loadData();
+            } catch (error) {
+                console.error('Erro ao excluir produto:', error);
+                alert('Erro ao excluir produto.');
+            }
+        }
+
+        function filtrarProdutos(termo) {
+            const lista = document.getElementById('lista-produtos');
+            if (!lista) return;
+            
+            const produtosFiltrados = PRODS.filter(produto => 
+                produto.nome.toLowerCase().includes(termo.toLowerCase()) ||
+                (produto.descricao && produto.descricao.toLowerCase().includes(termo.toLowerCase()))
+            );
+            
+            renderProdutosLista(produtosFiltrados);
+        }
+
+        function renderProdutosAdmin() {
+            const lista = document.getElementById('lista-produtos');
+            if (!lista) return;
+            
+            if (PRODS.length === 0) {
+                lista.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-pizza-slice text-3xl mb-3 opacity-20"></i>
+                        <p>Nenhum produto cadastrado</p>
+                        <button onclick="abrirModalProduto()" class="mt-3 text-red-600 text-sm font-bold">
+                            + Criar primeiro produto
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            renderProdutosLista(PRODS);
+        }
+
+        function renderProdutosLista(produtos) {
+            const lista = document.getElementById('lista-produtos');
+            lista.innerHTML = '';
+            
+            produtos.forEach(produto => {
+                const categoria = CATS.find(c => c.id === produto.categoria_id);
+                
+                lista.innerHTML += `
+                    <div class="bg-gray-50 rounded-xl p-4 flex items-center justify-between fade-in">
+                        <div class="flex items-center space-x-4">
+                            <div class="relative">
+                                <img src="${produto.imagem_url || 'https://via.placeholder.com/60x60/F3F4F6/6B7280?text=IMG'}" 
+                                     alt="${produto.nome}"
+                                     class="w-12 h-12 object-cover rounded-lg"
+                                     onerror="this.src='https://via.placeholder.com/60x60/F3F4F6/6B7280?text=IMG'">
+                                ${produto.disponivel === false ? 
+                                    '<div class="absolute inset-0 bg-red-500/20 rounded-lg flex items-center justify-center">' +
+                                    '<span class="text-[8px] font-black text-white bg-red-500 px-1 rounded">OFF</span>' +
+                                    '</div>' : ''}
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-bold text-sm">${produto.nome}</h4>
+                                <div class="flex items-center space-x-2 mt-1">
+                                    <span class="text-red-600 font-black text-xs">R$ ${Number(produto.preco).toFixed(2)}</span>
+                                    <span class="text-[10px] bg-gray-200 px-2 py-0.5 rounded">${categoria ? categoria.nome : 'Sem categoria'}</span>
+                                </div>
+                                ${produto.descricao ? `<p class="text-[10px] text-gray-500 mt-1 truncate max-w-[200px]">${produto.descricao}</p>` : ''}
+                            </div>
+                        </div>
+                        
+                        <button onclick="abrirModalProduto('${produto.id}')" 
+                                class="text-gray-400 hover:text-black p-2">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // --- GERENCIAMENTO DE CATEGORIAS ---
+        function abrirModalCategoria(categoriaId = null) {
+            const categoria = categoriaId ? CATS.find(c => c.id === categoriaId) : null;
+            
+            const modalContent = `
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-black text-lg">${categoria ? 'Editar Categoria' : 'Nova Categoria'}</h3>
+                        <button onclick="fecharModal()" class="p-2 text-gray-400 hover:bg-gray-100 rounded-full">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="form-categoria" onsubmit="salvarCategoria(event, '${categoriaId}')" class="space-y-4">
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600 uppercase block mb-2">Nome da Categoria *</label>
+                            <input type="text" name="nome" value="${categoria ? categoria.nome : ''}" 
+                                   class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500" 
+                                   placeholder="Ex: Pizzas, Bebidas, Sobremesas" required>
+                        </div>
+                        
+                        <div>
+                            <label class="text-[10px] font-bold text-gray-600 uppercase block mb-2">Descrição</label>
+                            <textarea name="descricao" rows="2" 
+                                      class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                                      placeholder="Descrição opcional...">${categoria ? categoria.descricao || '' : ''}</textarea>
+                        </div>
+                        
+                        <div class="flex items-center justify-between pt-4 border-t">
+                            <label class="flex items-center space-x-3">
+                                <input type="checkbox" name="ativa" ${categoria ? (categoria.ativa !== false ? 'checked' : '') : 'checked'} 
+                                       class="h-5 w-5 rounded border-gray-300">
+                                <span class="text-sm font-medium text-gray-700">Categoria ativa</span>
+                            </label>
+                            
+                            <div class="flex gap-2">
+                                ${categoriaId && categoriaId !== 'todos' ? `
+                                    <button type="button" onclick="confirmarExclusaoCategoria('${categoriaId}')" 
+                                            class="px-4 py-2 bg-red-100 text-red-700 rounded-xl text-sm font-bold hover:bg-red-200">
+                                        Excluir
+                                    </button>
+                                ` : ''}
+                                
+                                <button type="submit" class="px-6 py-2 bg-black text-white rounded-xl text-sm font-bold hover:bg-gray-800">
+                                    ${categoria ? 'Atualizar' : 'Salvar'}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            abrirModal(modalContent);
+        }
+
+        async function salvarCategoria(event, categoriaId = null) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            const categoriaData = {
+                nome: formData.get('nome'),
+                descricao: formData.get('descricao'),
+                ativa: formData.get('ativa') === 'on',
+                ordem: categoriaId ? CATS.find(c => c.id === categoriaId)?.ordem : CATS.length + 1
+            };
+            
+            try {
+                if (categoriaId) {
+                    // Atualizar categoria existente
+                    await _sb.from('categorias').update(categoriaData).eq('id', categoriaId);
+                } else {
+                    // Criar nova categoria
+                    await _sb.from('categorias').insert([categoriaData]);
+                }
+                
+                fecharModal();
+                await loadData();
+                
+            } catch (error) {
+                console.error('Erro ao salvar categoria:', error);
+                alert('Erro ao salvar categoria. Tente novamente.');
+            }
+        }
+
+        async function confirmarExclusaoCategoria(categoriaId) {
+            // Verificar se há produtos nesta categoria
+            const produtosNaCategoria = PRODS.filter(p => p.categoria_id === categoriaId);
+            
+            if (produtosNaCategoria.length > 0) {
+                if (!confirm(`Esta categoria tem ${produtosNaCategoria.length} produto(s). Ao excluir, os produtos ficarão sem categoria. Continuar?`)) {
+                    return;
+                }
+            }
+            
+            if (!confirm('Tem certeza que deseja excluir esta categoria?')) return;
+            
+            try {
+                await _sb.from('categorias').delete().eq('id', categoriaId);
+                fecharModal();
+                await loadData();
+            } catch (error) {
+                console.error('Erro ao excluir categoria:', error);
+                alert('Erro ao excluir categoria.');
+            }
+        }
+
+        function setupDragAndDrop() {
+            // Esta função será usada para reordenar categorias
+        }
+
+        async function atualizarOrdemCategorias(categoriasOrdenadas) {
+            try {
+                // Atualizar ordem de todas as categorias
+                const updates = categoriasOrdenadas.map((cat, index) => ({
+                    id: cat.id,
+                    ordem: index + 1
+                }));
+                
+                // Fazer update em lote (um por um por enquanto)
+                for (const update of updates) {
+                    await _sb.from('categorias').update({ ordem: update.ordem }).eq('id', update.id);
+                }
+                
+                await loadData(); // Recarregar categorias
+                
+            } catch (error) {
+                console.error('Erro ao atualizar ordem:', error);
+                alert('Erro ao atualizar ordem das categorias.');
+            }
+        }
+
+        function renderCategoriasAdmin() {
+            const lista = document.getElementById('lista-categorias');
+            if (!lista) return;
+            
+            // Filtrar categorias ativas primeiro
+            const categoriasAtivas = CATS.filter(c => c.ativa !== false);
+            const categoriasInativas = CATS.filter(c => c.ativa === false);
+            
+            if (categoriasAtivas.length === 0 && categoriasInativas.length === 0) {
+                lista.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-tags text-3xl mb-3 opacity-20"></i>
+                        <p>Nenhuma categoria cadastrada</p>
+                        <button onclick="abrirModalCategoria()" class="mt-3 text-red-600 text-sm font-bold">
+                            + Criar primeira categoria
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            lista.innerHTML = '';
+            
+            // Categorias ativas
+            if (categoriasAtivas.length > 0) {
+                lista.innerHTML += `
+                    <div class="mb-4">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase mb-2">Categorias Ativas (${categoriasAtivas.length})</h4>
+                        <div id="categorias-ativas" class="space-y-2">
+                            ${categoriasAtivas.map((cat, index) => `
+                                <div class="draggable-item bg-white border rounded-xl p-4 flex items-center justify-between cursor-move"
+                                     draggable="true"
+                                     ondragstart="dragStart(event, '${cat.id}')"
+                                     ondragover="dragOver(event)"
+                                     ondrop="drop(event, '${cat.id}')">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="text-gray-300">
+                                            <i class="fas fa-grip-vertical"></i>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-bold text-sm">${cat.nome}</h4>
+                                            <div class="flex items-center space-x-2 mt-1">
+                                                <span class="status-badge status-ativo">Ativa</span>
+                                                <span class="text-[10px] text-gray-500">Ordem: ${cat.ordem || index + 1}</span>
+                                            </div>
+                                            ${cat.descricao ? `<p class="text-[10px] text-gray-500 mt-1">${cat.descricao}</p>` : ''}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-[10px] bg-gray-100 px-2 py-1 rounded">
+                                            ${PRODS.filter(p => p.categoria_id === cat.id).length} produtos
+                                        </span>
+                                        <button onclick="abrirModalCategoria('${cat.id}')" 
+                                                class="text-gray-400 hover:text-black p-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Categorias inativas
+            if (categoriasInativas.length > 0) {
+                lista.innerHTML += `
+                    <div>
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase mb-2">Categorias Inativas (${categoriasInativas.length})</h4>
+                        <div class="space-y-2">
+                            ${categoriasInativas.map(cat => `
+                                <div class="bg-gray-50 border border-dashed rounded-xl p-4 flex items-center justify-between opacity-70">
+                                    <div class="flex items-center space-x-3">
+                                        <div>
+                                            <h4 class="font-bold text-sm">${cat.nome}</h4>
+                                            <div class="flex items-center space-x-2 mt-1">
+                                                <span class="status-badge status-inativo">Inativa</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-[10px] bg-gray-200 px-2 py-1 rounded">
+                                            ${PRODS.filter(p => p.categoria_id === cat.id).length} produtos
+                                        </span>
+                                        <button onclick="abrirModalCategoria('${cat.id}')" 
+                                                class="text-gray-400 hover:text-black p-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Configurar eventos de drag and drop
+            setupDragEvents();
+        }
+
+        // Drag and Drop Functions
+        function dragStart(event, categoriaId) {
+            draggedItem = categoriaId;
+            event.dataTransfer.effectAllowed = 'move';
+            event.currentTarget.classList.add('dragging');
+        }
+
+        function dragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+        }
+
+        function drop(event, categoriaId) {
+            event.preventDefault();
+            
+            if (draggedItem === categoriaId) return;
+            
+            // Reordenar categorias
+            const draggedIndex = CATS.findIndex(c => c.id === draggedItem);
+            const targetIndex = CATS.findIndex(c => c.id === categoriaId);
+            
+            if (draggedIndex > -1 && targetIndex > -1) {
+                // Mover item no array
+                const [movedItem] = CATS.splice(draggedIndex, 1);
+                CATS.splice(targetIndex, 0, movedItem);
+                
+                // Atualizar ordem numérica
+                CATS.forEach((cat, index) => {
+                    cat.ordem = index + 1;
+                });
+                
+                // Atualizar no banco de dados
+                atualizarOrdemCategorias(CATS);
+                
+                // Renderizar novamente
+                renderCategoriasAdmin();
+            }
+            
+            // Remover classe dragging
+            document.querySelectorAll('.draggable-item').forEach(item => {
+                item.classList.remove('dragging');
+            });
+            
+            draggedItem = null;
+        }
+
+        function setupDragEvents() {
+            const draggableItems = document.querySelectorAll('.draggable-item');
+            
+            draggableItems.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    e.currentTarget.classList.add('dragging');
+                });
+                
+                item.addEventListener('dragend', (e) => {
+                    e.currentTarget.classList.remove('dragging');
+                });
+            });
+            
+            const dropzones = document.querySelectorAll('#categorias-ativas');
+            dropzones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const afterElement = getDragAfterElement(zone, e.clientY);
+                    const draggable = document.querySelector('.dragging');
+                    
+                    if (afterElement == null) {
+                        zone.appendChild(draggable);
+                    } else {
+                        zone.insertBefore(draggable, afterElement);
+                    }
+                });
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.draggable-item:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        // --- FUNÇÕES DO CARDÁPIO (CLIENTE) ---
+        function renderFiltros() {
+            const div = document.getElementById('filtros');
+            if (!div) return;
+            
+            // Mostrar apenas categorias ativas para o cliente
+            const categoriasAtivas = CATS.filter(c => c.ativa !== false);
+            
+            div.innerHTML = `
+                <button onclick="renderCardapio('todos')" 
+                        class="bg-black text-white px-6 py-2 rounded-full font-black text-[10px] italic hover:bg-gray-800 transition-colors">
+                    TODOS
+                </button>
+            `;
+            
+            categoriasAtivas.forEach(categoria => {
+                div.innerHTML += `
+                    <button onclick="renderCardapio('${categoria.id}')" 
+                            class="bg-white text-gray-400 border px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-sm hover:bg-gray-50 hover:text-black transition-colors">
+                        ${categoria.nome}
+                    </button>
+                `;
+            });
+        }
+
+        function renderCardapio(categoriaId) {
+            const div = document.getElementById('cardapio');
+            if (!div) return;
+            
+            div.innerHTML = '';
+            
+            // Filtrar produtos
+            let produtosFiltrados = [];
+            if (categoriaId === 'todos') {
+                produtosFiltrados = PRODS.filter(p => p.disponivel !== false);
+            } else {
+                produtosFiltrados = PRODS.filter(p => 
+                    p.categoria_id === categoriaId && p.disponivel !== false
+                );
+            }
+            
+            // Verificar se há produtos
+            if (produtosFiltrados.length === 0) {
+                div.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-pizza-slice text-3xl text-gray-300 mb-3"></i>
+                        <p class="text-gray-500">Nenhum produto disponível nesta categoria</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Renderizar produtos
+            produtosFiltrados.forEach(produto => {
+                const categoria = CATS.find(c => c.id === produto.categoria_id);
+                
+                div.innerHTML += `
+                    <div class="bg-white rounded-[35px] shadow-sm p-4 flex gap-4 border border-gray-50 items-center fade-in hover:shadow-md transition-shadow">
+                        <img src="${produto.imagem_url || 'https://via.placeholder.com/80x80/F3F4F6/6B7280?text=PIZZA'}" 
+                             alt="${produto.nome}"
+                             class="w-16 h-16 object-cover rounded-xl"
+                             onerror="this.src='https://via.placeholder.com/80x80/F3F4F6/6B7280?text=IMG'">
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <h3 class="font-black text-xs uppercase italic">${produto.nome}</h3>
+                                ${categoria ? `<span class="text-[8px] bg-gray-100 px-2 py-0.5 rounded-full">${categoria.nome}</span>` : ''}
+                            </div>
+                            ${produto.descricao ? `<p class="text-[10px] text-gray-500 mt-1">${produto.descricao}</p>` : ''}
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-red-600 font-black text-sm italic">
+                                    R$ ${Number(produto.preco).toFixed(2).replace('.', ',')}
+                                </span>
+                                <button onclick="addCart('${produto.id}')" 
+                                        class="bg-yellow-400 w-9 h-9 rounded-xl font-black text-xl shadow hover:bg-yellow-500 transition-colors active:scale-95"
+                                        ${!CONFIG.loja_aberta ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- FUNÇÕES RESTANTES (mantidas do código anterior) ---
+        function addCart(produtoId) {
+            if (!CONFIG.loja_aberta) {
+                alert("⚠️ Estamos fechados no momento. Volte durante nosso horário de funcionamento.");
+                return;
+            }
+            
+            const produto = PRODS.find(p => p.id === produtoId);
+            if (!produto) return;
+            
+            CARRINHO.push(produto);
+            
+            // Atualizar total do carrinho
+            const total = CARRINHO.reduce((soma, item) => soma + Number(item.preco), 0);
+            document.getElementById('cart-total-display').innerText = 
+                `R$ ${total.toFixed(2).replace('.', ',')}`;
+            
+            // Mostrar botão do carrinho
+            document.getElementById('cart-fixed').classList.remove('hidden');
+            
+            // Feedback visual
+            const btn = event.target;
+            btn.classList.add('pulse-button');
+            setTimeout(() => {
+                btn.classList.remove('pulse-button');
+            }, 300);
+        }
+
+        function renderCheckoutTotal() {
+            const subtotal = CARRINHO.reduce((soma, item) => soma + Number(item.preco), 0);
+            const total = subtotal + tFRETE;
+            
+            document.getElementById('res-total').innerText = 
+                `R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        function voltarParaCliente() {
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-cliente').classList.remove('hidden');
+        }
+
+        function abrirAdmin() {
+            const senha = prompt("Digite a senha de administrador:");
+            if (senha === "123") { // ⚠️ Em produção, use autenticação segura!
+                document.getElementById('view-cliente').classList.add('hidden');
+                document.getElementById('view-admin').classList.remove('hidden');
+                switchTab('pedidos');
+            } else if (senha !== null) {
+                alert("Senha incorreta!");
+            }
+        }
+
+        function fecharCheckout() {
+            document.getElementById('modal-checkout').classList.add('hidden');
+        }
+
+        function abrirCheckout() {
+            if (CARRINHO.length === 0) {
+                alert("Seu carrinho está vazio!");
+                return;
+            }
+            
+            if (!CONFIG.loja_aberta) {
+                alert("⚠️ Estamos fechados no momento. Não é possível realizar pedidos.");
+                return;
+            }
+            
+            document.getElementById('modal-checkout').classList.remove('hidden');
+            renderCheckoutTotal();
+        }
+
+        function switchTab(aba) {
+            // Atualizar tabs
+            ['pedidos', 'produtos', 'categorias', 'config'].forEach(tab => {
+                const secao = document.getElementById(`sec-${tab}`);
+                const botao = document.getElementById(`tab-${tab}`);
+                
+                if (secao && botao) {
+                    secao.classList.toggle('hidden', tab !== aba);
+                    botao.classList.toggle('tab-active', tab === aba);
+                }
+            });
+            
+            // Carregar conteúdo específico da aba
+            switch(aba) {
+                case 'pedidos':
+                    loadPedidos();
+                    break;
+                case 'produtos':
+                    renderProdutosAdmin();
+                    break;
+                case 'categorias':
+                    renderCategoriasAdmin();
+                    break;
+                case 'config':
+                    // Config já está carregada
+                    break;
+            }
+        }
+
+        // --- FUNÇÕES DE PEDIDOS (mantidas do código anterior) ---
         async function loadPedidos() {
             try {
                 document.getElementById('loading-pedidos').classList.remove('hidden');
@@ -771,6 +1470,7 @@ https://www.google.com/maps?q=${latCli},${lngCli}
                 if (!data || data.length === 0) {
                     div.innerHTML = `
                         <div class="text-center py-8">
+                            <i class="fas fa-shopping-cart text-3xl text-gray-300 mb-3"></i>
                             <p class="text-gray-500">Nenhum pedido encontrado</p>
                         </div>
                     `;
@@ -807,8 +1507,8 @@ https://www.google.com/maps?q=${latCli},${lngCli}
                             </div>
                             
                             <div class="text-[9px] text-gray-500 my-2">
-                                📍 ${pedido.rua}, ${pedido.numero} - ${pedido.bairro}
-                                ${pedido.complemento ? `<br>🔹 ${pedido.complemento}` : ''}
+                                <i class="fas fa-map-marker-alt mr-1"></i> ${pedido.rua}, ${pedido.numero} - ${pedido.bairro}
+                                ${pedido.complemento ? `<br><i class="fas fa-flag mr-1"></i> ${pedido.complemento}` : ''}
                             </div>
                             
                             <div class="text-[9px] font-bold py-2 my-2 border-y border-dashed">
@@ -829,7 +1529,7 @@ https://www.google.com/maps?q=${latCli},${lngCli}
                                     <button onclick="imprimirPedido('${pedido.id}')" 
                                             class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold hover:bg-gray-200 transition-colors"
                                             title="Imprimir">
-                                        🖨️
+                                        <i class="fas fa-print"></i>
                                     </button>
                                     
                                     <select onchange="updateStatus('${pedido.id}', this.value)" 
@@ -850,6 +1550,7 @@ https://www.google.com/maps?q=${latCli},${lngCli}
                 console.error('Erro ao carregar pedidos:', error);
                 document.getElementById('sec-pedidos').innerHTML = `
                     <div class="text-center py-8 text-red-500">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
                         Erro ao carregar pedidos. Tente novamente.
                     </div>
                 `;
@@ -932,178 +1633,6 @@ https://www.google.com/maps?q=${latCli},${lngCli}
             }
         }
 
-        // --- GERENCIAMENTO DO CARDÁPIO ---
-        function renderFiltros() {
-            const div = document.getElementById('filtros');
-            if (!div) return;
-            
-            div.innerHTML = `
-                <button onclick="renderCardapio('todos')" 
-                        class="bg-black text-white px-6 py-2 rounded-full font-black text-[10px] italic hover:bg-gray-800 transition-colors">
-                    TODOS
-                </button>
-            `;
-            
-            CATS.forEach(categoria => {
-                div.innerHTML += `
-                    <button onclick="renderCardapio('${categoria.id}')" 
-                            class="bg-white text-gray-400 border px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-sm hover:bg-gray-50 hover:text-black transition-colors">
-                        ${categoria.nome}
-                    </button>
-                `;
-            });
-        }
-
-        function renderCardapio(categoriaId) {
-            const div = document.getElementById('cardapio');
-            if (!div) return;
-            
-            div.innerHTML = '';
-            
-            // Filtrar produtos
-            let produtosFiltrados = [];
-            if (categoriaId === 'todos') {
-                produtosFiltrados = PRODS.filter(p => p.disponivel !== false);
-            } else {
-                produtosFiltrados = PRODS.filter(p => 
-                    p.categoria_id === categoriaId && p.disponivel !== false
-                );
-            }
-            
-            // Verificar se há produtos
-            if (produtosFiltrados.length === 0) {
-                div.innerHTML = `
-                    <div class="text-center py-8">
-                        <p class="text-gray-500">Nenhum produto disponível nesta categoria</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            // Renderizar produtos
-            produtosFiltrados.forEach(produto => {
-                div.innerHTML += `
-                    <div class="bg-white rounded-[35px] shadow-sm p-4 flex gap-4 border border-gray-50 items-center fade-in hover:shadow-md transition-shadow">
-                        <img src="${produto.imagem_url || 'https://via.placeholder.com/80x80/F3F4F6/6B7280?text=PIZZA'}" 
-                             alt="${produto.nome}"
-                             class="w-16 h-16 object-cover rounded-xl"
-                             onerror="this.src='https://via.placeholder.com/80x80/F3F4F6/6B7280?text=IMG'">
-                        <div class="flex-1">
-                            <h3 class="font-black text-xs uppercase italic">${produto.nome}</h3>
-                            ${produto.descricao ? `<p class="text-[10px] text-gray-500 mt-1">${produto.descricao}</p>` : ''}
-                            <div class="flex justify-between items-center mt-2">
-                                <span class="text-red-600 font-black text-sm italic">
-                                    R$ ${Number(produto.preco).toFixed(2).replace('.', ',')}
-                                </span>
-                                <button onclick="addCart('${produto.id}')" 
-                                        class="bg-yellow-400 w-9 h-9 rounded-xl font-black text-xl shadow hover:bg-yellow-500 transition-colors active:scale-95"
-                                        ${!CONFIG.loja_aberta ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
-                                    +
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function addCart(produtoId) {
-            if (!CONFIG.loja_aberta) {
-                alert("⚠️ Estamos fechados no momento. Volte durante nosso horário de funcionamento.");
-                return;
-            }
-            
-            const produto = PRODS.find(p => p.id === produtoId);
-            if (!produto) return;
-            
-            CARRINHO.push(produto);
-            
-            // Atualizar total do carrinho
-            const total = CARRINHO.reduce((soma, item) => soma + Number(item.preco), 0);
-            document.getElementById('cart-total-display').innerText = 
-                `R$ ${total.toFixed(2).replace('.', ',')}`;
-            
-            // Mostrar botão do carrinho
-            document.getElementById('cart-fixed').classList.remove('hidden');
-            
-            // Feedback visual
-            const btn = event.target;
-            btn.classList.add('pulse-button');
-            setTimeout(() => {
-                btn.classList.remove('pulse-button');
-            }, 300);
-        }
-
-        function renderCheckoutTotal() {
-            const subtotal = CARRINHO.reduce((soma, item) => soma + Number(item.preco), 0);
-            const total = subtotal + tFRETE;
-            
-            document.getElementById('res-total').innerText = 
-                `R$ ${total.toFixed(2).replace('.', ',')}`;
-        }
-
-        // --- FUNÇÕES DE NAVEGAÇÃO ---
-        function abrirAdmin() {
-            const senha = prompt("Digite a senha de administrador:");
-            if (senha === "123") { // ⚠️ Em produção, use autenticação segura!
-                document.getElementById('view-cliente').classList.add('hidden');
-                document.getElementById('view-admin').classList.remove('hidden');
-                switchTab('pedidos');
-            } else if (senha !== null) {
-                alert("Senha incorreta!");
-            }
-        }
-
-        function fecharCheckout() {
-            document.getElementById('modal-checkout').classList.add('hidden');
-        }
-
-        function abrirCheckout() {
-            if (CARRINHO.length === 0) {
-                alert("Seu carrinho está vazio!");
-                return;
-            }
-            
-            if (!CONFIG.loja_aberta) {
-                alert("⚠️ Estamos fechados no momento. Não é possível realizar pedidos.");
-                return;
-            }
-            
-            document.getElementById('modal-checkout').classList.remove('hidden');
-            renderCheckoutTotal();
-        }
-
-        function switchTab(aba) {
-            // Atualizar tabs
-            ['pedidos', 'produtos', 'config'].forEach(tab => {
-                const secao = document.getElementById(`sec-${tab}`);
-                const botao = document.getElementById(`tab-${tab}`);
-                
-                if (secao && botao) {
-                    secao.classList.toggle('hidden', tab !== aba);
-                    botao.classList.toggle('tab-active', tab === aba);
-                }
-            });
-            
-            // Carregar conteúdo específico da aba
-            switch(aba) {
-                case 'pedidos':
-                    loadPedidos();
-                    break;
-                case 'produtos':
-                    // Futuro: implementar gerenciamento de produtos
-                    document.getElementById('adm-prod-list').innerHTML = `
-                        <div class="text-center py-8">
-                            <p class="text-gray-500">Gerenciamento de produtos em desenvolvimento</p>
-                            <p class="text-[10px] text-gray-400 mt-2">
-                                Por enquanto, gerencie produtos diretamente no Supabase
-                            </p>
-                        </div>
-                    `;
-                    break;
-            }
-        }
-
         async function salvarConfig() {
             // Validar campos obrigatórios
             const nome = document.getElementById('adm-nome').value.trim();
@@ -1147,8 +1676,260 @@ https://www.google.com/maps?q=${latCli},${lngCli}
             }
         }
 
+        // --- FUNÇÕES DE LOCALIZAÇÃO E FRETE (mantidas) ---
+        function calcDist(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                     Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        }
+
+        function obterGPSLoja() {
+            if (!navigator.geolocation) {
+                alert('Geolocalização não suportada pelo navegador.');
+                return;
+            }
+            
+            const btn = document.getElementById('btn-gps-loja');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> OBTENDO LOCALIZAÇÃO...';
+            btn.disabled = true;
+            
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    
+                    try {
+                        await _sb.from('configuracoes').update({ 
+                            lat_pizzaria: lat, 
+                            lng_pizzaria: lng 
+                        }).eq('id', CONFIG.id || 1);
+                        
+                        CONFIG.lat_pizzaria = lat;
+                        CONFIG.lng_pizzaria = lng;
+                        updateAdminUI();
+                        alert('Localização da loja atualizada com sucesso!');
+                    } catch (error) {
+                        console.error('Erro ao salvar localização:', error);
+                        alert('Erro ao salvar localização.');
+                    } finally {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                    }
+                },
+                (error) => {
+                    console.error('Erro ao obter localização:', error);
+                    alert('Não foi possível obter a localização. Verifique as permissões do navegador.');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                },
+                { 
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        function obterGPSCliente() {
+            if (!CONFIG.lat_pizzaria || !CONFIG.lng_pizzaria) {
+                alert('A loja precisa configurar sua localização primeiro no painel administrativo.');
+                return;
+            }
+            
+            if (isCalculatingFrete) return;
+            
+            isCalculatingFrete = true;
+            const btn = document.getElementById('btn-gps-cli');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> LOCALIZANDO...';
+            btn.disabled = true;
+            
+            if (!navigator.geolocation) {
+                alert('Geolocalização não suportada pelo navegador.');
+                isCalculatingFrete = false;
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    latCli = pos.coords.latitude;
+                    lngCli = pos.coords.longitude;
+                    
+                    dKM = calcDist(
+                        Number(CONFIG.lat_pizzaria), 
+                        Number(CONFIG.lng_pizzaria), 
+                        latCli, 
+                        lngCli
+                    );
+                    
+                    const taxaBase = Number(CONFIG.taxa_base) || 0;
+                    const precoKm = Number(CONFIG.preco_km) || 0;
+                    tFRETE = taxaBase + (dKM * precoKm);
+                    
+                    // Atualizar UI
+                    document.getElementById('res-km').classList.remove('hidden');
+                    document.getElementById('dist-txt').innerText = `${dKM.toFixed(1)} km`;
+                    document.getElementById('taxa-txt').innerText = `R$ ${tFRETE.toFixed(2).replace('.', ',')}`;
+                    
+                    btn.innerHTML = '<i class="fas fa-check mr-2"></i> FRETE CALCULADO';
+                    btn.classList.remove('bg-black');
+                    btn.classList.add('bg-green-600');
+                    
+                    renderCheckoutTotal();
+                    isCalculatingFrete = false;
+                    btn.disabled = false;
+                },
+                (error) => {
+                    console.error('Erro ao obter localização:', error);
+                    alert('Não foi possível obter sua localização. Verifique as permissões do navegador.');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    isCalculatingFrete = false;
+                },
+                { 
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        async function enviarPedido() {
+            // Validações
+            const nome = document.getElementById('f-nome').value.trim();
+            const rua = document.getElementById('f-rua').value.trim();
+            const numero = document.getElementById('f-num').value.trim();
+            const bairro = document.getElementById('f-bairro').value.trim();
+            
+            if (!nome) {
+                alert('Por favor, informe seu nome.');
+                document.getElementById('f-nome').focus();
+                return;
+            }
+            
+            if (!rua || !numero || !bairro) {
+                alert('Por favor, preencha o endereço completo.');
+                return;
+            }
+            
+            if (tFRETE === 0 && CONFIG.taxa_base > 0) {
+                alert('Por favor, calcule o frete antes de continuar.');
+                return;
+            }
+            
+            if (CARRINHO.length === 0) {
+                alert('Seu carrinho está vazio.');
+                return;
+            }
+            
+            // Salvar em memória local
+            localStorage.setItem('p_nome', nome);
+            localStorage.setItem('p_rua', rua);
+            localStorage.setItem('p_num', numero);
+            localStorage.setItem('p_bairro', bairro);
+            localStorage.setItem('p_comp', document.getElementById('f-comp').value.trim());
+            
+            const complemento = document.getElementById('f-comp').value.trim();
+            const pagamento = document.getElementById('f-pag').value;
+            const troco = document.getElementById('f-troco').value || "Não precisa";
+            
+            // Calcular total
+            const subtotal = CARRINHO.reduce((total, item) => total + Number(item.preco), 0);
+            const total = subtotal + tFRETE;
+            
+            // Desabilitar botão durante processamento
+            const btnEnviar = document.getElementById('btn-enviar');
+            const originalText = btnEnviar.innerHTML;
+            btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> PROCESSANDO...';
+            btnEnviar.disabled = true;
+            
+            try {
+                // Inserir pedido no banco
+                const { data: ped, error: pedError } = await _sb.from('pedidos').insert([{
+                    cliente_nome: nome,
+                    rua: rua,
+                    numero: numero,
+                    bairro: bairro,
+                    complemento: complemento,
+                    distancia_km: parseFloat(dKM.toFixed(1)),
+                    taxa_entrega: parseFloat(tFRETE.toFixed(2)),
+                    total: parseFloat(total.toFixed(2)),
+                    pagamento: pagamento,
+                    troco: troco,
+                    status: 'Novo'
+                }]).select();
+                
+                if (pedError) throw pedError;
+                
+                // Inserir itens do pedido
+                const itens = CARRINHO.map(item => ({
+                    pedido_id: ped[0].id,
+                    produto_nome: item.nome,
+                    preco: item.preco,
+                    produto_id: item.id
+                }));
+                
+                const { error: itensError } = await _sb.from('itens_pedido').insert(itens);
+                if (itensError) throw itensError;
+                
+                // Preparar mensagem para WhatsApp
+                const telefone = CONFIG.whatsapp || '5511999999999';
+                const mensagem = `
+*NOVO PEDIDO - ${CONFIG.nome_pizzaria}*
+
+*Cliente:* ${nome}
+*Endereço:* ${rua}, ${numero}
+*Bairro:* ${bairro}
+${complemento ? `*Referência:* ${complemento}` : ''}
+
+*ITENS:*
+${CARRINHO.map(item => `• 1x ${item.nome} - R$ ${Number(item.preco).toFixed(2)}`).join('\n')}
+
+*Distância:* ${dKM.toFixed(1)} km
+*Taxa de entrega:* R$ ${tFRETE.toFixed(2)}
+*Subtotal:* R$ ${subtotal.toFixed(2)}
+*TOTAL:* R$ ${total.toFixed(2)}
+
+*Forma de pagamento:* ${pagamento}
+${pagamento === 'Dinheiro' ? `*Troco para:* R$ ${troco}` : ''}
+
+*Localização do cliente:*
+https://www.google.com/maps?q=${latCli},${lngCli}
+                `.trim();
+                
+                // Abrir WhatsApp
+                const urlWhatsapp = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
+                window.open(urlWhatsapp, '_blank');
+                
+                // Limpar carrinho e recarregar
+                CARRINHO = [];
+                document.getElementById('cart-fixed').classList.add('hidden');
+                document.getElementById('modal-checkout').classList.add('hidden');
+                
+                alert('Pedido enviado com sucesso! Verifique o WhatsApp.');
+                
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Erro ao enviar pedido:', error);
+                alert('Erro ao enviar pedido. Tente novamente.');
+                btnEnviar.innerHTML = originalText;
+                btnEnviar.disabled = false;
+            }
+        }
+
         // Expor funções globalmente
         window.abrirAdmin = abrirAdmin;
+        window.voltarParaCliente = voltarParaCliente;
         window.fecharCheckout = fecharCheckout;
         window.abrirCheckout = abrirCheckout;
         window.obterGPSCliente = obterGPSCliente;
@@ -1161,6 +1942,13 @@ https://www.google.com/maps?q=${latCli},${lngCli}
         window.salvarConfig = salvarConfig;
         window.renderCardapio = renderCardapio;
         window.addCart = addCart;
+        window.abrirModalProduto = abrirModalProduto;
+        window.abrirModalCategoria = abrirModalCategoria;
+        window.filtrarProdutos = filtrarProdutos;
+        window.dragStart = dragStart;
+        window.dragOver = dragOver;
+        window.drop = drop;
+        window.fecharModal = fecharModal;
     </script>
 </body>
 </html>
