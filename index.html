@@ -8,25 +8,139 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .hidden { display: none !important; }
-        .tab-active { border-bottom: 4px solid #ef4444; color: #ef4444; font-weight: 800; }
-        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background: #f8fafc; 
+            -webkit-tap-highlight-color: transparent;
+        }
+        .no-scrollbar::-webkit-scrollbar { 
+            display: none; 
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hidden { 
+            display: none !important; 
+        }
+        .tab-active { 
+            border-bottom: 4px solid #ef4444; 
+            color: #ef4444; 
+            font-weight: 800; 
+        }
+        .glass { 
+            background: rgba(255, 255, 255, 0.9); 
+            backdrop-filter: blur(10px); 
+        }
         
         @media print {
-            body * { visibility: hidden; }
-            #secao-impressao, #secao-impressao * { visibility: visible; }
-            #secao-impressao { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 10px; }
+            body * { 
+                visibility: hidden; 
+            }
+            #secao-impressao, 
+            #secao-impressao * { 
+                visibility: visible; 
+            }
+            #secao-impressao { 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100%; 
+                border: none; 
+                padding: 10px;
+                background: white;
+                z-index: 9999;
+            }
         }
 
         /* Estilo Botão Toggle */
-        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #10b981; }
-        input:checked + .slider:before { transform: translateX(24px); }
+        .switch { 
+            position: relative; 
+            display: inline-block; 
+            width: 50px; 
+            height: 26px; 
+        }
+        .switch input { 
+            opacity: 0; 
+            width: 0; 
+            height: 0; 
+        }
+        .slider { 
+            position: absolute; 
+            cursor: pointer; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background-color: #ccc; 
+            transition: .4s; 
+            border-radius: 34px; 
+        }
+        .slider:before { 
+            position: absolute; 
+            content: ""; 
+            height: 18px; 
+            width: 18px; 
+            left: 4px; 
+            bottom: 4px; 
+            background-color: white; 
+            transition: .4s; 
+            border-radius: 50%; 
+        }
+        input:checked + .slider { 
+            background-color: #10b981; 
+        }
+        input:checked + .slider:before { 
+            transform: translateX(24px); 
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .pulse-button {
+            animation: pulse 2s infinite;
+        }
+
+        /* Estilos para elementos desabilitados */
+        .disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Estilos de loading */
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            from { left: -100%; }
+            to { left: 100%; }
+        }
     </style>
 </head>
 <body>
@@ -37,17 +151,23 @@
     <!-- [VISÃO CLIENTE] -->
     <div id="view-cliente" class="max-w-md mx-auto min-h-screen pb-32">
         <header class="bg-white p-6 rounded-b-[45px] shadow-sm text-center relative border-b">
-            <img id="cli-logo" src="" class="h-16 w-16 mx-auto mb-2 object-contain hidden rounded-2xl shadow">
+            <img id="cli-logo" src="" alt="Logo da Pizzaria" class="h-16 w-16 mx-auto mb-2 object-contain hidden rounded-2xl shadow">
             <h1 id="cli-nome" class="text-xl font-black italic uppercase tracking-tighter">Carregando...</h1>
             <div id="cli-status" class="inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border italic uppercase"></div>
-            <button onclick="abrirAdmin()" class="absolute top-4 right-4 text-gray-200">⚙️</button>
+            <button onclick="abrirAdmin()" class="absolute top-4 right-4 text-gray-200 bg-gray-800/20 rounded-full p-2 hover:bg-gray-800/30 transition-colors" aria-label="Abrir administração">⚙️</button>
         </header>
 
         <nav id="filtros" class="flex gap-2 p-4 overflow-x-auto no-scrollbar sticky top-0 z-20 glass"></nav>
+        
+        <!-- Mensagem de loja fechada -->
+        <div id="loja-fechada-msg" class="hidden mx-4 p-4 bg-yellow-50 border border-yellow-200 rounded-2xl text-center">
+            <p class="text-yellow-800 font-bold text-sm">⚠️ Estamos fechados no momento. Volte durante nosso horário de funcionamento.</p>
+        </div>
+        
         <main id="cardapio" class="p-4 space-y-4"></main>
 
-        <div id="cart-fixed" class="fixed bottom-6 left-0 right-0 px-6 hidden z-30">
-            <button onclick="abrirCheckout()" class="max-w-md mx-auto w-full bg-red-600 text-white py-5 rounded-[25px] font-black flex justify-between px-8 shadow-2xl items-center active:scale-95 transition border-b-4 border-red-800">
+        <div id="cart-fixed" class="fixed bottom-6 left-0 right-0 px-6 hidden z-30 fade-in">
+            <button onclick="abrirCheckout()" class="max-w-md mx-auto w-full bg-red-600 text-white py-5 rounded-[25px] font-black flex justify-between px-8 shadow-2xl items-center active:scale-95 transition border-b-4 border-red-800 hover:bg-red-700">
                 <span>REVISAR PEDIDO</span>
                 <span id="cart-total-display" class="bg-white/20 px-3 py-1 rounded-lg text-sm">R$ 0,00</span>
             </button>
@@ -56,30 +176,60 @@
 
     <!-- [MODAL CHECKOUT] -->
     <div id="modal-checkout" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end">
-        <div class="bg-white w-full max-w-md mx-auto rounded-t-[40px] p-6 space-y-4 max-h-[94vh] overflow-y-auto">
-            <div class="flex justify-between items-center"><h2 class="font-black italic uppercase italic">Finalizar Pedido</h2><button onclick="fecharCheckout()" class="p-2 text-gray-400">✕</button></div>
+        <div class="bg-white w-full max-w-md mx-auto rounded-t-[40px] p-6 space-y-4 max-h-[94vh] overflow-y-auto fade-in">
+            <div class="flex justify-between items-center">
+                <h2 class="font-black italic uppercase">Finalizar Pedido</h2>
+                <button onclick="fecharCheckout()" class="p-2 text-gray-400 hover:bg-gray-100 rounded-full transition-colors" aria-label="Fechar">✕</button>
+            </div>
             
             <div class="space-y-3">
-                <input id="f-nome" type="text" placeholder="Seu Nome" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border">
-                <button id="btn-gps-cli" onclick="obterGPSCliente()" class="w-full bg-black text-white p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">📍 Calcular Frete por Distância</button>
+                <input id="f-nome" type="text" placeholder="Seu Nome *" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" required>
+                
+                <button id="btn-gps-cli" onclick="obterGPSCliente()" class="w-full bg-black text-white p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    📍 Calcular Frete por Distância
+                </button>
+                
                 <div id="res-km" class="hidden bg-green-50 p-4 rounded-2xl flex justify-between text-[10px] font-black text-green-700 border border-green-100">
-                    <span id="dist-txt">0.0 km</span><span id="taxa-txt">R$ 0,00</span>
+                    <span id="dist-txt">0.0 km</span>
+                    <span id="taxa-txt">R$ 0,00</span>
                 </div>
+                
                 <div class="grid grid-cols-4 gap-2">
-                    <input id="f-rua" type="text" placeholder="Rua" class="col-span-3 p-4 bg-gray-50 rounded-2xl outline-none border">
-                    <input id="f-num" type="text" placeholder="Nº" class="col-span-1 p-4 bg-gray-50 rounded-2xl outline-none border text-center">
+                    <input id="f-rua" type="text" placeholder="Rua *" class="col-span-3 p-4 bg-gray-50 rounded-2xl outline-none border focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" required>
+                    <input id="f-num" type="text" placeholder="Nº *" class="col-span-1 p-4 bg-gray-50 rounded-2xl outline-none border focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors text-center" required>
                 </div>
-                <input id="f-bairro" type="text" placeholder="Bairro" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border">
-                <input id="f-comp" type="text" placeholder="Ponto de Referência" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border">
+                
+                <input id="f-bairro" type="text" placeholder="Bairro *" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" required>
+                <input id="f-comp" type="text" placeholder="Ponto de Referência" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors">
             </div>
 
-            <select id="f-pag" onchange="document.getElementById('div-troco').classList.toggle('hidden', this.value!='Dinheiro')" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border">
-                <option value="Pix">Pix</option><option value="Cartão">Cartão</option><option value="Dinheiro">Dinheiro</option>
+            <select id="f-pag" onchange="document.getElementById('div-troco').classList.toggle('hidden', this.value!='Dinheiro')" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors">
+                <option value="Pix">Pix</option>
+                <option value="Cartão">Cartão</option>
+                <option value="Dinheiro">Dinheiro</option>
             </select>
-            <div id="div-troco" class="hidden"><input id="f-troco" type="number" placeholder="Troco para quanto?" class="w-full p-4 bg-orange-50 rounded-2xl font-bold border-2 border-orange-100"></div>
+            
+            <div id="div-troco" class="hidden">
+                <input id="f-troco" type="number" placeholder="Troco para quanto?" min="0" step="0.01" class="w-full p-4 bg-orange-50 rounded-2xl font-bold border-2 border-orange-100 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors">
+            </div>
 
-            <div class="bg-gray-900 text-white p-5 rounded-[35px] shadow-xl"><div class="flex justify-between text-2xl font-black text-red-500 italic"><span>TOTAL:</span><span id="res-total">R$ 0,00</span></div></div>
-            <button onclick="enviarPedido()" class="w-full bg-green-600 text-white py-5 rounded-[25px] font-black uppercase tracking-widest shadow-lg shadow-green-100 border-b-4 border-green-800">ENVIAR NO WHATSAPP</button>
+            <div class="bg-gray-900 text-white p-5 rounded-[35px] shadow-xl">
+                <div class="flex justify-between text-2xl font-black text-red-500 italic">
+                    <span>TOTAL:</span>
+                    <span id="res-total">R$ 0,00</span>
+                </div>
+                <div class="text-[10px] text-gray-400 mt-2 text-right">
+                    (Produtos + Frete)
+                </div>
+            </div>
+            
+            <button onclick="enviarPedido()" id="btn-enviar" class="w-full bg-green-600 text-white py-5 rounded-[25px] font-black uppercase tracking-widest shadow-lg shadow-green-100 border-b-4 border-green-800 hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                ENVIAR NO WHATSAPP
+            </button>
+            
+            <p class="text-center text-[10px] text-gray-500 mt-2">
+                Ao enviar, você será redirecionado para o WhatsApp
+            </p>
         </div>
     </div>
 
@@ -87,22 +237,32 @@
     <div id="view-admin" class="hidden bg-gray-50 min-h-screen pb-20">
         <header class="bg-black text-white p-4 flex justify-between items-center sticky top-0 z-50">
             <h1 class="font-black italic text-red-500">PAINEL ADM</h1>
-            <button onclick="location.reload()" class="text-[10px] font-bold border px-3 py-1 rounded-full">SAIR</button>
+            <button onclick="location.reload()" class="text-[10px] font-bold border px-3 py-1 rounded-full hover:bg-white/10 transition-colors">SAIR</button>
         </header>
 
         <div class="flex bg-white border-b sticky top-14 z-40 overflow-x-auto no-scrollbar shadow-sm">
-            <button onclick="switchTab('pedidos')" id="tab-pedidos" class="flex-1 p-4 font-bold text-[10px] tab-active uppercase">Pedidos</button>
-            <button onclick="switchTab('produtos')" id="tab-produtos" class="flex-1 p-4 font-bold text-[10px] uppercase">Cardápio</button>
-            <button onclick="switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[10px] uppercase">Configuração</button>
+            <button onclick="switchTab('pedidos')" id="tab-pedidos" class="flex-1 p-4 font-bold text-[10px] tab-active uppercase hover:bg-gray-50 transition-colors">Pedidos</button>
+            <button onclick="switchTab('produtos')" id="tab-produtos" class="flex-1 p-4 font-bold text-[10px] uppercase hover:bg-gray-50 transition-colors">Cardápio</button>
+            <button onclick="switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[10px] uppercase hover:bg-gray-50 transition-colors">Configuração</button>
         </div>
 
         <div class="p-4 max-w-md mx-auto space-y-6">
             <!-- ABA PEDIDOS -->
-            <div id="sec-pedidos" class="space-y-4"></div>
+            <div id="sec-pedidos" class="space-y-4">
+                <!-- Loading state -->
+                <div id="loading-pedidos" class="text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+                    <p class="text-gray-500 text-sm mt-2">Carregando pedidos...</p>
+                </div>
+            </div>
             
             <!-- ABA PRODUTOS -->
             <div id="sec-produtos" class="hidden space-y-4">
-                <div id="adm-prod-list" class="space-y-4"></div>
+                <div id="adm-prod-list" class="space-y-4">
+                    <div class="text-center py-8 text-gray-500">
+                        Carregando produtos...
+                    </div>
+                </div>
             </div>
 
             <!-- ABA CONFIG -->
@@ -120,23 +280,39 @@
                     <!-- GPS LOJA -->
                     <div class="space-y-2">
                         <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Localização da Pizzaria</p>
-                        <button id="btn-gps-loja" onclick="obterGPSLoja()" class="w-full text-white p-4 rounded-2xl text-[10px] font-black uppercase transition-colors">
+                        <button id="btn-gps-loja" onclick="obterGPSLoja()" class="w-full text-white p-4 rounded-2xl text-[10px] font-black uppercase transition-colors hover:opacity-90">
                             📍 Definir GPS da Loja
                         </button>
                         <div class="flex gap-2 text-[10px] text-gray-400 font-bold justify-center">
                             <span id="txt-lat">0</span> , <span id="txt-lng">0</span>
                         </div>
+                        <p class="text-[9px] text-gray-500 text-center">
+                            Este endereço será usado para calcular distâncias dos pedidos
+                        </p>
                     </div>
 
                     <div class="space-y-3 pt-4 border-t border-dashed">
-                        <input id="adm-nome" type="text" placeholder="Nome Loja" class="w-full p-3 border rounded-xl">
-                        <input id="adm-zap" type="text" placeholder="WhatsApp 55..." class="w-full p-3 border rounded-xl">
+                        <input id="adm-nome" type="text" placeholder="Nome da Loja *" class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" required>
+                        <input id="adm-zap" type="text" placeholder="WhatsApp (55...) *" class="w-full p-3 border rounded-xl focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" required>
                         <div class="flex gap-2">
-                            <input id="adm-base" type="number" placeholder="Taxa Base" class="flex-1 p-3 border rounded-xl text-sm">
-                            <input id="adm-km" type="number" placeholder="Preço/KM" class="flex-1 p-3 border rounded-xl text-sm">
+                            <div class="flex-1">
+                                <input id="adm-base" type="number" placeholder="Taxa Base R$" class="w-full p-3 border rounded-xl text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" min="0" step="0.01">
+                                <label class="text-[9px] text-gray-500">Frete mínimo</label>
+                            </div>
+                            <div class="flex-1">
+                                <input id="adm-km" type="number" placeholder="Preço/KM R$" class="w-full p-3 border rounded-xl text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors" min="0" step="0.01">
+                                <label class="text-[9px] text-gray-500">Por km rodado</label>
+                            </div>
                         </div>
-                        <input id="adm-logo" type="text" placeholder="Link Logo PNG" class="w-full p-3 border rounded-xl text-sm">
-                        <button onclick="salvarConfig()" class="w-full bg-black text-white p-4 rounded-2xl font-black text-xs uppercase">Salvar Configurações</button>
+                        <input id="adm-logo" type="text" placeholder="Link Logo PNG/JPEG" class="w-full p-3 border rounded-xl text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors">
+                        
+                        <button onclick="salvarConfig()" class="w-full bg-black text-white p-4 rounded-2xl font-black text-xs uppercase hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            Salvar Configurações
+                        </button>
+                        
+                        <p class="text-[9px] text-gray-500 text-center">
+                            * Campos obrigatórios
+                        </p>
                     </div>
                 </div>
             </div>
@@ -144,263 +320,847 @@
     </div>
 
     <!-- [CUPOM DE IMPRESSÃO] -->
-    <div id="secao-impressao" class="hidden font-mono text-[12px] leading-tight">
+    <div id="secao-impressao" class="hidden font-mono text-[12px] leading-tight p-4 bg-white">
         <center>
-            <h2 id="p-loja" class="font-bold text-[16px]">---</h2>
+            <h2 id="p-loja" class="font-bold text-[16px] mb-2">---</h2>
             <p>===============================</p>
-            <p id="p-data"></p>
+            <p id="p-data" class="my-2"></p>
             <p>===============================</p>
         </center>
-        <p id="p-cliente"></p>
-        <p id="p-endereco" class="font-bold"></p>
-        <p id="p-bairro"></p>
-        <p id="p-comp"></p>
+        <div class="my-3">
+            <p id="p-cliente" class="font-bold"></p>
+            <p id="p-endereco"></p>
+            <p id="p-bairro"></p>
+            <p id="p-comp" class="text-gray-600"></p>
+        </div>
         <p>===============================</p>
-        <div id="p-itens"></div>
+        <div id="p-itens" class="my-3"></div>
         <p>===============================</p>
-        <p id="p-taxa"></p>
-        <h3 id="p-total" class="font-bold text-[14px]"></h3>
-        <p id="p-pag"></p>
+        <div class="my-3">
+            <p id="p-taxa"></p>
+            <h3 id="p-total" class="font-bold text-[14px] mt-2"></h3>
+        </div>
+        <p id="p-pag" class="font-bold"></p>
         <p id="p-troco"></p>
         <br>
         <center><p>Obrigado pela preferência!</p></center>
     </div>
 
     <script>
+        // Configuração do Supabase - ⚠️ ATENÇÃO: Em produção, mova para backend!
         const SB_URL = "https://psqssqfyqqlumdllmosg.supabase.co";
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXNzcWZ5cXFsdW1kbGxtb3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjEwNzMsImV4cCI6MjA4MjY5NzA3M30.fzrGu0P0gSjP3SDoNiM3qnceSKyuMngry42zGqlJRpQ";
         const _sb = supabase.createClient(SB_URL, SB_KEY);
 
+        // Variáveis globais
         let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {};
         let dKM = 0, tFRETE = 0, latCli = 0, lngCli = 0;
+        let isCalculatingFrete = false;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            init();
+        });
 
         async function init() {
-            const { data: c } = await _sb.from('configuracoes').select('*').single();
-            CONFIG = c;
-            
-            // UI Update Cliente
-            document.getElementById('cli-nome').innerText = c.nome_pizzaria;
-            document.getElementById('cli-status').innerText = c.loja_aberta ? '● ABERTO' : '○ FECHADO';
-            document.getElementById('cli-status').className += c.loja_aberta ? ' text-green-600 bg-green-50' : ' text-gray-400 bg-gray-50';
-            
-            if(c.logo_url) {
-                document.getElementById('cli-logo').src = c.logo_url;
-                document.getElementById('cli-logo').classList.remove('hidden');
-            }
+            try {
+                // Carregar configurações
+                const { data: c, error: configError } = await _sb.from('configuracoes').select('*').single();
+                
+                if (configError) {
+                    console.error('Erro ao carregar configurações:', configError);
+                    alert('Erro ao carregar configurações. Recarregue a página.');
+                    return;
+                }
+                
+                CONFIG = c || {};
+                
+                // Se não houver configurações, criar padrão
+                if (!CONFIG.id) {
+                    const { data: newConfig } = await _sb.from('configuracoes').insert([
+                        {
+                            nome_pizzaria: 'Minha Pizzaria',
+                            whatsapp: '5511999999999',
+                            taxa_base: 5,
+                            preco_km: 2,
+                            loja_aberta: true,
+                            lat_pizzaria: null,
+                            lng_pizzaria: null
+                        }
+                    ]).select().single();
+                    
+                    CONFIG = newConfig;
+                }
 
-            // UI Update ADM
-            document.getElementById('adm-check-loja').checked = c.loja_aberta;
-            document.getElementById('adm-nome').value = c.nome_pizzaria;
-            document.getElementById('adm-zap').value = c.whatsapp;
-            document.getElementById('adm-base').value = c.taxa_base;
-            document.getElementById('adm-km').value = c.preco_km;
-            document.getElementById('adm-logo').value = c.logo_url || "";
-            document.getElementById('txt-lat').innerText = c.lat_pizzaria || 0;
-            document.getElementById('txt-lng').innerText = c.lng_pizzaria || 0;
+                // Atualizar UI do cliente
+                updateClienteUI();
+                
+                // Atualizar UI do admin
+                updateAdminUI();
+                
+                // Carregar dados do cliente
+                loadClienteMemory();
+                
+                // Carregar dados do cardápio
+                await loadData();
+                
+                // Configurar real-time para pedidos
+                setupRealtime();
+                
+            } catch (error) {
+                console.error('Erro na inicialização:', error);
+                alert('Erro ao carregar o sistema. Verifique sua conexão.');
+            }
+        }
+
+        function updateClienteUI() {
+            document.getElementById('cli-nome').innerText = CONFIG.nome_pizzaria || 'Carregando...';
             
-            // Cor do Botão GPS da Loja
+            const statusEl = document.getElementById('cli-status');
+            if (CONFIG.loja_aberta) {
+                statusEl.innerText = '● ABERTO';
+                statusEl.className = 'inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border italic uppercase text-green-600 bg-green-50';
+                document.getElementById('loja-fechada-msg').classList.add('hidden');
+            } else {
+                statusEl.innerText = '○ FECHADO';
+                statusEl.className = 'inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border italic uppercase text-gray-400 bg-gray-50';
+                document.getElementById('loja-fechada-msg').classList.remove('hidden');
+            }
+            
+            if (CONFIG.logo_url) {
+                const logoEl = document.getElementById('cli-logo');
+                logoEl.src = CONFIG.logo_url;
+                logoEl.classList.remove('hidden');
+                logoEl.onerror = function() {
+                    this.classList.add('hidden');
+                };
+            }
+        }
+
+        function updateAdminUI() {
+            document.getElementById('adm-check-loja').checked = CONFIG.loja_aberta || false;
+            document.getElementById('adm-nome').value = CONFIG.nome_pizzaria || '';
+            document.getElementById('adm-zap').value = CONFIG.whatsapp || '';
+            document.getElementById('adm-base').value = CONFIG.taxa_base || 0;
+            document.getElementById('adm-km').value = CONFIG.preco_km || 0;
+            document.getElementById('adm-logo').value = CONFIG.logo_url || '';
+            
+            const lat = CONFIG.lat_pizzaria || 0;
+            const lng = CONFIG.lng_pizzaria || 0;
+            document.getElementById('txt-lat').innerText = lat.toFixed(6);
+            document.getElementById('txt-lng').innerText = lng.toFixed(6);
+            
             const btnGPS = document.getElementById('btn-gps-loja');
-            if(c.lat_pizzaria) {
+            if (CONFIG.lat_pizzaria && CONFIG.lng_pizzaria) {
+                btnGPS.classList.remove('bg-red-500');
                 btnGPS.classList.add('bg-green-600');
             } else {
+                btnGPS.classList.remove('bg-green-600');
                 btnGPS.classList.add('bg-red-500');
             }
+        }
 
-            // Memória do Cliente
-            document.getElementById('f-nome').value = localStorage.getItem('p_nome') || "";
-            document.getElementById('f-rua').value = localStorage.getItem('p_rua') || "";
-            document.getElementById('f-num').value = localStorage.getItem('p_num') || "";
-            document.getElementById('f-bairro').value = localStorage.getItem('p_bairro') || "";
-            document.getElementById('f-comp').value = localStorage.getItem('p_comp') || "";
-
-            await loadData();
-            
-            // Escutar novos pedidos
-            _sb.channel('realtime').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, () => {
-                document.getElementById('alerta-som').play();
-                loadPedidos();
-            }).subscribe();
+        function loadClienteMemory() {
+            document.getElementById('f-nome').value = localStorage.getItem('p_nome') || '';
+            document.getElementById('f-rua').value = localStorage.getItem('p_rua') || '';
+            document.getElementById('f-num').value = localStorage.getItem('p_num') || '';
+            document.getElementById('f-bairro').value = localStorage.getItem('p_bairro') || '';
+            document.getElementById('f-comp').value = localStorage.getItem('p_comp') || '';
         }
 
         async function loadData() {
-            const { data: cats } = await _sb.from('categorias').select('*').order('ordem');
-            const { data: prods } = await _sb.from('produtos').select('*').order('nome');
-            PRODS = prods || []; CATS = cats || [];
-            renderFiltros(); renderCardapio('todos');
+            try {
+                const [{ data: cats }, { data: prods }] = await Promise.all([
+                    _sb.from('categorias').select('*').order('ordem'),
+                    _sb.from('produtos').select('*').order('nome')
+                ]);
+                
+                CATS = cats || [];
+                PRODS = prods || [];
+                
+                renderFiltros();
+                renderCardapio('todos');
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+            }
         }
 
-        // --- GPS LOGIC ---
+        function setupRealtime() {
+            _sb.channel('realtime')
+                .on('postgres_changes', 
+                    { 
+                        event: 'INSERT', 
+                        schema: 'public', 
+                        table: 'pedidos' 
+                    }, 
+                    () => {
+                        document.getElementById('alerta-som').play().catch(e => console.log('Erro ao tocar som:', e));
+                        loadPedidos();
+                    }
+                )
+                .subscribe();
+        }
+
+        // --- CÁLCULO DE DISTÂNCIA ---
         function calcDist(lat1, lon1, lat2, lon2) {
-            const R = 6371; 
-            const dLat = (lat2-lat1)*Math.PI/180, dLon = (lon2-lon1)*Math.PI/180;
-            const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                     Math.sin(dLon/2) * Math.sin(dLon/2);
             return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
         }
 
         function obterGPSLoja() {
-            navigator.geolocation.getCurrentPosition(async pos => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                await _sb.from('configuracoes').update({ lat_pizzaria: lat, lng_pizzaria: lng }).eq('id', 1);
-                location.reload();
-            });
+            if (!navigator.geolocation) {
+                alert('Geolocalização não suportada pelo navegador.');
+                return;
+            }
+            
+            const btn = document.getElementById('btn-gps-loja');
+            const originalText = btn.innerText;
+            btn.innerText = '📍 OBTENDO LOCALIZAÇÃO...';
+            btn.disabled = true;
+            
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    
+                    try {
+                        await _sb.from('configuracoes').update({ 
+                            lat_pizzaria: lat, 
+                            lng_pizzaria: lng 
+                        }).eq('id', CONFIG.id || 1);
+                        
+                        CONFIG.lat_pizzaria = lat;
+                        CONFIG.lng_pizzaria = lng;
+                        updateAdminUI();
+                        alert('Localização da loja atualizada com sucesso!');
+                    } catch (error) {
+                        console.error('Erro ao salvar localização:', error);
+                        alert('Erro ao salvar localização.');
+                    } finally {
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                    }
+                },
+                (error) => {
+                    console.error('Erro ao obter localização:', error);
+                    alert('Não foi possível obter a localização. Verifique as permissões do navegador.');
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                },
+                { 
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
         }
 
         function obterGPSCliente() {
-            const b = document.getElementById('btn-gps-cli');
-            b.innerText = "⏳ LOCALIZANDO...";
-            navigator.geolocation.getCurrentPosition(pos => {
-                latCli = pos.coords.latitude; lngCli = pos.coords.longitude;
-                dKM = calcDist(Number(CONFIG.lat_pizzaria), Number(CONFIG.lng_pizzaria), latCli, lngCli);
-                tFRETE = Number(CONFIG.taxa_base) + (dKM * Number(CONFIG.preco_km));
-                
-                document.getElementById('res-km').classList.remove('hidden');
-                document.getElementById('dist-txt').innerText = `${dKM.toFixed(1)} km`;
-                document.getElementById('taxa-txt').innerText = `R$ ${tFRETE.toFixed(2)}`;
-                b.innerText = "✅ FRETE CALCULADO"; b.classList.replace('bg-black', 'bg-green-600');
-                renderCheckoutTotal();
-            });
+            if (!CONFIG.lat_pizzaria || !CONFIG.lng_pizzaria) {
+                alert('A loja precisa configurar sua localização primeiro no painel administrativo.');
+                return;
+            }
+            
+            if (isCalculatingFrete) return;
+            
+            isCalculatingFrete = true;
+            const btn = document.getElementById('btn-gps-cli');
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ LOCALIZANDO...";
+            btn.disabled = true;
+            
+            if (!navigator.geolocation) {
+                alert('Geolocalização não suportada pelo navegador.');
+                isCalculatingFrete = false;
+                btn.innerText = originalText;
+                btn.disabled = false;
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    latCli = pos.coords.latitude;
+                    lngCli = pos.coords.longitude;
+                    
+                    dKM = calcDist(
+                        Number(CONFIG.lat_pizzaria), 
+                        Number(CONFIG.lng_pizzaria), 
+                        latCli, 
+                        lngCli
+                    );
+                    
+                    const taxaBase = Number(CONFIG.taxa_base) || 0;
+                    const precoKm = Number(CONFIG.preco_km) || 0;
+                    tFRETE = taxaBase + (dKM * precoKm);
+                    
+                    // Atualizar UI
+                    document.getElementById('res-km').classList.remove('hidden');
+                    document.getElementById('dist-txt').innerText = `${dKM.toFixed(1)} km`;
+                    document.getElementById('taxa-txt').innerText = `R$ ${tFRETE.toFixed(2).replace('.', ',')}`;
+                    
+                    btn.innerText = "✅ FRETE CALCULADO";
+                    btn.classList.remove('bg-black');
+                    btn.classList.add('bg-green-600');
+                    
+                    renderCheckoutTotal();
+                    isCalculatingFrete = false;
+                    btn.disabled = false;
+                },
+                (error) => {
+                    console.error('Erro ao obter localização:', error);
+                    alert('Não foi possível obter sua localização. Verifique as permissões do navegador.');
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    isCalculatingFrete = false;
+                },
+                { 
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
         }
 
-        // --- WHATSAPP E FIDELIDADE ---
+        // --- GERENCIAMENTO DO PEDIDO ---
         async function enviarPedido() {
-            const n = document.getElementById('f-nome').value, r = document.getElementById('f-rua').value, num = document.getElementById('f-num').value;
-            const b = document.getElementById('f-bairro').value, comp = document.getElementById('f-comp').value, pag = document.getElementById('f-pag').value;
-            const troco = document.getElementById('f-troco').value || "Não";
-            const total = document.getElementById('res-total').innerText;
+            // Validações
+            const nome = document.getElementById('f-nome').value.trim();
+            const rua = document.getElementById('f-rua').value.trim();
+            const numero = document.getElementById('f-num').value.trim();
+            const bairro = document.getElementById('f-bairro').value.trim();
+            
+            if (!nome) {
+                alert('Por favor, informe seu nome.');
+                document.getElementById('f-nome').focus();
+                return;
+            }
+            
+            if (!rua || !numero || !bairro) {
+                alert('Por favor, preencha o endereço completo.');
+                return;
+            }
+            
+            if (tFRETE === 0 && CONFIG.taxa_base > 0) {
+                alert('Por favor, calcule o frete antes de continuar.');
+                return;
+            }
+            
+            if (CARRINHO.length === 0) {
+                alert('Seu carrinho está vazio.');
+                return;
+            }
+            
+            // Salvar em memória local
+            localStorage.setItem('p_nome', nome);
+            localStorage.setItem('p_rua', rua);
+            localStorage.setItem('p_num', numero);
+            localStorage.setItem('p_bairro', bairro);
+            localStorage.setItem('p_comp', document.getElementById('f-comp').value.trim());
+            
+            const complemento = document.getElementById('f-comp').value.trim();
+            const pagamento = document.getElementById('f-pag').value;
+            const troco = document.getElementById('f-troco').value || "Não precisa";
+            
+            // Calcular total
+            const subtotal = CARRINHO.reduce((total, item) => total + Number(item.preco), 0);
+            const total = subtotal + tFRETE;
+            
+            // Desabilitar botão durante processamento
+            const btnEnviar = document.getElementById('btn-enviar');
+            const originalText = btnEnviar.innerText;
+            btnEnviar.innerText = "PROCESSANDO...";
+            btnEnviar.disabled = true;
+            
+            try {
+                // Inserir pedido no banco
+                const { data: ped, error: pedError } = await _sb.from('pedidos').insert([{
+                    cliente_nome: nome,
+                    rua: rua,
+                    numero: numero,
+                    bairro: bairro,
+                    complemento: complemento,
+                    distancia_km: parseFloat(dKM.toFixed(1)),
+                    taxa_entrega: parseFloat(tFRETE.toFixed(2)),
+                    total: parseFloat(total.toFixed(2)),
+                    pagamento: pagamento,
+                    troco: troco,
+                    status: 'Novo'
+                }]).select();
+                
+                if (pedError) throw pedError;
+                
+                // Inserir itens do pedido
+                const itens = CARRINHO.map(item => ({
+                    pedido_id: ped[0].id,
+                    produto_nome: item.nome,
+                    preco: item.preco,
+                    produto_id: item.id
+                }));
+                
+                const { error: itensError } = await _sb.from('itens_pedido').insert(itens);
+                if (itensError) throw itensError;
+                
+                // Preparar mensagem para WhatsApp
+                const telefone = CONFIG.whatsapp || '5511999999999';
+                const mensagem = `
+*NOVO PEDIDO - ${CONFIG.nome_pizzaria}*
 
-            if(!n || !r || tFRETE === 0) return alert("Preencha o endereço e calcule o frete!");
+*Cliente:* ${nome}
+*Endereço:* ${rua}, ${numero}
+*Bairro:* ${bairro}
+${complemento ? `*Referência:* ${complemento}` : ''}
 
-            // Salvar Memória
-            localStorage.setItem('p_nome', n); localStorage.setItem('p_rua', r);
-            localStorage.setItem('p_num', num); localStorage.setItem('p_bairro', b); localStorage.setItem('p_comp', comp);
+*ITENS:*
+${CARRINHO.map(item => `• 1x ${item.nome} - R$ ${Number(item.preco).toFixed(2)}`).join('\n')}
 
-            const { data: ped } = await _sb.from('pedidos').insert([{
-                cliente_nome: n, rua: r, numero: num, bairro: b, complemento: comp, 
-                distancia_km: dKM, taxa_entrega: tFRETE, total: Number(total.replace('R$ ', '').replace(',','.')), 
-                pagamento: pag, troco: troco
-            }]).select();
+*Distância:* ${dKM.toFixed(1)} km
+*Taxa de entrega:* R$ ${tFRETE.toFixed(2)}
+*Subtotal:* R$ ${subtotal.toFixed(2)}
+*TOTAL:* R$ ${total.toFixed(2)}
 
-            if(ped) {
-                const itens = CARRINHO.map(i => ({ pedido_id: ped[0].id, produto_nome: i.nome, preco: i.preco }));
-                await _sb.from('itens_pedido').insert(itens);
+*Forma de pagamento:* ${pagamento}
+${pagamento === 'Dinheiro' ? `*Troco para:* R$ ${troco}` : ''}
 
-                const txt = `*NOVO PEDIDO* %0A*Cliente:* ${n}%0A*End:* ${r}, ${num}%0A*KM:* ${dKM.toFixed(1)}%0A*TOTAL:* ${total}%0A*Mapa:* https://www.google.com/maps?q=${latCli},${lngCli}`;
-                window.open(`https://wa.me/${CONFIG.whatsapp}?text=${txt}`);
-                location.reload();
+*Localização do cliente:*
+https://www.google.com/maps?q=${latCli},${lngCli}
+                `.trim();
+                
+                // Abrir WhatsApp
+                const urlWhatsapp = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
+                window.open(urlWhatsapp, '_blank');
+                
+                // Limpar carrinho e recarregar
+                CARRINHO = [];
+                document.getElementById('cart-fixed').classList.add('hidden');
+                document.getElementById('modal-checkout').classList.add('hidden');
+                
+                alert('Pedido enviado com sucesso! Verifique o WhatsApp.');
+                
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Erro ao enviar pedido:', error);
+                alert('Erro ao enviar pedido. Tente novamente.');
+                btnEnviar.innerText = originalText;
+                btnEnviar.disabled = false;
             }
         }
 
-        // --- ADM LOGIC ---
+        // --- PAINEL ADMINISTRATIVO ---
         async function loadPedidos() {
-            const { data } = await _sb.from('pedidos').select('*, itens_pedido(*)').order('created_at', { ascending: false }).limit(15);
-            const div = document.getElementById('sec-pedidos');
-            div.innerHTML = `<h2 class="text-[10px] font-black text-gray-400 uppercase mb-4">Pedidos Atuais</h2>`;
-            data.forEach(p => {
-                div.innerHTML += `
-                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-l-4 ${p.status === 'Novo' ? 'border-l-red-500' : 'border-l-gray-300'} mb-4">
-                        <div class="flex justify-between font-black text-[10px] uppercase"><span>${p.cliente_nome}</span><span class="text-red-500">${p.status}</span></div>
-                        <div class="text-[9px] text-gray-500 my-1">${p.rua}, ${p.numero} - ${p.bairro}</div>
-                        <div class="text-[9px] font-bold py-2 my-2 border-y border-dashed">${p.itens_pedido.map(i => `1x ${i.produto_nome}`).join(', ')}</div>
-                        <div class="flex justify-between items-center mt-3">
-                            <span class="font-black text-sm">R$ ${p.total.toFixed(2)}</span>
-                            <div class="flex gap-2">
-                                <button onclick="imprimirPedido('${p.id}')" class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold">🖨️</button>
-                                <select onchange="updateStatus('${p.id}', this.value)" class="text-[9px] bg-gray-900 text-white p-2 rounded-lg font-bold">
-                                    <option value="">Status</option>
-                                    <option value="Preparando">Preparando</option>
-                                    <option value="Saiu">Saiu</option>
-                                    <option value="Entregue">Entregue</option>
-                                </select>
+            try {
+                document.getElementById('loading-pedidos').classList.remove('hidden');
+                
+                const { data, error } = await _sb.from('pedidos')
+                    .select('*, itens_pedido(*)')
+                    .order('created_at', { ascending: false })
+                    .limit(20);
+                
+                if (error) throw error;
+                
+                const div = document.getElementById('sec-pedidos');
+                document.getElementById('loading-pedidos').classList.add('hidden');
+                
+                if (!data || data.length === 0) {
+                    div.innerHTML = `
+                        <div class="text-center py-8">
+                            <p class="text-gray-500">Nenhum pedido encontrado</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                div.innerHTML = `
+                    <h2 class="text-[10px] font-black text-gray-400 uppercase mb-4">
+                        Últimos Pedidos (${data.length})
+                    </h2>
+                `;
+                
+                data.forEach(pedido => {
+                    const statusColors = {
+                        'Novo': 'border-l-red-500 bg-red-50/30',
+                        'Preparando': 'border-l-yellow-500 bg-yellow-50/30',
+                        'Saiu': 'border-l-blue-500 bg-blue-50/30',
+                        'Entregue': 'border-l-green-500 bg-green-50/30'
+                    };
+                    
+                    const statusClass = statusColors[pedido.status] || 'border-l-gray-300 bg-gray-50/30';
+                    const dataPedido = new Date(pedido.created_at).toLocaleString('pt-BR');
+                    
+                    div.innerHTML += `
+                        <div class="bg-white p-5 rounded-3xl shadow-sm border border-l-4 ${statusClass} mb-4 fade-in">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-black text-[10px] uppercase">${pedido.cliente_nome}</div>
+                                    <div class="text-[9px] text-gray-500 mt-1">${dataPedido}</div>
+                                </div>
+                                <span class="text-[9px] font-black px-3 py-1 rounded-full ${pedido.status === 'Novo' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}">
+                                    ${pedido.status}
+                                </span>
+                            </div>
+                            
+                            <div class="text-[9px] text-gray-500 my-2">
+                                📍 ${pedido.rua}, ${pedido.numero} - ${pedido.bairro}
+                                ${pedido.complemento ? `<br>🔹 ${pedido.complemento}` : ''}
+                            </div>
+                            
+                            <div class="text-[9px] font-bold py-2 my-2 border-y border-dashed">
+                                ${pedido.itens_pedido.map(item => 
+                                    `1x ${item.produto_nome} (R$ ${Number(item.preco).toFixed(2)})`
+                                ).join(', ')}
+                            </div>
+                            
+                            <div class="flex justify-between items-center mt-3">
+                                <div class="text-sm font-black">
+                                    R$ ${pedido.total.toFixed(2)}
+                                    <div class="text-[9px] text-gray-500 font-normal">
+                                        Frete: R$ ${pedido.taxa_entrega.toFixed(2)} (${pedido.distancia_km.toFixed(1)}km)
+                                    </div>
+                                </div>
+                                
+                                <div class="flex gap-2">
+                                    <button onclick="imprimirPedido('${pedido.id}')" 
+                                            class="bg-gray-100 p-2 rounded-lg text-[10px] font-bold hover:bg-gray-200 transition-colors"
+                                            title="Imprimir">
+                                        🖨️
+                                    </button>
+                                    
+                                    <select onchange="updateStatus('${pedido.id}', this.value)" 
+                                            class="text-[9px] bg-gray-900 text-white p-2 rounded-lg font-bold focus:outline-none">
+                                        <option value="">Alterar status</option>
+                                        <option value="Novo" ${pedido.status === 'Novo' ? 'selected' : ''}>Novo</option>
+                                        <option value="Preparando" ${pedido.status === 'Preparando' ? 'selected' : ''}>Preparando</option>
+                                        <option value="Saiu" ${pedido.status === 'Saiu' ? 'selected' : ''}>Saiu</option>
+                                        <option value="Entregue" ${pedido.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
-                    </div>`;
-            });
+                    `;
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar pedidos:', error);
+                document.getElementById('sec-pedidos').innerHTML = `
+                    <div class="text-center py-8 text-red-500">
+                        Erro ao carregar pedidos. Tente novamente.
+                    </div>
+                `;
+            }
         }
 
         async function imprimirPedido(id) {
-            const { data: p } = await _sb.from('pedidos').select('*, itens_pedido(*)').eq('id', id).single();
-            if(!p) return;
+            try {
+                const { data: pedido, error } = await _sb.from('pedidos')
+                    .select('*, itens_pedido(*)')
+                    .eq('id', id)
+                    .single();
+                
+                if (error) throw error;
+                if (!pedido) {
+                    alert('Pedido não encontrado');
+                    return;
+                }
+                
+                // Preencher dados para impressão
+                document.getElementById('p-loja').innerText = CONFIG.nome_pizzaria;
+                document.getElementById('p-data').innerText = `DATA: ${new Date(pedido.created_at).toLocaleString('pt-BR')}`;
+                document.getElementById('p-cliente').innerText = `CLIENTE: ${pedido.cliente_nome}`;
+                document.getElementById('p-endereco').innerText = `ENDEREÇO: ${pedido.rua}, ${pedido.numero}`;
+                document.getElementById('p-bairro').innerText = `BAIRRO: ${pedido.bairro}`;
+                document.getElementById('p-comp').innerText = `REFERÊNCIA: ${pedido.complemento || '---'}`;
+                
+                // Itens do pedido
+                const itensHTML = pedido.itens_pedido.map(item => 
+                    `<div style="display:flex; justify-content:space-between; margin: 2px 0;">
+                        <span>1x ${item.produto_nome}</span>
+                        <span>R$ ${Number(item.preco).toFixed(2)}</span>
+                    </div>`
+                ).join('');
+                document.getElementById('p-itens').innerHTML = itensHTML;
+                
+                // Valores
+                document.getElementById('p-taxa').innerText = 
+                    `FRETE (${pedido.distancia_km.toFixed(1)}km): R$ ${pedido.taxa_entrega.toFixed(2)}`;
+                document.getElementById('p-total').innerText = 
+                    `TOTAL: R$ ${pedido.total.toFixed(2)}`;
+                document.getElementById('p-pag').innerText = 
+                    `PAGAMENTO: ${pedido.pagamento}`;
+                document.getElementById('p-troco').innerText = 
+                    `TROCO: ${pedido.troco}`;
+                
+                // Imprimir
+                window.print();
+                
+            } catch (error) {
+                console.error('Erro ao imprimir pedido:', error);
+                alert('Erro ao gerar impressão do pedido.');
+            }
+        }
 
-            document.getElementById('p-loja').innerText = CONFIG.nome_pizzaria;
-            document.getElementById('p-data').innerText = `DATA: ${new Date(p.created_at).toLocaleString('pt-BR')}`;
-            document.getElementById('p-cliente').innerText = `CLIENTE: ${p.cliente_nome}`;
-            document.getElementById('p-endereco').innerText = `END: ${p.rua}, ${p.numero}`;
-            document.getElementById('p-bairro').innerText = `BAIRRO: ${p.bairro}`;
-            document.getElementById('p-comp').innerText = `REF: ${p.complemento || '---'}`;
-            document.getElementById('p-itens').innerHTML = p.itens_pedido.map(i => `<div style="display:flex;justify-content:space-between"><span>1x ${i.produto_nome}</span><span>${Number(i.preco).toFixed(2)}</span></div>`).join('');
-            document.getElementById('p-taxa').innerText = `FRETE (${p.distancia_km.toFixed(1)}km): R$ ${p.taxa_entrega.toFixed(2)}`;
-            document.getElementById('p-total').innerText = `TOTAL: R$ ${p.total.toFixed(2)}`;
-            document.getElementById('p-pag').innerText = `PAGAMENTO: ${p.pagamento}`;
-            document.getElementById('p-troco').innerText = `TROCO: ${p.troco}`;
+        async function updateStatus(id, status) {
+            if (!status || !id) return;
             
-            window.print();
+            try {
+                await _sb.from('pedidos').update({ status: status }).eq('id', id);
+                loadPedidos(); // Recarregar lista
+            } catch (error) {
+                console.error('Erro ao atualizar status:', error);
+                alert('Erro ao atualizar status do pedido.');
+            }
         }
 
-        async function alterarStatusLoja(val) {
-            await _sb.from('configuracoes').update({ loja_aberta: val }).eq('id', 1);
-            location.reload();
+        async function alterarStatusLoja(estaAberta) {
+            try {
+                await _sb.from('configuracoes').update({ 
+                    loja_aberta: estaAberta 
+                }).eq('id', CONFIG.id || 1);
+                
+                CONFIG.loja_aberta = estaAberta;
+                updateClienteUI();
+                alert(`Loja ${estaAberta ? 'aberta' : 'fechada'} com sucesso!`);
+            } catch (error) {
+                console.error('Erro ao alterar status da loja:', error);
+                alert('Erro ao alterar status da loja.');
+            }
         }
 
-        // --- MANUTENÇÃO (REPETIÇÃO NECESSÁRIA) ---
+        // --- GERENCIAMENTO DO CARDÁPIO ---
         function renderFiltros() {
             const div = document.getElementById('filtros');
-            div.innerHTML = `<button onclick="renderCardapio('todos')" class="bg-black text-white px-6 py-2 rounded-full font-black text-[10px] italic">TODOS</button>`;
-            CATS.forEach(c => div.innerHTML += `<button onclick="renderCardapio('${c.id}')" class="bg-white text-gray-400 border px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-sm">${c.nome}</button>`);
-        }
-
-        function renderCardapio(cid) {
-            const div = document.getElementById('cardapio'); div.innerHTML = "";
-            const f = cid === 'todos' ? PRODS : PRODS.filter(p => p.categoria_id === cid);
-            f.forEach(p => {
-                if(!p.disponivel) return;
-                div.innerHTML += `<div class="bg-white rounded-[35px] shadow-sm p-4 flex gap-4 border border-gray-50 items-center">
-                    <img src="${p.imagem_url || ''}" class="w-16 h-16 object-contain rounded-xl">
-                    <div class="flex-1">
-                        <h3 class="font-black text-xs uppercase italic">${p.nome}</h3>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="text-red-600 font-black text-sm italic">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</span>
-                            <button onclick="addCart('${p.id}')" class="bg-yellow-400 w-9 h-9 rounded-xl font-black text-xl shadow">+</button>
-                        </div>
-                    </div>
-                </div>`;
+            if (!div) return;
+            
+            div.innerHTML = `
+                <button onclick="renderCardapio('todos')" 
+                        class="bg-black text-white px-6 py-2 rounded-full font-black text-[10px] italic hover:bg-gray-800 transition-colors">
+                    TODOS
+                </button>
+            `;
+            
+            CATS.forEach(categoria => {
+                div.innerHTML += `
+                    <button onclick="renderCardapio('${categoria.id}')" 
+                            class="bg-white text-gray-400 border px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-sm hover:bg-gray-50 hover:text-black transition-colors">
+                        ${categoria.nome}
+                    </button>
+                `;
             });
         }
 
-        function addCart(id) {
-            if(!CONFIG.loja_aberta) return alert("Estamos Fechados!");
-            CARRINHO.push(PRODS.find(i => i.id === id));
-            const t = CARRINHO.reduce((a, i) => a + Number(i.preco), 0);
-            document.getElementById('cart-total-display').innerText = `R$ ${t.toFixed(2).replace('.',',')}`;
+        function renderCardapio(categoriaId) {
+            const div = document.getElementById('cardapio');
+            if (!div) return;
+            
+            div.innerHTML = '';
+            
+            // Filtrar produtos
+            let produtosFiltrados = [];
+            if (categoriaId === 'todos') {
+                produtosFiltrados = PRODS.filter(p => p.disponivel !== false);
+            } else {
+                produtosFiltrados = PRODS.filter(p => 
+                    p.categoria_id === categoriaId && p.disponivel !== false
+                );
+            }
+            
+            // Verificar se há produtos
+            if (produtosFiltrados.length === 0) {
+                div.innerHTML = `
+                    <div class="text-center py-8">
+                        <p class="text-gray-500">Nenhum produto disponível nesta categoria</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Renderizar produtos
+            produtosFiltrados.forEach(produto => {
+                div.innerHTML += `
+                    <div class="bg-white rounded-[35px] shadow-sm p-4 flex gap-4 border border-gray-50 items-center fade-in hover:shadow-md transition-shadow">
+                        <img src="${produto.imagem_url || 'https://via.placeholder.com/80x80/F3F4F6/6B7280?text=PIZZA'}" 
+                             alt="${produto.nome}"
+                             class="w-16 h-16 object-cover rounded-xl"
+                             onerror="this.src='https://via.placeholder.com/80x80/F3F4F6/6B7280?text=IMG'">
+                        <div class="flex-1">
+                            <h3 class="font-black text-xs uppercase italic">${produto.nome}</h3>
+                            ${produto.descricao ? `<p class="text-[10px] text-gray-500 mt-1">${produto.descricao}</p>` : ''}
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-red-600 font-black text-sm italic">
+                                    R$ ${Number(produto.preco).toFixed(2).replace('.', ',')}
+                                </span>
+                                <button onclick="addCart('${produto.id}')" 
+                                        class="bg-yellow-400 w-9 h-9 rounded-xl font-black text-xl shadow hover:bg-yellow-500 transition-colors active:scale-95"
+                                        ${!CONFIG.loja_aberta ? 'disabled style="opacity:0.5; cursor:not-allowed;"' : ''}>
+                                    +
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addCart(produtoId) {
+            if (!CONFIG.loja_aberta) {
+                alert("⚠️ Estamos fechados no momento. Volte durante nosso horário de funcionamento.");
+                return;
+            }
+            
+            const produto = PRODS.find(p => p.id === produtoId);
+            if (!produto) return;
+            
+            CARRINHO.push(produto);
+            
+            // Atualizar total do carrinho
+            const total = CARRINHO.reduce((soma, item) => soma + Number(item.preco), 0);
+            document.getElementById('cart-total-display').innerText = 
+                `R$ ${total.toFixed(2).replace('.', ',')}`;
+            
+            // Mostrar botão do carrinho
             document.getElementById('cart-fixed').classList.remove('hidden');
+            
+            // Feedback visual
+            const btn = event.target;
+            btn.classList.add('pulse-button');
+            setTimeout(() => {
+                btn.classList.remove('pulse-button');
+            }, 300);
         }
 
         function renderCheckoutTotal() {
-            const sub = CARRINHO.reduce((a, i) => a + Number(i.preco), 0);
-            document.getElementById('res-total').innerText = `R$ ${(sub + tFRETE).toFixed(2).replace('.', ',')}`;
+            const subtotal = CARRINHO.reduce((soma, item) => soma + Number(item.preco), 0);
+            const total = subtotal + tFRETE;
+            
+            document.getElementById('res-total').innerText = 
+                `R$ ${total.toFixed(2).replace('.', ',')}`;
         }
 
-        function abrirAdmin() { if(prompt("Senha:") === "123") { document.getElementById('view-cliente').classList.add('hidden'); document.getElementById('view-admin').classList.remove('hidden'); switchTab('pedidos'); } }
-        function fecharCheckout() { document.getElementById('modal-checkout').classList.add('hidden'); }
-        function abrirCheckout() { document.getElementById('modal-checkout').classList.remove('hidden'); renderCheckoutTotal(); }
-        async function updateStatus(id, s) { await _sb.from('pedidos').update({ status: s }).eq('id', id); loadPedidos(); }
-        function switchTab(t) {
+        // --- FUNÇÕES DE NAVEGAÇÃO ---
+        function abrirAdmin() {
+            const senha = prompt("Digite a senha de administrador:");
+            if (senha === "123") { // ⚠️ Em produção, use autenticação segura!
+                document.getElementById('view-cliente').classList.add('hidden');
+                document.getElementById('view-admin').classList.remove('hidden');
+                switchTab('pedidos');
+            } else if (senha !== null) {
+                alert("Senha incorreta!");
+            }
+        }
+
+        function fecharCheckout() {
+            document.getElementById('modal-checkout').classList.add('hidden');
+        }
+
+        function abrirCheckout() {
+            if (CARRINHO.length === 0) {
+                alert("Seu carrinho está vazio!");
+                return;
+            }
+            
+            if (!CONFIG.loja_aberta) {
+                alert("⚠️ Estamos fechados no momento. Não é possível realizar pedidos.");
+                return;
+            }
+            
+            document.getElementById('modal-checkout').classList.remove('hidden');
+            renderCheckoutTotal();
+        }
+
+        function switchTab(aba) {
+            // Atualizar tabs
             ['pedidos', 'produtos', 'config'].forEach(tab => {
-                document.getElementById(`sec-${tab}`).classList.toggle('hidden', tab !== t);
-                document.getElementById(`tab-${tab}`).classList.toggle('tab-active', tab === t);
+                const secao = document.getElementById(`sec-${tab}`);
+                const botao = document.getElementById(`tab-${tab}`);
+                
+                if (secao && botao) {
+                    secao.classList.toggle('hidden', tab !== aba);
+                    botao.classList.toggle('tab-active', tab === aba);
+                }
             });
-            if(t === 'pedidos') loadPedidos();
+            
+            // Carregar conteúdo específico da aba
+            switch(aba) {
+                case 'pedidos':
+                    loadPedidos();
+                    break;
+                case 'produtos':
+                    // Futuro: implementar gerenciamento de produtos
+                    document.getElementById('adm-prod-list').innerHTML = `
+                        <div class="text-center py-8">
+                            <p class="text-gray-500">Gerenciamento de produtos em desenvolvimento</p>
+                            <p class="text-[10px] text-gray-400 mt-2">
+                                Por enquanto, gerencie produtos diretamente no Supabase
+                            </p>
+                        </div>
+                    `;
+                    break;
+            }
         }
 
         async function salvarConfig() {
-            const n = document.getElementById('adm-nome').value, z = document.getElementById('adm-zap').value;
-            const b = document.getElementById('adm-base').value, k = document.getElementById('adm-km').value;
-            const logo = document.getElementById('adm-logo').value;
-            await _sb.from('configuracoes').update({ nome_pizzaria: n, whatsapp: z, taxa_base: b, preco_km: k, logo_url: logo }).eq('id', 1);
-            alert("Salvo!"); init();
+            // Validar campos obrigatórios
+            const nome = document.getElementById('adm-nome').value.trim();
+            const whatsapp = document.getElementById('adm-zap').value.trim();
+            
+            if (!nome) {
+                alert('Por favor, informe o nome da loja.');
+                document.getElementById('adm-nome').focus();
+                return;
+            }
+            
+            if (!whatsapp) {
+                alert('Por favor, informe o WhatsApp para contato.');
+                document.getElementById('adm-zap').focus();
+                return;
+            }
+            
+            // Coletar dados
+            const dados = {
+                nome_pizzaria: nome,
+                whatsapp: whatsapp,
+                taxa_base: parseFloat(document.getElementById('adm-base').value) || 0,
+                preco_km: parseFloat(document.getElementById('adm-km').value) || 0,
+                logo_url: document.getElementById('adm-logo').value.trim() || null
+            };
+            
+            try {
+                await _sb.from('configuracoes').update(dados).eq('id', CONFIG.id || 1);
+                
+                // Atualizar CONFIG local
+                Object.assign(CONFIG, dados);
+                
+                // Atualizar UI
+                updateClienteUI();
+                updateAdminUI();
+                
+                alert('Configurações salvas com sucesso!');
+            } catch (error) {
+                console.error('Erro ao salvar configurações:', error);
+                alert('Erro ao salvar configurações. Tente novamente.');
+            }
         }
 
-        init();
+        // Expor funções globalmente
+        window.abrirAdmin = abrirAdmin;
+        window.fecharCheckout = fecharCheckout;
+        window.abrirCheckout = abrirCheckout;
+        window.obterGPSCliente = obterGPSCliente;
+        window.obterGPSLoja = obterGPSLoja;
+        window.enviarPedido = enviarPedido;
+        window.imprimirPedido = imprimirPedido;
+        window.updateStatus = updateStatus;
+        window.alterarStatusLoja = alterarStatusLoja;
+        window.switchTab = switchTab;
+        window.salvarConfig = salvarConfig;
+        window.renderCardapio = renderCardapio;
+        window.addCart = addCart;
     </script>
 </body>
 </html>
