@@ -215,25 +215,6 @@
             border-color: #3b82f6;
             background: #eff6ff;
         }
-        
-        /* Transition effects */
-        .slide-enter {
-            transform: translateX(100%);
-        }
-        
-        .slide-enter-active {
-            transform: translateX(0);
-            transition: transform 300ms;
-        }
-        
-        .slide-exit {
-            transform: translateX(0);
-        }
-        
-        .slide-exit-active {
-            transform: translateX(100%);
-            transition: transform 300ms;
-        }
     </style>
 </head>
 <body>
@@ -541,9 +522,6 @@
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
             init();
-            
-            // Configurar drag and drop para categorias
-            setupDragAndDrop();
         });
 
         async function init() {
@@ -1051,31 +1029,6 @@
             }
         }
 
-        function setupDragAndDrop() {
-            // Esta função será usada para reordenar categorias
-        }
-
-        async function atualizarOrdemCategorias(categoriasOrdenadas) {
-            try {
-                // Atualizar ordem de todas as categorias
-                const updates = categoriasOrdenadas.map((cat, index) => ({
-                    id: cat.id,
-                    ordem: index + 1
-                }));
-                
-                // Fazer update em lote (um por um por enquanto)
-                for (const update of updates) {
-                    await _sb.from('categorias').update({ ordem: update.ordem }).eq('id', update.id);
-                }
-                
-                await loadData(); // Recarregar categorias
-                
-            } catch (error) {
-                console.error('Erro ao atualizar ordem:', error);
-                alert('Erro ao atualizar ordem das categorias.');
-            }
-        }
-
         function renderCategoriasAdmin() {
             const lista = document.getElementById('lista-categorias');
             if (!lista) return;
@@ -1173,99 +1126,6 @@
                     </div>
                 `;
             }
-            
-            // Configurar eventos de drag and drop
-            setupDragEvents();
-        }
-
-        // Drag and Drop Functions
-        function dragStart(event, categoriaId) {
-            draggedItem = categoriaId;
-            event.dataTransfer.effectAllowed = 'move';
-            event.currentTarget.classList.add('dragging');
-        }
-
-        function dragOver(event) {
-            event.preventDefault();
-            event.dataTransfer.dropEffect = 'move';
-        }
-
-        function drop(event, categoriaId) {
-            event.preventDefault();
-            
-            if (draggedItem === categoriaId) return;
-            
-            // Reordenar categorias
-            const draggedIndex = CATS.findIndex(c => c.id === draggedItem);
-            const targetIndex = CATS.findIndex(c => c.id === categoriaId);
-            
-            if (draggedIndex > -1 && targetIndex > -1) {
-                // Mover item no array
-                const [movedItem] = CATS.splice(draggedIndex, 1);
-                CATS.splice(targetIndex, 0, movedItem);
-                
-                // Atualizar ordem numérica
-                CATS.forEach((cat, index) => {
-                    cat.ordem = index + 1;
-                });
-                
-                // Atualizar no banco de dados
-                atualizarOrdemCategorias(CATS);
-                
-                // Renderizar novamente
-                renderCategoriasAdmin();
-            }
-            
-            // Remover classe dragging
-            document.querySelectorAll('.draggable-item').forEach(item => {
-                item.classList.remove('dragging');
-            });
-            
-            draggedItem = null;
-        }
-
-        function setupDragEvents() {
-            const draggableItems = document.querySelectorAll('.draggable-item');
-            
-            draggableItems.forEach(item => {
-                item.addEventListener('dragstart', (e) => {
-                    e.currentTarget.classList.add('dragging');
-                });
-                
-                item.addEventListener('dragend', (e) => {
-                    e.currentTarget.classList.remove('dragging');
-                });
-            });
-            
-            const dropzones = document.querySelectorAll('#categorias-ativas');
-            dropzones.forEach(zone => {
-                zone.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    const afterElement = getDragAfterElement(zone, e.clientY);
-                    const draggable = document.querySelector('.dragging');
-                    
-                    if (afterElement == null) {
-                        zone.appendChild(draggable);
-                    } else {
-                        zone.insertBefore(draggable, afterElement);
-                    }
-                });
-            });
-        }
-
-        function getDragAfterElement(container, y) {
-            const draggableElements = [...container.querySelectorAll('.draggable-item:not(.dragging)')];
-            
-            return draggableElements.reduce((closest, child) => {
-                const box = child.getBoundingClientRect();
-                const offset = y - box.top - box.height / 2;
-                
-                if (offset < 0 && offset > closest.offset) {
-                    return { offset: offset, element: child };
-                } else {
-                    return closest;
-                }
-            }, { offset: Number.NEGATIVE_INFINITY }).element;
         }
 
         // --- FUNÇÕES DO CARDÁPIO (CLIENTE) ---
@@ -1352,7 +1212,158 @@
             });
         }
 
-        // --- FUNÇÕES RESTANTES (mantidas do código anterior) ---
+        // --- FUNÇÃO ENVIAR PEDIDO CORRIGIDA ---
+        async function enviarPedido() {
+            // Validações
+            const nome = document.getElementById('f-nome').value.trim();
+            const rua = document.getElementById('f-rua').value.trim();
+            const numero = document.getElementById('f-num').value.trim();
+            const bairro = document.getElementById('f-bairro').value.trim();
+            
+            if (!nome) {
+                alert('Por favor, informe seu nome.');
+                document.getElementById('f-nome').focus();
+                return;
+            }
+            
+            if (!rua || !numero || !bairro) {
+                alert('Por favor, preencha o endereço completo.');
+                return;
+            }
+            
+            if (tFRETE === 0 && CONFIG.taxa_base > 0) {
+                alert('Por favor, calcule o frete antes de continuar.');
+                return;
+            }
+            
+            if (CARRINHO.length === 0) {
+                alert('Seu carrinho está vazio.');
+                return;
+            }
+            
+            // Salvar em memória local
+            localStorage.setItem('p_nome', nome);
+            localStorage.setItem('p_rua', rua);
+            localStorage.setItem('p_num', numero);
+            localStorage.setItem('p_bairro', bairro);
+            localStorage.setItem('p_comp', document.getElementById('f-comp').value.trim());
+            
+            const complemento = document.getElementById('f-comp').value.trim();
+            const pagamento = document.getElementById('f-pag').value;
+            const troco = document.getElementById('f-troco').value || "Não precisa";
+            
+            // Calcular total
+            const subtotal = CARRINHO.reduce((total, item) => total + Number(item.preco), 0);
+            const total = subtotal + tFRETE;
+            
+            // Desabilitar botão durante processamento
+            const btnEnviar = document.getElementById('btn-enviar');
+            const originalText = btnEnviar.innerHTML;
+            btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> PROCESSANDO...';
+            btnEnviar.disabled = true;
+            
+            try {
+                // Inserir pedido no banco
+                const { data: ped, error: pedError } = await _sb.from('pedidos').insert([{
+                    cliente_nome: nome,
+                    rua: rua,
+                    numero: numero,
+                    bairro: bairro,
+                    complemento: complemento,
+                    distancia_km: parseFloat(dKM.toFixed(1)),
+                    taxa_entrega: parseFloat(tFRETE.toFixed(2)),
+                    total: parseFloat(total.toFixed(2)),
+                    pagamento: pagamento,
+                    troco: troco,
+                    status: 'Novo'
+                }]).select();
+                
+                if (pedError) throw pedError;
+                
+                // Inserir itens do pedido
+                const itens = CARRINHO.map(item => ({
+                    pedido_id: ped[0].id,
+                    produto_nome: item.nome,
+                    preco: item.preco,
+                    produto_id: item.id
+                }));
+                
+                const { error: itensError } = await _sb.from('itens_pedido').insert(itens);
+                if (itensError) throw itensError;
+                
+                // FORMATAR MENSAGEM PARA WHATSAPP (CORRIGIDO)
+                const telefone = (CONFIG.whatsapp || '5511999999999')
+                    .toString()
+                    .replace(/\s+/g, '')
+                    .replace('+', '')
+                    .replace('-', '')
+                    .replace('(', '')
+                    .replace(')', '');
+                
+                // Construir mensagem passo a passo
+                let linhas = [];
+                linhas.push(`*NOVO PEDIDO - ${CONFIG.nome_pizzaria}*`);
+                linhas.push(``);
+                linhas.push(`*Cliente:* ${nome}`);
+                linhas.push(`*Endereço:* ${rua}, ${numero}`);
+                linhas.push(`*Bairro:* ${bairro}`);
+                if (complemento) linhas.push(`*Referência:* ${complemento}`);
+                linhas.push(``);
+                linhas.push(`*ITENS:*`);
+                CARRINHO.forEach(item => {
+                    linhas.push(`• 1x ${item.nome} - R$ ${Number(item.preco).toFixed(2)}`);
+                });
+                linhas.push(``);
+                linhas.push(`*Distância:* ${dKM.toFixed(1)} km`);
+                linhas.push(`*Taxa de entrega:* R$ ${tFRETE.toFixed(2)}`);
+                linhas.push(`*Subtotal:* R$ ${subtotal.toFixed(2)}`);
+                linhas.push(`*TOTAL:* R$ ${total.toFixed(2)}`);
+                linhas.push(``);
+                linhas.push(`*Pagamento:* ${pagamento}`);
+                if (pagamento === 'Dinheiro') {
+                    linhas.push(`*Troco para:* R$ ${troco}`);
+                }
+                linhas.push(``);
+                linhas.push(`*Localização:*`);
+                linhas.push(`https://www.google.com/maps?q=${latCli},${lngCli}`);
+                linhas.push(``);
+                linhas.push(`_Pedido via Pizzaria Pro_`);
+                
+                // Juntar linhas com quebras
+                const mensagemTexto = linhas.join('\n');
+                
+                // Codificar para URL
+                const mensagemCodificada = encodeURIComponent(mensagemTexto);
+                
+                // Criar URL final
+                const urlWhatsapp = `https://wa.me/${telefone}?text=${mensagemCodificada}`;
+                
+                console.log('URL WhatsApp:', urlWhatsapp); // Para debug
+                
+                // Abrir WhatsApp
+                window.open(urlWhatsapp, '_blank', 'noopener,noreferrer');
+                
+                // Limpar carrinho e recarregar
+                CARRINHO = [];
+                document.getElementById('cart-fixed').classList.add('hidden');
+                document.getElementById('modal-checkout').classList.add('hidden');
+                
+                // Mostrar mensagem de sucesso
+                alert('✅ Pedido enviado com sucesso! Verifique o WhatsApp.');
+                
+                // Recarregar após 2 segundos
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Erro ao enviar pedido:', error);
+                alert('❌ Erro ao enviar pedido. Tente novamente.');
+                btnEnviar.innerHTML = originalText;
+                btnEnviar.disabled = false;
+            }
+        }
+
         function addCart(produtoId) {
             if (!CONFIG.loja_aberta) {
                 alert("⚠️ Estamos fechados no momento. Volte durante nosso horário de funcionamento.");
@@ -1395,7 +1406,7 @@
 
         function abrirAdmin() {
             const senha = prompt("Digite a senha de administrador:");
-            if (senha === "123") { // ⚠️ Em produção, use autenticação segura!
+            if (senha === "123") {
                 document.getElementById('view-cliente').classList.add('hidden');
                 document.getElementById('view-admin').classList.remove('hidden');
                 switchTab('pedidos');
@@ -1452,7 +1463,7 @@
             }
         }
 
-        // --- FUNÇÕES DE PEDIDOS (mantidas do código anterior) ---
+        // --- FUNÇÕES DE PEDIDOS ---
         async function loadPedidos() {
             try {
                 document.getElementById('loading-pedidos').classList.remove('hidden');
@@ -1676,7 +1687,7 @@
             }
         }
 
-        // --- FUNÇÕES DE LOCALIZAÇÃO E FRETE (mantidas) ---
+        // --- FUNÇÕES DE LOCALIZAÇÃO E FRETE ---
         function calcDist(lat1, lon1, lat2, lon2) {
             const R = 6371;
             const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1801,129 +1812,67 @@
             );
         }
 
-        async function enviarPedido() {
-            // Validações
-            const nome = document.getElementById('f-nome').value.trim();
-            const rua = document.getElementById('f-rua').value.trim();
-            const numero = document.getElementById('f-num').value.trim();
-            const bairro = document.getElementById('f-bairro').value.trim();
+        // Drag and Drop Functions
+        function dragStart(event, categoriaId) {
+            draggedItem = categoriaId;
+            event.dataTransfer.effectAllowed = 'move';
+            event.currentTarget.classList.add('dragging');
+        }
+
+        function dragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+        }
+
+        function drop(event, categoriaId) {
+            event.preventDefault();
             
-            if (!nome) {
-                alert('Por favor, informe seu nome.');
-                document.getElementById('f-nome').focus();
-                return;
+            if (draggedItem === categoriaId) return;
+            
+            // Reordenar categorias
+            const draggedIndex = CATS.findIndex(c => c.id === draggedItem);
+            const targetIndex = CATS.findIndex(c => c.id === categoriaId);
+            
+            if (draggedIndex > -1 && targetIndex > -1) {
+                // Mover item no array
+                const [movedItem] = CATS.splice(draggedIndex, 1);
+                CATS.splice(targetIndex, 0, movedItem);
+                
+                // Atualizar ordem numérica
+                CATS.forEach((cat, index) => {
+                    cat.ordem = index + 1;
+                });
+                
+                // Atualizar no banco de dados
+                atualizarOrdemCategorias(CATS);
+                
+                // Renderizar novamente
+                renderCategoriasAdmin();
             }
             
-            if (!rua || !numero || !bairro) {
-                alert('Por favor, preencha o endereço completo.');
-                return;
-            }
+            // Remover classe dragging
+            document.querySelectorAll('.draggable-item').forEach(item => {
+                item.classList.remove('dragging');
+            });
             
-            if (tFRETE === 0 && CONFIG.taxa_base > 0) {
-                alert('Por favor, calcule o frete antes de continuar.');
-                return;
-            }
-            
-            if (CARRINHO.length === 0) {
-                alert('Seu carrinho está vazio.');
-                return;
-            }
-            
-            // Salvar em memória local
-            localStorage.setItem('p_nome', nome);
-            localStorage.setItem('p_rua', rua);
-            localStorage.setItem('p_num', numero);
-            localStorage.setItem('p_bairro', bairro);
-            localStorage.setItem('p_comp', document.getElementById('f-comp').value.trim());
-            
-            const complemento = document.getElementById('f-comp').value.trim();
-            const pagamento = document.getElementById('f-pag').value;
-            const troco = document.getElementById('f-troco').value || "Não precisa";
-            
-            // Calcular total
-            const subtotal = CARRINHO.reduce((total, item) => total + Number(item.preco), 0);
-            const total = subtotal + tFRETE;
-            
-            // Desabilitar botão durante processamento
-            const btnEnviar = document.getElementById('btn-enviar');
-            const originalText = btnEnviar.innerHTML;
-            btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> PROCESSANDO...';
-            btnEnviar.disabled = true;
-            
+            draggedItem = null;
+        }
+
+        async function atualizarOrdemCategorias(categoriasOrdenadas) {
             try {
-                // Inserir pedido no banco
-                const { data: ped, error: pedError } = await _sb.from('pedidos').insert([{
-                    cliente_nome: nome,
-                    rua: rua,
-                    numero: numero,
-                    bairro: bairro,
-                    complemento: complemento,
-                    distancia_km: parseFloat(dKM.toFixed(1)),
-                    taxa_entrega: parseFloat(tFRETE.toFixed(2)),
-                    total: parseFloat(total.toFixed(2)),
-                    pagamento: pagamento,
-                    troco: troco,
-                    status: 'Novo'
-                }]).select();
+                // Atualizar ordem de todas as categorias
+                for (let i = 0; i < categoriasOrdenadas.length; i++) {
+                    const cat = categoriasOrdenadas[i];
+                    await _sb.from('categorias').update({ ordem: i + 1 }).eq('id', cat.id);
+                }
                 
-                if (pedError) throw pedError;
-                
-                // Inserir itens do pedido
-                const itens = CARRINHO.map(item => ({
-                    pedido_id: ped[0].id,
-                    produto_nome: item.nome,
-                    preco: item.preco,
-                    produto_id: item.id
-                }));
-                
-                const { error: itensError } = await _sb.from('itens_pedido').insert(itens);
-                if (itensError) throw itensError;
-                
-                // Preparar mensagem para WhatsApp
-                const telefone = CONFIG.whatsapp || '5511999999999';
-                const mensagem = `
-*NOVO PEDIDO - ${CONFIG.nome_pizzaria}*
-
-*Cliente:* ${nome}
-*Endereço:* ${rua}, ${numero}
-*Bairro:* ${bairro}
-${complemento ? `*Referência:* ${complemento}` : ''}
-
-*ITENS:*
-${CARRINHO.map(item => `• 1x ${item.nome} - R$ ${Number(item.preco).toFixed(2)}`).join('\n')}
-
-*Distância:* ${dKM.toFixed(1)} km
-*Taxa de entrega:* R$ ${tFRETE.toFixed(2)}
-*Subtotal:* R$ ${subtotal.toFixed(2)}
-*TOTAL:* R$ ${total.toFixed(2)}
-
-*Forma de pagamento:* ${pagamento}
-${pagamento === 'Dinheiro' ? `*Troco para:* R$ ${troco}` : ''}
-
-*Localização do cliente:*
-https://www.google.com/maps?q=${latCli},${lngCli}
-                `.trim();
-                
-                // Abrir WhatsApp
-                const urlWhatsapp = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
-                window.open(urlWhatsapp, '_blank');
-                
-                // Limpar carrinho e recarregar
-                CARRINHO = [];
-                document.getElementById('cart-fixed').classList.add('hidden');
-                document.getElementById('modal-checkout').classList.add('hidden');
-                
-                alert('Pedido enviado com sucesso! Verifique o WhatsApp.');
-                
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                // Recarregar categorias
+                const { data } = await _sb.from('categorias').select('*').order('ordem');
+                CATS = data || [];
                 
             } catch (error) {
-                console.error('Erro ao enviar pedido:', error);
-                alert('Erro ao enviar pedido. Tente novamente.');
-                btnEnviar.innerHTML = originalText;
-                btnEnviar.disabled = false;
+                console.error('Erro ao atualizar ordem:', error);
+                alert('Erro ao atualizar ordem das categorias.');
             }
         }
 
