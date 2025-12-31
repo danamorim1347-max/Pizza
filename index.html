@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pizzaria Premium | Pedido & Rastreio</title>
+    <title>Pizzaria Pro | Sistema de Gestão 2025</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
@@ -11,17 +11,22 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .hidden { display: none !important; }
-        .tab-active { border-bottom: 4px solid #ef4444; color: #ef4444; font-weight: 800; }
+        .tab-active { background-color: #ef4444 !important; color: white !important; font-weight: 800; }
+        .cat-active { background-color: #000 !important; color: #fff !important; }
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         
         @media print {
             body * { visibility: hidden; }
             #secao-impressao, #secao-impressao * { visibility: visible; }
-            #secao-impressao { position: absolute; left: 0; top: 0; width: 100%; border: none; padding: 0; }
+            #secao-impressao { position: absolute; left: 0; top: 0; width: 100%; border: none; }
         }
-        
-        .pizza-half-select { border: 2px solid #e2e8f0; border-radius: 20px; padding: 10px; cursor: pointer; transition: 0.3s; }
-        .pizza-half-active { border-color: #ef4444; background: #fef2f2; }
+
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body>
@@ -29,40 +34,41 @@
     <audio id="alerta-som" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
     <!-- [PÁGINA DE RASTREIO] -->
-    <div id="view-rastreio" class="hidden max-w-md mx-auto min-h-screen p-6 text-center">
-        <div class="bg-white p-8 rounded-[40px] shadow-xl border">
-            <h2 class="text-2xl font-black italic text-red-600 mb-4">Acompanhe seu Pedido</h2>
-            <div id="rastreio-status-box" class="py-6 px-4 bg-gray-50 rounded-3xl border-2 border-dashed mb-6">
-                <p class="text-xs font-bold text-gray-400 uppercase">Situação Atual:</p>
-                <h3 id="rastreio-status" class="text-2xl font-black text-gray-800 mt-2">Carregando...</h3>
+    <div id="view-rastreio" class="hidden max-w-md mx-auto min-h-screen p-6">
+        <div class="bg-white p-8 rounded-[40px] shadow-xl text-center border">
+            <h2 class="text-2xl font-black italic text-red-600 mb-6 uppercase">Acompanhar Pedido</h2>
+            <div class="py-10 px-4 bg-gray-50 rounded-3xl border-2 border-dashed mb-6">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status Atual:</p>
+                <h3 id="rastreio-status" class="text-3xl font-black text-gray-800 mt-2 italic uppercase">---</h3>
             </div>
-            <button onclick="window.location.reload()" class="w-full bg-gray-900 text-white p-4 rounded-2xl font-bold">Atualizar</button>
-            <button onclick="voltarLoja()" class="mt-4 text-gray-400 font-bold text-xs uppercase">Voltar para a Loja</button>
+            <button onclick="window.location.reload()" class="w-full bg-black text-white p-5 rounded-2xl font-black uppercase shadow-lg">Atualizar Status</button>
+            <button onclick="window.location.href=window.location.pathname" class="mt-6 text-gray-400 font-bold text-xs uppercase underline">Fazer novo pedido</button>
         </div>
     </div>
 
     <!-- [VISÃO CLIENTE] -->
     <div id="view-cliente" class="max-w-md mx-auto min-h-screen pb-32">
         <header class="bg-white p-6 rounded-b-[45px] shadow-sm text-center relative border-b">
-            <h1 id="cli-nome" class="text-xl font-black italic uppercase tracking-tighter text-gray-800">Sua Pizzaria</h1>
-            <div id="cli-status" class="inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border italic uppercase"></div>
-            <button onclick="abrirAdmin()" class="absolute top-4 right-4 text-gray-200 p-2 text-xl">⚙️</button>
+            <img id="cli-logo" src="" class="h-16 w-16 mx-auto mb-2 object-contain hidden rounded-2xl shadow">
+            <h1 id="cli-nome" class="text-xl font-black italic uppercase tracking-tighter text-gray-800 tracking-widest">MINHA PIZZARIA</h1>
+            <div id="cli-status" class="inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border uppercase"></div>
+            <button onclick="abrirAdmin()" class="absolute top-4 right-4 text-gray-200 text-xl">⚙️</button>
         </header>
 
-        <!-- Botão Meio a Meio -->
-        <div class="px-4 mt-4">
-            <button onclick="abrirMontador()" class="w-full bg-orange-500 text-white p-4 rounded-[25px] font-black text-xs uppercase shadow-lg shadow-orange-100 flex justify-between items-center">
+        <!-- Botão Pizza 2 Sabores -->
+        <div class="px-4 mt-6">
+            <button onclick="abrirMontador()" class="w-full bg-orange-500 text-white p-5 rounded-[25px] font-black text-xs uppercase shadow-xl flex justify-between items-center transform active:scale-95 transition">
                 <span>🍕 Montar Pizza 2 Sabores</span>
-                <span class="bg-white/20 px-2 py-1 rounded-lg">ESCOLHER</span>
+                <i class="fas fa-chevron-right opacity-50"></i>
             </button>
         </div>
 
-        <nav id="filtros" class="flex gap-2 p-4 overflow-x-auto no-scrollbar sticky top-0 z-20 glass"></nav>
+        <nav id="filtros" class="flex gap-2 p-4 overflow-x-auto no-scrollbar sticky top-0 z-20 glass border-b border-gray-50 mt-2"></nav>
         <main id="cardapio" class="p-4 space-y-4"></main>
 
         <div id="cart-fixed" class="fixed bottom-6 left-0 right-0 px-6 hidden z-30">
             <button onclick="abrirCheckout()" class="max-w-md mx-auto w-full bg-red-600 text-white py-5 rounded-[25px] font-black flex justify-between px-8 shadow-2xl items-center border-b-4 border-red-800 active:scale-95 transition">
-                <span>VER SACOLA</span>
+                <span>REVISAR PEDIDO</span>
                 <span id="cart-total-display" class="bg-white/20 px-3 py-1 rounded-lg text-sm">R$ 0,00</span>
             </button>
         </div>
@@ -71,91 +77,90 @@
     <!-- [MODAL MEIO A MEIO] -->
     <div id="modal-montador" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end">
         <div class="bg-white w-full max-w-md mx-auto rounded-t-[40px] p-6 space-y-4 max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center"><h2 class="font-black italic uppercase">Metade / Metade</h2><button onclick="fecharMontador()" class="text-2xl">✕</button></div>
-            <p class="text-[10px] font-black text-gray-400 uppercase">Cobra o valor do sabor mais caro</p>
+            <div class="flex justify-between items-center"><h2 class="font-black italic uppercase">2 Sabores</h2><button onclick="fecharMontador()" class="text-2xl">✕</button></div>
             
-            <div class="space-y-4">
-                <div class="bg-red-50 p-4 rounded-2xl">
-                    <p class="text-[10px] font-bold text-red-600 uppercase">1ª Metade:</p>
-                    <span id="txt-m1" class="font-bold text-sm text-gray-400 italic">Selecione abaixo...</span>
+            <div class="grid grid-cols-2 gap-2">
+                <div class="bg-red-50 p-3 rounded-2xl border border-red-100">
+                    <p class="text-[8px] font-bold text-red-600 uppercase">Metade 1</p>
+                    <span id="txt-m1" class="font-bold text-[10px] text-gray-500 truncate block">---</span>
                 </div>
-                <div class="bg-red-50 p-4 rounded-2xl">
-                    <p class="text-[10px] font-bold text-red-600 uppercase">2ª Metade:</p>
-                    <span id="txt-m2" class="font-bold text-sm text-gray-400 italic">Selecione abaixo...</span>
+                <div class="bg-red-50 p-3 rounded-2xl border border-red-100">
+                    <p class="text-[8px] font-bold text-red-600 uppercase">Metade 2</p>
+                    <span id="txt-m2" class="font-bold text-[10px] text-gray-500 truncate block">---</span>
                 </div>
             </div>
 
-            <div id="lista-sabores-montador" class="space-y-2"></div>
+            <div id="lista-sabores-montador" class="space-y-2 max-h-60 overflow-y-auto pr-2"></div>
             
-            <button id="btn-add-meio" onclick="confirmarMeioAMeio()" class="w-full bg-green-600 text-white py-5 rounded-[25px] font-black uppercase disabled:opacity-30" disabled>ADICIONAR NO CARRINHO</button>
+            <button id="btn-confirm-meio" onclick="confirmarMeioAMeio()" class="w-full bg-green-600 text-white py-5 rounded-[25px] font-black uppercase shadow-lg disabled:opacity-30" disabled>Confirmar</button>
         </div>
     </div>
 
     <!-- [MODAL CHECKOUT] -->
-    <div id="modal-checkout" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end">
+    <div id="modal-checkout" class="fixed inset-0 bg-black/70 z-50 hidden flex items-end">
         <div class="bg-white w-full max-w-md mx-auto rounded-t-[40px] p-6 space-y-4 max-h-[94vh] overflow-y-auto shadow-2xl">
             <div class="flex justify-between items-center"><h2 class="font-black italic uppercase">Checkout</h2><button onclick="fecharCheckout()" class="text-2xl">✕</button></div>
             
-            <div id="checkout-itens-list" class="bg-gray-50 p-4 rounded-3xl border space-y-2"></div>
+            <div id="checkout-itens-list" class="bg-gray-50 p-4 rounded-3xl border space-y-2 text-xs"></div>
 
             <div class="space-y-3">
-                <input id="f-nome" type="text" placeholder="Seu Nome" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border">
-                <button id="btn-gps-cli" onclick="obterGPSCliente()" class="w-full bg-black text-white p-4 rounded-2xl text-[10px] font-black uppercase">📍 Calcular Frete por GPS *</button>
-                <div id="res-km" class="hidden bg-green-50 p-4 rounded-2xl flex justify-between text-[10px] font-black text-green-700">
+                <input id="f-nome" type="text" placeholder="Seu Nome Completo" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border focus:ring-1 focus:ring-red-500">
+                <button id="btn-gps-cli" onclick="obterGPSCliente()" class="w-full bg-black text-white p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">📍 Calcular Frete por GPS *</button>
+                
+                <div id="res-km" class="hidden bg-green-50 p-4 rounded-2xl flex justify-between text-[10px] font-black text-green-700 border border-green-100">
                     <span id="dist-txt">0.0 km</span><span id="taxa-txt">R$ 0,00</span>
                 </div>
+                
                 <div class="grid grid-cols-4 gap-2">
                     <input id="f-rua" type="text" placeholder="Rua" class="col-span-3 p-4 bg-gray-50 rounded-2xl outline-none border">
                     <input id="f-num" type="text" placeholder="Nº" class="col-span-1 p-4 bg-gray-50 rounded-2xl outline-none border text-center">
                 </div>
                 <input id="f-bairro" type="text" placeholder="Bairro" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border">
+                <input id="f-comp" type="text" placeholder="Complemento / Referência" class="w-full p-4 bg-gray-50 rounded-2xl outline-none border">
+                
                 <select id="f-pag" onchange="document.getElementById('div-troco').classList.toggle('hidden', this.value!='Dinheiro')" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border">
                     <option value="Pix">Pix</option><option value="Cartão">Cartão</option><option value="Dinheiro">Dinheiro</option>
                 </select>
-                <div id="div-troco" class="hidden"><input id="f-troco" type="number" placeholder="Troco para?" class="w-full p-4 bg-orange-50 border-2 border-orange-100 rounded-2xl font-bold"></div>
+                <div id="div-troco" class="hidden"><input id="f-troco" type="number" placeholder="Troco para quanto?" class="w-full p-4 bg-orange-50 border-2 border-orange-100 rounded-2xl font-bold"></div>
             </div>
 
-            <div class="bg-gray-900 text-white p-5 rounded-[30px] shadow-xl">
-                <div class="flex justify-between text-xl font-black text-red-500 italic uppercase"><span>Total:</span><span id="res-total">R$ 0,00</span></div>
+            <div class="bg-gray-900 text-white p-5 rounded-[35px] shadow-xl">
+                <div class="flex justify-between text-2xl font-black text-red-500 italic uppercase"><span>Total:</span><span id="res-total">R$ 0,00</span></div>
             </div>
             
-            <button onclick="enviarPedido()" id="btn-final-zap" class="w-full bg-green-600 text-white py-6 rounded-[25px] font-black uppercase tracking-widest border-b-4 border-green-800">🚀 ENVIAR PEDIDO</button>
+            <button onclick="enviarPedido()" id="btn-final-zap" class="w-full bg-green-600 text-white py-6 rounded-[25px] font-black uppercase tracking-widest shadow-lg border-b-4 border-green-800">🚀 ENVIAR NO WHATSAPP</button>
         </div>
     </div>
 
     <!-- [PAINEL ADM] -->
     <div id="view-admin" class="hidden bg-gray-50 min-h-screen pb-20">
         <header class="bg-black text-white p-4 flex justify-between items-center sticky top-0 z-50">
-            <h1 class="font-black italic text-red-500">GESTÃO ADM</h1>
-            <button onclick="location.reload()" class="text-[10px] font-bold border px-3 py-1 rounded-full uppercase">Sair</button>
+            <h1 class="font-black italic text-red-500 uppercase italic">Painel Master</h1>
+            <button onclick="sairAdmin()" class="text-[10px] font-bold border px-3 py-1 rounded-full uppercase">Sair</button>
         </header>
-        <div class="flex bg-white border-b sticky top-14 z-40 shadow-sm overflow-x-auto no-scrollbar">
+
+        <div class="flex bg-white border-b sticky top-14 z-40 overflow-x-auto no-scrollbar shadow-sm">
             <button onclick="switchTab('pedidos')" id="tab-pedidos" class="flex-1 p-4 font-bold text-[10px] tab-active uppercase">Pedidos</button>
             <button onclick="switchTab('produtos')" id="tab-produtos" class="flex-1 p-4 font-bold text-[10px] uppercase">Cardápio</button>
-            <button onclick="switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[10px] uppercase">Configuração</button>
+            <button onclick="switchTab('categorias')" id="tab-categorias" class="flex-1 p-4 font-bold text-[10px] uppercase">Categorias</button>
+            <button onclick="switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[10px] uppercase">GPS/Loja</button>
         </div>
+
         <div id="adm-content" class="p-4 max-w-md mx-auto space-y-6">
             <div id="sec-pedidos" class="space-y-4"></div>
-            <div id="sec-produtos" class="hidden space-y-4">
-                <div id="adm-lista-produtos" class="space-y-4"></div>
-            </div>
-            <div id="sec-config" class="hidden space-y-4">
-                <div class="bg-white p-6 rounded-[35px] shadow-sm space-y-4">
-                    <button onclick="obterGPSLoja()" class="w-full bg-black text-white p-4 rounded-2xl text-[10px] font-black uppercase">📍 Definir GPS da Loja</button>
-                    <input id="adm-nome" type="text" class="w-full p-3 border rounded-xl">
-                    <input id="adm-zap" type="text" class="w-full p-3 border rounded-xl">
-                    <button onclick="salvarConfig()" class="w-full bg-black text-white p-4 rounded-2xl font-black text-xs uppercase">Salvar Tudo</button>
-                </div>
-            </div>
+            <div id="sec-produtos" class="hidden space-y-4"></div>
+            <div id="sec-categorias" class="hidden space-y-4"></div>
+            <div id="sec-config" class="hidden space-y-4"></div>
         </div>
     </div>
 
     <!-- [CUPOM DE IMPRESSÃO] -->
-    <div id="secao-impressao" class="hidden font-mono text-[12px] leading-tight">
+    <div id="secao-impressao" class="hidden font-mono text-[12px] leading-tight p-4">
         <center><h2 id="p-loja" class="font-bold text-[16px]">---</h2><p>===============================</p></center>
-        <p id="p-data"></p><p id="p-cliente"></p><p id="p-endereco" class="font-bold"></p><p id="p-bairro"></p>
+        <p id="p-data"></p><p id="p-cliente" class="font-bold"></p><p id="p-endereco"></p><p id="p-bairro"></p><p id="p-comp"></p>
         <p>===============================</p><div id="p-itens"></div><p>===============================</p>
         <p id="p-taxa"></p><h3 id="p-total" class="font-bold text-[14px]"></h3><p id="p-pag"></p><p id="p-troco"></p>
+        <br><center><p>Obrigado pelo seu pedido!</p></center>
     </div>
 
     <script>
@@ -163,210 +168,148 @@
         const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBzcXNzcWZ5cXFsdW1kbGxtb3NnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMjEwNzMsImV4cCI6MjA4MjY5NzA3M30.fzrGu0P0gSjP3SDoNiM3qnceSKyuMngry42zGqlJRpQ";
         const _sb = supabase.createClient(SB_URL, SB_KEY);
 
-        let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {};
+        let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {}, curCat = 'todos';
         let dKM = 0, tFRETE = 0, latCli = 0, lngCli = 0, gpsOk = false;
-        let m1 = null, m2 = null;
+        let s1 = null, s2 = null;
 
         async function init() {
-            // Verifica se é um rastreio de pedido
             const params = new URLSearchParams(window.location.search);
-            if(params.has('pedido')) return carregarRastreio(params.get('pedido'));
+            if(params.has('pedido')) return carregarPaginaRastreio(params.get('pedido'));
 
             const { data: c } = await _sb.from('configuracoes').select('*').single();
             CONFIG = c;
             
             document.getElementById('cli-nome').innerText = c.nome_pizzaria;
-            document.getElementById('cli-status').innerText = c.loja_aberta ? '● ABERTO AGORA' : '○ FECHADO';
-            document.getElementById('cli-status').className += c.loja_aberta ? ' text-green-600 bg-green-50' : ' text-gray-400 bg-gray-50';
+            document.getElementById('cli-status').innerText = c.loja_aberta ? '● ABERTO' : '○ FECHADO';
+            document.getElementById('cli-status').className = c.loja_aberta ? 'inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border text-green-600 bg-green-50 uppercase' : 'inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border text-gray-400 bg-gray-50 uppercase';
             if(c.logo_url) { document.getElementById('cli-logo').src = c.logo_url; document.getElementById('cli-logo').classList.remove('hidden'); }
 
-            loadData();
-        }
-
-        async function loadData() {
-            const [{ data: cats }, { data: prods }] = await Promise.all([
-                _sb.from('categorias').select('*').order('ordem'),
-                _sb.from('produtos').select('*').order('nome')
-            ]);
-            CATEGORIAS = cats || []; PRODUTOS = prods || [];
-            renderFiltros(); renderCardapio('todos');
-        }
-
-        // --- PIZZA MEIO A MEIO ---
-        function abrirMontador() {
-            document.getElementById('modal-montador').classList.remove('hidden');
-            const lista = document.getElementById('lista-sabores-montador');
-            // Só lista produtos da categoria "Pizzas"
-            const pizzas = PRODUTOS.filter(p => p.disponivel && p.categoria_id === CATEGORIAS.find(c => c.nome.includes('Pizza'))?.id);
-            lista.innerHTML = pizzas.map(p => `
-                <div class="pizza-half-select" onclick="selecionarSabor('${p.id}', '${p.nome}', ${p.preco}, this)">
-                    <div class="flex justify-between items-center">
-                        <span class="font-bold text-sm uppercase">${p.nome}</span>
-                        <span class="text-red-600 font-black">R$ ${p.preco}</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function selecionarSabor(id, nome, preco, el) {
-            if(!m1) {
-                m1 = { id, nome, preco };
-                document.getElementById('txt-m1').innerText = nome;
-                el.classList.add('pizza-half-active');
-            } else if(!m2) {
-                m2 = { id, nome, preco };
-                document.getElementById('txt-m2').innerText = nome;
-                el.classList.add('pizza-half-active');
-                document.getElementById('btn-add-meio').disabled = false;
-            } else {
-                // Reinicia se clicar num terceiro
-                m1 = { id, nome, preco }; m2 = null;
-                document.querySelectorAll('.pizza-half-select').forEach(x => x.classList.remove('pizza-half-active'));
-                el.classList.add('pizza-half-active');
-                document.getElementById('txt-m1').innerText = nome;
-                document.getElementById('txt-m2').innerText = "Selecione abaixo...";
-                document.getElementById('btn-add-meio').disabled = true;
-            }
-        }
-
-        function confirmarMeioAMeio() {
-            const valorPizza = Math.max(m1.preco, m2.preco);
-            const item = {
-                id: `meio-${Date.now()}`,
-                nome: `MEIO A MEIO (1/2 ${m1.nome} + 1/2 ${m2.nome})`,
-                preco: valorPizza,
-                isMeio: true
-            };
-            CARRINHO.push(item);
-            atualizarFooter();
-            fecharMontador();
-        }
-
-        function fecharMontador() { document.getElementById('modal-montador').classList.add('hidden'); m1 = null; m2 = null; }
-
-        // --- RASTREIO ---
-        async function carregarRastreio(id) {
-            document.getElementById('view-cliente').classList.add('hidden');
-            document.getElementById('view-rastreio').classList.remove('hidden');
-            const { data } = await _sb.from('pedidos').select('status').eq('id', id).single();
-            document.getElementById('rastreio-status').innerText = data ? data.status.toUpperCase() : "PEDIDO NÃO ENCONTRADO";
-        }
-
-        function voltarLoja() { window.location.href = window.location.pathname; }
-
-        // --- INTEGRAÇÃO WHATSAPP (AGRUPAMENTO) ---
-        async function enviarPedido() {
-            const n = document.getElementById('f-nome').value, r = document.getElementById('f-rua').value, num = document.getElementById('f-num').value;
-            const b = document.getElementById('f-bairro').value, c = document.getElementById('f-comp').value, pag = document.getElementById('f-pag').value;
-            const troco = document.getElementById('f-troco').value || "Não";
-            const totalStr = document.getElementById('res-total').innerText;
-
-            if(!gpsOk || !n || !r || !num) return alert("Preencha todos os campos e use o GPS!");
-
-            const { data: ped } = await _sb.from('pedidos').insert([{
-                cliente_nome: n, rua: r, numero: num, bairro: b, complemento: c, 
-                distancia_km: dKM, taxa_entrega: tFRETE, total: Number(totalStr.replace('R$ ', '').replace(',','.')), 
-                pagamento: pag, troco: troco, lat_cliente: latCli.toString(), lng_cliente: lngCli.toString()
-            }]).select();
-
-            if(ped) {
-                await _sb.from('itens_pedido').insert(CARRINHO.map(i => ({ pedido_id: ped[0].id, produto_nome: i.nome, preco: i.preco })));
-
-                // Lógica de Agrupamento Inteligente
-                const agrupados = {};
-                CARRINHO.forEach(i => {
-                    agrupados[i.nome] = (agrupados[i.nome] || 0) + 1;
-                });
-
-                let itensTxt = "";
-                for (const [nome, qtd] of Object.entries(agrupados)) {
-                    itensTxt += `• ${qtd}x *${nome}*\n`;
-                }
-
-                const urlRastreio = `${window.location.origin}${window.location.pathname}?pedido=${ped[0].id}`;
-                const cleanZap = CONFIG.whatsapp.replace(/\D/g, '');
-                const msg = `*NOVO PEDIDO*\n------------------\n*Cliente:* ${n}\n*End:* ${r}, ${num} - ${b}\n*Ref:* ${c}\n------------------\n*Itens:*\n${itensTxt}\n------------------\n*Frete:* R$ ${tFRETE.toFixed(2)}\n*TOTAL:* ${totalStr}\n*Pagamento:* ${pag}\n*Troco:* ${troco}\n\n📍 *Localização:*\nhttps://www.google.com/maps?q=${latCli},${lngCli}\n\n🛰️ *Acompanhe seu pedido:*\n${urlRastreio}`;
-
-                window.open(`https://api.whatsapp.com/send?phone=${cleanZap}&text=${encodeURIComponent(msg)}`);
-                localStorage.setItem('p_nome', n); // Salva memória
-                window.location.href = urlRastreio;
-            }
-        }
-
-        // --- IMPRESSÃO CORRIGIDA ---
-        async function imprimirPedido(id) {
-            const { data: p } = await _sb.from('pedidos').select('*, itens_pedido(*)').eq('id', id).single();
-            if(!p) return;
-
-            document.getElementById('p-loja').innerText = CONFIG.nome_pizzaria;
-            document.getElementById('p-data').innerText = `DATA: ${new Date(p.created_at).toLocaleString()}`;
-            document.getElementById('p-cliente').innerText = `CLIENTE: ${p.cliente_nome}`;
-            document.getElementById('p-endereco').innerText = `END: ${p.rua}, ${p.numero}`;
-            document.getElementById('p-bairro').innerText = `BAIRRO: ${p.bairro}`;
+            loadMainData();
             
-            const agrupados = {};
-            p.itens_pedido.forEach(i => agrupados[i.produto_nome] = (agrupados[i.produto_nome] || 0) + 1);
-            
-            document.getElementById('p-itens').innerHTML = Object.entries(agrupados).map(([nome, qtd]) => 
-                `<div style="display:flex;justify-content:space-between"><span>${qtd}x ${nome}</span></div>`
-            ).join('');
-
-            document.getElementById('p-taxa').innerText = `FRETE: R$ ${p.taxa_entrega.toFixed(2)}`;
-            document.getElementById('p-total').innerText = `TOTAL: R$ ${p.total.toFixed(2)}`;
-            document.getElementById('p-pag').innerText = `PAGAM: ${p.pagamento}`;
-            document.getElementById('p-troco').innerText = `TROCO: ${p.troco}`;
-            window.print();
+            _sb.channel('db').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, () => {
+                document.getElementById('alerta-som').play();
+                if(!document.getElementById('view-admin').classList.contains('hidden')) loadPedidos();
+            }).subscribe();
         }
 
-        // --- UI E APOIO ---
+        async function loadMainData() {
+            const { data: cats } = await _sb.from('categorias').select('*').order('ordem');
+            const { data: prods } = await _sb.from('produtos').select('*').order('nome');
+            PRODS = prods || []; CATS = cats || [];
+            renderFiltros(); renderCardapio(curCat);
+        }
+
+        // --- FILTROS ---
         function renderFiltros() {
             const div = document.getElementById('filtros');
-            div.innerHTML = `<button onclick="renderCardapio('todos')" class="bg-black text-white px-6 py-2 rounded-full font-black text-[10px] italic shadow-md">TODOS</button>`;
-            CATEGORIAS.forEach(c => div.innerHTML += `<button onclick="renderCardapio('${c.id}')" class="bg-white text-gray-400 border px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-sm">${c.nome}</button>`);
+            div.innerHTML = `<button onclick="renderCardapio('todos')" class="px-6 py-2 rounded-full font-black text-[10px] italic shadow-md whitespace-nowrap ${curCat === 'todos' ? 'cat-active' : 'bg-white text-gray-400 border'}">TODOS</button>`;
+            CATS.forEach(c => {
+                div.innerHTML += `<button onclick="renderCardapio('${c.id}')" class="px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-sm whitespace-nowrap ${curCat === c.id ? 'cat-active' : 'bg-white text-gray-400 border'}">${c.nome}</button>`;
+            });
         }
 
         function renderCardapio(cid) {
+            curCat = cid;
+            renderFiltros();
             const div = document.getElementById('cardapio'); div.innerHTML = "";
-            const f = cid === 'todos' ? PRODUTOS : PRODUTOS.filter(p => p.categoria_id === cid);
-            f.forEach(p => {
+            const filtrados = cid === 'todos' ? PRODS : PRODS.filter(p => p.categoria_id === cid);
+            filtrados.forEach(p => {
                 if(!p.disponivel) return;
                 div.innerHTML += `<div class="bg-white rounded-[35px] shadow-sm p-4 flex gap-4 border items-center">
                     <img src="${p.imagem_url || ''}" class="w-16 h-16 object-contain rounded-xl">
                     <div class="flex-1">
                         <h3 class="font-black text-xs uppercase italic">${p.nome}</h3>
+                        <p class="text-[9px] text-gray-400 line-clamp-1">${p.descricao || ''}</p>
                         <div class="flex justify-between items-center mt-2">
-                            <span class="text-red-600 font-black">R$ ${Number(p.preco).toFixed(2)}</span>
-                            <button onclick="addCartManual('${p.id}')" class="bg-yellow-400 w-9 h-9 rounded-xl font-black text-xl shadow">+</button>
+                            <span class="text-red-600 font-black">R$ ${Number(p.preco).toFixed(2).replace('.', ',')}</span>
+                            <button onclick="addCartSimple('${p.id}')" class="bg-yellow-400 text-black w-9 h-9 rounded-xl font-black text-xl shadow">+</button>
                         </div>
                     </div>
                 </div>`;
             });
         }
 
-        function addCartManual(id) { 
-            const p = PRODUTOS.find(i => i.id === id); 
-            CARRINHO.push(p); 
-            atualizarFooter(); 
+        // --- PIZZA 2 SABORES ---
+        function abrirMontador() {
+            document.getElementById('modal-montador').classList.remove('hidden');
+            const lista = document.getElementById('lista-sabores-montador');
+            const pizzas = PRODS.filter(p => p.disponivel && p.categoria_id === CATS.find(c => c.nome.toLowerCase().includes('pizza'))?.id);
+            lista.innerHTML = pizzas.map(p => `
+                <div class="bg-gray-50 p-4 rounded-2xl border flex justify-between items-center" onclick="selecionarMetade('${p.id}', '${p.nome}', ${p.preco}, this)">
+                    <span class="font-bold text-[11px] uppercase">${p.nome}</span>
+                    <span class="text-red-600 font-black text-[11px]">R$ ${p.preco}</span>
+                </div>`).join('');
         }
 
-        function atualizarFooter() {
-            const total = CARRINHO.reduce((a, i) => a + Number(i.preco), 0);
-            document.getElementById('cart-total-display').innerText = `R$ ${total.toFixed(2)}`;
+        function selecionarMetade(id, nome, preco, el) {
+            if(!s1) {
+                s1 = { nome, preco }; document.getElementById('txt-m1').innerText = nome;
+                el.classList.add('border-red-500', 'bg-red-50');
+            } else if(!s2) {
+                s2 = { nome, preco }; document.getElementById('txt-m2').innerText = nome;
+                el.classList.add('border-red-500', 'bg-red-50');
+                document.getElementById('btn-confirm-meio').disabled = false;
+            } else {
+                s1 = { nome, preco }; s2 = null; 
+                document.querySelectorAll('#lista-sabores-montador div').forEach(x => x.classList.remove('border-red-500', 'bg-red-50'));
+                el.classList.add('border-red-500', 'bg-red-50');
+                document.getElementById('txt-m1').innerText = nome;
+                document.getElementById('txt-m2').innerText = "---";
+                document.getElementById('btn-confirm-meio').disabled = true;
+            }
+        }
+
+        function confirmarMeioAMeio() {
+            const precoFinal = Math.max(s1.preco, s2.preco);
+            CARRINHO.push({ nome: `1/2 ${s1.nome} + 1/2 ${s2.nome}`, preco: precoFinal });
+            updateFooter(); fecharMontador();
+        }
+
+        function fecharMontador() { document.getElementById('modal-montador').classList.add('hidden'); s1 = null; s2 = null; document.getElementById('btn-confirm-meio').disabled = true; }
+
+        // --- CARRINHO & CHECKOUT ---
+        function addCartSimple(id) {
+            if(!CONFIG.loja_aberta) return alert("Loja fechada!");
+            CARRINHO.push(PRODS.find(p => p.id === id));
+            updateFooter();
+        }
+
+        function updateFooter() {
+            const total = CARRINHO.reduce((a, b) => a + Number(b.preco), 0);
+            document.getElementById('cart-total-display').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
             document.getElementById('cart-fixed').classList.remove('hidden');
         }
 
-        function abrirCheckout() { 
-            document.getElementById('modal-checkout').classList.remove('hidden'); 
-            const agrupados = {};
-            CARRINHO.forEach(i => agrupados[i.nome] = (agrupados[i.nome] || 0) + 1);
-            document.getElementById('checkout-itens-list').innerHTML = Object.entries(agrupados).map(([nome, qtd]) => `
-                <div class="flex justify-between text-[11px] font-bold"><span>${qtd}x ${nome}</span></div>
+        function abrirCheckout() {
+            document.getElementById('modal-checkout').classList.remove('hidden');
+            document.getElementById('f-nome').value = localStorage.getItem('p_nome') || "";
+            document.getElementById('f-rua').value = localStorage.getItem('p_rua') || "";
+            document.getElementById('f-num').value = localStorage.getItem('p_num') || "";
+            document.getElementById('f-bairro').value = localStorage.getItem('p_bairro') || "";
+            document.getElementById('f-comp').value = localStorage.getItem('p_comp') || "";
+            
+            const listDiv = document.getElementById('checkout-itens-list');
+            const agrupados = agruparItens(CARRINHO);
+            listDiv.innerHTML = Object.entries(agrupados).map(([nome, qtd]) => `
+                <div class="flex justify-between font-bold"><span>${qtd}x ${nome}</span></div>
             `).join('');
-            renderCheckoutTotal(); 
+            
+            const sub = CARRINHO.reduce((a, b) => a + Number(b.preco), 0);
+            document.getElementById('res-total').innerText = `R$ ${(sub + tFRETE).toFixed(2).replace('.', ',')}`;
         }
 
+        function fecharCheckout() { document.getElementById('modal-checkout').classList.add('hidden'); }
+
+        function agruparItens(lista) {
+            return lista.reduce((acc, item) => {
+                acc[item.nome] = (acc[item.nome] || 0) + 1;
+                return acc;
+            }, {});
+        }
+
+        // --- GPS ---
         function obterGPSCliente() {
-            const b = document.getElementById('btn-gps-cli'); b.innerText = "⏳ LOCALIZANDO...";
+            const btn = document.getElementById('btn-gps-cli'); btn.innerText = "⏳ LOCALIZANDO...";
             navigator.geolocation.getCurrentPosition(pos => {
                 latCli = pos.coords.latitude; lngCli = pos.coords.longitude;
                 const lat1 = Number(CONFIG.lat_pizzaria), lon1 = Number(CONFIG.lng_pizzaria);
@@ -377,54 +320,152 @@
                 document.getElementById('res-km').classList.remove('hidden');
                 document.getElementById('dist-txt').innerText = `${dKM.toFixed(1)} km`;
                 document.getElementById('taxa-txt').innerText = `R$ ${tFRETE.toFixed(2)}`;
-                b.innerText = "✅ FRETE CALCULADO"; b.className = "w-full bg-green-600 text-white p-4 rounded-2xl text-[10px] font-black uppercase";
-                gpsOk = true; renderCheckoutTotal();
-            });
+                btn.innerText = "✅ FRETE CALCULADO"; btn.className = "w-full bg-green-600 text-white p-4 rounded-2xl text-[10px] font-black uppercase";
+                gpsOk = true; abrirCheckout();
+            }, () => alert("Ative seu GPS!"));
         }
 
-        function renderCheckoutTotal() {
-            const sub = CARRINHO.reduce((a, i) => a + Number(i.preco), 0);
-            document.getElementById('res-total').innerText = `R$ ${(sub + tFRETE).toFixed(2)}`;
+        // --- WHATSAPP & PEDIDO ---
+        async function enviarPedido() {
+            const n = document.getElementById('f-nome').value, r = document.getElementById('f-rua').value, num = document.getElementById('f-num').value;
+            const b = document.getElementById('f-bairro').value, comp = document.getElementById('f-comp').value, pag = document.getElementById('f-pag').value;
+            const totalStr = document.getElementById('res-total').innerText;
+            const troco = document.getElementById('f-troco').value || "Não precisa";
+
+            if(!gpsOk) return alert("Cálculo de frete via GPS é obrigatório!");
+            if(!n || !r || !num) return alert("Preencha seu endereço!");
+
+            localStorage.setItem('p_nome', n); localStorage.setItem('p_rua', r); localStorage.setItem('p_num', num); localStorage.setItem('p_bairro', b); localStorage.setItem('p_comp', comp);
+
+            const { data: ped } = await _sb.from('pedidos').insert([{
+                cliente_nome: n, rua: r, numero: num, bairro: b, complemento: comp, 
+                distancia_km: dKM, taxa_entrega: tFRETE, total: Number(totalStr.replace('R$ ', '').replace(',','.')), 
+                pagamento: pag, troco: troco, lat_cliente: latCli.toString(), lng_cliente: lngCli.toString()
+            }]).select();
+
+            if(ped) {
+                await _sb.from('itens_pedido').insert(CARRINHO.map(i => ({ pedido_id: ped[0].id, produto_nome: i.nome, preco: i.preco })));
+                
+                const agrupados = agruparItens(CARRINHO);
+                let itensTxt = "";
+                for (const [nome, qtd] of Object.entries(agrupados)) {
+                    itensTxt += `• ${qtd}x *${nome}*\n`;
+                }
+
+                const urlRastreio = `${window.location.origin}${window.location.pathname}?pedido=${ped[0].id}`;
+                const msg = `*NOVO PEDIDO*\n------------------\n*Cliente:* ${n}\n*End:* ${r}, ${num} - ${b}\n*Ref:* ${comp}\n------------------\n*Itens:*\n${itensTxt}\n------------------\n*TOTAL:* ${totalStr}\n*Pag:* ${pag}\n*Troco:* ${troco}\n\n📍 *Localização:*\nhttps://www.google.com/maps?q=${latCli},${lngCli}\n\n🛰️ *Rastreio:*\n${urlRastreio}`;
+
+                window.open(`https://api.whatsapp.com/send?phone=${CONFIG.whatsapp.replace(/\D/g, '')}&text=${encodeURIComponent(msg)}`);
+                window.location.href = urlRastreio;
+            }
         }
 
+        // --- RASTREIO CLIENTE ---
+        async function carregarPaginaRastreio(id) {
+            document.getElementById('view-cliente').classList.add('hidden');
+            document.getElementById('view-rastreio').classList.remove('hidden');
+            const { data } = await _sb.from('pedidos').select('status').eq('id', id).single();
+            document.getElementById('rastreio-status').innerText = data ? data.status.toUpperCase() : "PEDIDO NÃO ENCONTRADO";
+        }
+
+        // --- ADM LOGIC ---
         function abrirAdmin() { if(prompt("Senha:") === "123") { document.getElementById('view-cliente').classList.add('hidden'); document.getElementById('view-admin').classList.remove('hidden'); switchTab('pedidos'); } }
-        function fecharCheckout() { document.getElementById('modal-checkout').classList.add('hidden'); }
+        function sairAdmin() { location.reload(); }
+
         async function switchTab(t) {
-            ['pedidos', 'produtos', 'config'].forEach(tab => {
+            ['pedidos', 'produtos', 'categorias', 'config'].forEach(tab => {
                 document.getElementById(`sec-${tab}`).classList.toggle('hidden', tab !== t);
                 document.getElementById(`tab-${tab}`).classList.toggle('tab-active', tab === t);
             });
             if(t === 'pedidos') loadPedidos();
+            if(t === 'produtos') loadAdmProds();
+            if(t === 'categorias') loadAdmCats();
+            if(t === 'config') loadAdmConfig();
         }
 
         async function loadPedidos() {
-            const { data } = await _sb.from('pedidos').select('*, itens_pedido(*)').order('created_at', { ascending: false }).limit(10);
+            const { data } = await _sb.from('pedidos').select('*, itens_pedido(*)').order('created_at', { ascending: false }).limit(15);
             const div = document.getElementById('sec-pedidos');
-            div.innerHTML = `<h2 class="text-[10px] font-black text-gray-400 uppercase mb-4">Pedidos Atuais</h2>`;
+            div.innerHTML = `<h2 class="text-[10px] font-black text-gray-400 uppercase mb-4">Pedidos Ativos</h2>`;
             data.forEach(p => {
-                const agrupados = {};
-                p.itens_pedido.forEach(i => agrupados[i.produto_nome] = (agrupados[i.produto_nome] || 0) + 1);
+                const agrupados = agruparItens(p.itens_pedido.map(it => ({ nome: it.produto_nome })));
                 div.innerHTML += `
-                    <div class="bg-white p-4 rounded-3xl shadow-sm border mb-4 border-l-4 ${p.status==='Novo'?'border-l-red-500':'border-l-blue-400'}">
-                        <div class="flex justify-between font-black text-[10px] uppercase"><span>${p.cliente_nome}</span><span class="text-red-500">${p.status}</span></div>
-                        <div class="text-[9px] text-gray-500 my-1">${p.rua}, ${p.numero} - ${p.bairro}</div>
-                        <div class="text-[9px] font-bold border-y py-2 my-2 italic">${Object.entries(agrupados).map(([nome, qtd]) => `${qtd}x ${nome}`).join(', ')}</div>
-                        <div class="flex justify-between items-center"><span class="font-black text-xs">R$ ${p.total.toFixed(2)}</span>
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border mb-4">
+                        <div class="flex justify-between font-black text-[10px] mb-2"><span>${p.cliente_nome}</span><span class="text-red-500 uppercase italic">${p.status}</span></div>
+                        <div class="text-[9px] text-gray-500 mb-2">${p.rua}, ${p.numero} - ${p.bairro}</div>
+                        <div class="text-[9px] font-bold border-y py-2 mb-2 italic">
+                            ${Object.entries(agrupados).map(([nome, qtd]) => `${qtd}x ${nome}`).join(', ')}
+                        </div>
+                        <div class="flex justify-between items-center mt-3">
+                            <span class="font-black text-sm">R$ ${p.total.toFixed(2)}</span>
                             <div class="flex gap-2">
                                 <button onclick="imprimirPedido('${p.id}')" class="bg-gray-100 p-2 rounded-lg">🖨️</button>
-                                <select onchange="updateStatus('${p.id}', this.value)" class="text-[9px] bg-gray-100 p-2 rounded-lg font-bold"><option value="">Mudar</option><option value="Preparando">Preparando</option><option value="Saiu">Saiu</option><option value="Entregue">Entregue</option></select>
+                                <select onchange="updateStatus('${p.id}', this.value)" class="text-[9px] bg-gray-900 text-white p-2 rounded-lg font-bold">
+                                    <option value="">Status</option><option value="Preparando">Preparando</option><option value="Saiu">Saiu</option><option value="Entregue">Entregue</option>
+                                </select>
                             </div>
                         </div>
                     </div>`;
             });
         }
 
-        async function updateStatus(id, s) { await _sb.from('pedidos').update({ status: s }).eq('id', id); loadPedidos(); }
-        async function obterGPSLoja() { navigator.geolocation.getCurrentPosition(async pos => { await _sb.from('configuracoes').update({ lat_pizzaria: pos.coords.latitude, lng_pizzaria: pos.coords.longitude }).eq('id', 1); alert("Localização Salva!"); location.reload(); }); }
-        async function salvarConfig() {
-            await _sb.from('configuracoes').update({ nome_pizzaria: document.getElementById('adm-nome').value, whatsapp: document.getElementById('adm-zap').value }).eq('id', 1);
-            alert("Salvo!");
+        async function imprimirPedido(id) {
+            const { data: p } = await _sb.from('pedidos').select('*, itens_pedido(*)').eq('id', id).single();
+            if(!p) return;
+            document.getElementById('p-loja').innerText = CONFIG.nome_pizzaria;
+            document.getElementById('p-data').innerText = `DATA: ${new Date(p.created_at).toLocaleString('pt-BR')}`;
+            document.getElementById('p-cliente').innerText = `CLIENTE: ${p.cliente_nome}`;
+            document.getElementById('p-endereco').innerText = `END: ${p.rua}, ${p.numero}`;
+            document.getElementById('p-bairro').innerText = `BAIRRO: ${p.bairro}`;
+            document.getElementById('p-comp').innerText = `REF: ${p.complemento || '---'}`;
+            const agrupados = agruparItens(p.itens_pedido.map(it => ({ nome: it.produto_nome })));
+            document.getElementById('p-itens').innerHTML = Object.entries(agrupados).map(([nome, qtd]) => `
+                <div style="display:flex;justify-content:space-between"><span>${qtd}x ${nome}</span></div>`).join('');
+            document.getElementById('p-taxa').innerText = `FRETE (${p.distancia_km.toFixed(1)}km): R$ ${p.taxa_entrega.toFixed(2)}`;
+            document.getElementById('p-total').innerText = `TOTAL: R$ ${p.total.toFixed(2)}`;
+            document.getElementById('p-pag').innerText = `PAGAM: ${p.pagamento}`;
+            document.getElementById('p-troco').innerText = `TROCO: ${p.troco}`;
+            window.print();
         }
+
+        async function updateStatus(id, s) { await _sb.from('pedidos').update({ status: s }).eq('id', id); loadPedidos(); }
+        async function obterGPSLoja() { navigator.geolocation.getCurrentPosition(async pos => { await _sb.from('configuracoes').update({ lat_pizzaria: pos.coords.latitude, lng_pizzaria: pos.coords.longitude }).eq('id', 1); alert("Loja Localizada!"); location.reload(); }); }
+        
+        // --- FUNÇÕES DE CARGA ADM ---
+        function loadAdmProds() {
+            const div = document.getElementById('sec-produtos');
+            div.innerHTML = `<div class="bg-white p-5 rounded-3xl shadow-sm border mb-4"><h3 class="font-black text-xs text-red-600 uppercase mb-3">➕ Novo Produto</h3><input id="add-n" type="text" placeholder="Nome" class="w-full p-2 border rounded-lg mb-2 text-sm"><input id="add-d" type="text" placeholder="Descrição" class="w-full p-2 border rounded-lg mb-2 text-sm"><div class="flex gap-2 mb-2"><input id="add-p" type="number" placeholder="Preço" class="flex-1 p-2 border rounded-lg text-sm"><select id="add-c" class="flex-1 p-2 border rounded-lg text-sm">${CATS.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('')}</select></div><input id="add-i" type="text" placeholder="Link Imagem PNG" class="w-full p-2 border rounded-lg mb-3 text-sm"><button onclick="criarProd()" class="w-full bg-red-600 text-white py-2 rounded-xl font-bold text-xs">CADASTRAR</button></div>`;
+            PRODS.forEach(p => {
+                div.innerHTML += `<div class="bg-white p-4 rounded-3xl shadow-sm border mb-4">
+                    <div class="flex justify-between items-center"><span class="font-bold text-[10px] uppercase">${p.nome}</span><label class="switch"><input type="checkbox" ${p.disponivel ? 'checked' : ''} onchange="toggleProd('${p.id}', this.checked)"><span class="slider"></span></label></div>
+                    <input id="img-${p.id}" type="text" value="${p.imagem_url || ''}" class="w-full p-2 bg-gray-50 border rounded-lg text-[10px] my-2" placeholder="Link PNG">
+                    <div class="flex gap-2 mb-2"><select id="cat-${p.id}" class="flex-1 p-2 bg-gray-50 border rounded-lg text-[10px]">${CATS.map(c=>`<option value="${c.id}" ${p.categoria_id===c.id?'selected':''}>${c.nome}</option>`).join('')}</select><input id="prc-${p.id}" type="number" value="${p.preco}" class="w-20 p-2 border rounded-lg text-center font-black text-[10px]"></div>
+                    <button onclick="salvarProdADM('${p.id}')" class="w-full bg-black text-white py-2 rounded-xl font-bold text-[10px]">SALVAR</button>
+                </div>`;
+            });
+        }
+        async function criarProd() { await _sb.from('produtos').insert([{ nome: document.getElementById('add-n').value, descricao: document.getElementById('add-d').value, preco: document.getElementById('add-p').value, categoria_id: document.getElementById('add-c').value, imagem_url: document.getElementById('add-i').value }]); await loadMainData(); loadAdmProds(); }
+        async function salvarProdADM(id) { await _sb.from('produtos').update({ preco: document.getElementById(`prc-${id}`).value, categoria_id: document.getElementById(`cat-${id}`).value, imagem_url: document.getElementById(`img-${id}`).value }).eq('id', id); alert("OK!"); await loadMainData(); loadAdmProds(); }
+        function loadAdmCats() {
+            const div = document.getElementById('sec-categorias');
+            div.innerHTML = `<div class="bg-white p-5 rounded-3xl shadow-sm border mb-4"><input id="new-cat" type="text" placeholder="Nome Categoria" class="w-full p-2 border rounded-lg mb-2 text-sm"><button onclick="criarCat()" class="w-full bg-green-600 text-white py-2 rounded-xl font-bold text-xs uppercase">Adicionar</button></div>`;
+            CATS.forEach(c => div.innerHTML += `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center mb-2"><span class="font-bold text-xs uppercase">${c.nome}</span><button onclick="deletarCat('${c.id}')" class="text-red-500 font-bold text-[10px]">REMOVER</button></div>`);
+        }
+        async function criarCat() { await _sb.from('categorias').insert([{ nome: document.getElementById('new-cat').value, ordem: CATS.length }]); await loadMainData(); loadAdmCats(); }
+        async function deletarCat(id) { if(confirm("Deseja apagar?")) { await _sb.from('categorias').delete().eq('id', id); await loadMainData(); loadAdmCats(); } }
+        function loadAdmConfig() {
+            const div = document.getElementById('sec-config');
+            div.innerHTML = `<div class="bg-white p-6 rounded-[35px] shadow-sm space-y-4">
+                <button onclick="obterGPSLoja()" class="w-full ${CONFIG.lat_pizzaria ? 'bg-green-600' : 'bg-red-500'} text-white p-4 rounded-2xl text-[10px] font-black uppercase">📍 Definir GPS da Loja</button>
+                <div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border"><span class="font-black text-[10px] uppercase italic">Loja Aberta?</span><label class="switch"><input type="checkbox" onchange="toggleLoja(this.checked)" ${CONFIG.loja_aberta?'checked':''}><span class="slider"></span></label></div>
+                <input id="adm-n" type="text" value="${CONFIG.nome_pizzaria}" class="w-full p-3 border rounded-xl"><input id="adm-z" type="text" value="${CONFIG.whatsapp}" class="w-full p-3 border rounded-xl">
+                <div class="flex gap-2"><input id="adm-b" type="number" value="${CONFIG.taxa_base}" class="flex-1 p-3 border rounded-xl"><input id="adm-k" type="number" value="${CONFIG.preco_km}" class="flex-1 p-3 border rounded-xl"></div>
+                <input id="adm-l" type="text" value="${CONFIG.logo_url || ''}" class="w-full p-3 border rounded-xl" placeholder="Link Logo PNG"><button onclick="salvarConfig()" class="w-full bg-black text-white p-4 rounded-2xl font-black text-xs uppercase">Salvar Config</button>
+            </div>`;
+        }
+        async function toggleLoja(v) { await _sb.from('configuracoes').update({ loja_aberta: v }).eq('id', 1); CONFIG.loja_aberta = v; }
+        async function toggleProd(id, v) { await _sb.from('produtos').update({ disponivel: v }).eq('id', id); }
+        async function salvarConfig() { await _sb.from('configuracoes').update({ nome_pizzaria: document.getElementById('adm-n').value, whatsapp: document.getElementById('adm-z').value, taxa_base: document.getElementById('adm-b').value, preco_km: document.getElementById('adm-k').value, logo_url: document.getElementById('adm-l').value }).eq('id', 1); alert("Salvo!"); init(); }
 
         init();
     </script>
