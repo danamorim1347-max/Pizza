@@ -51,9 +51,20 @@
         .loading { opacity: 0.6; pointer-events: none; }
         .loading::after { content: '...'; animation: dots 1.5s infinite; }
         @keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60%, 100% { content: '...'; } }
+        
+        /* Estado inicial */
+        #initial-loading { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
     </style>
 </head>
 <body class="flex justify-center">
+    <!-- Loading inicial -->
+    <div id="initial-loading">
+        <div class="text-center">
+            <div class="text-4xl mb-4">🍕</div>
+            <h2 class="text-xl font-black text-gray-800 mb-2">Carregando Master Pizza Pro</h2>
+            <div class="text-gray-400 text-sm">Inicializando sistema...</div>
+        </div>
+    </div>
 
     <audio id="alerta-som" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
@@ -67,8 +78,8 @@
         <div class="bg-white w-full max-w-sm p-8 rounded-[40px] text-center shadow-2xl">
             <h2 class="text-2xl font-black uppercase mb-6 italic tracking-tighter">Login Master</h2>
             <input id="login-pass" type="password" placeholder="Senha ADM" class="w-full p-4 bg-gray-100 rounded-2xl border-none outline-none mb-4 text-center font-bold tracking-widest focus:ring-2 focus:ring-red-500">
-            <button onclick="window.processarLogin()" class="w-full bg-red-600 text-white p-4 rounded-2xl font-black uppercase shadow-lg">Entrar no Painel</button>
-            <button onclick="window.fecharLogin()" class="mt-4 text-gray-400 text-xs font-bold uppercase underline">Voltar</button>
+            <button onclick="processarLogin()" class="w-full bg-red-600 text-white p-4 rounded-2xl font-black uppercase shadow-lg">Entrar no Painel</button>
+            <button onclick="fecharLogin()" class="mt-4 text-gray-400 text-xs font-bold uppercase underline">Voltar</button>
         </div>
     </div>
 
@@ -85,18 +96,18 @@
     </div>
 
     <!-- [VISÃO CLIENTE] -->
-    <div id="view-cliente" class="w-full max-w-md min-h-screen pb-32 bg-white shadow-2xl">
+    <div id="view-cliente" class="hidden w-full max-w-md min-h-screen pb-32 bg-white shadow-2xl">
         <header class="header-banner">
             <img id="cli-logo" src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop" alt="Capa">
             <div class="header-overlay">
                 <h1 id="cli-nome" class="text-3xl font-black italic uppercase text-white tracking-widest drop-shadow-lg">MINHA PIZZARIA</h1>
                 <div id="cli-status-loja" class="inline-block px-4 py-1.5 rounded-full text-[9px] font-black mt-2 border border-white/30 uppercase italic backdrop-blur-md text-white">---</div>
             </div>
-            <button onclick="window.abrirLogin()" class="absolute top-6 right-6 text-white/40 text-xl hover:text-white transition"><i class="fas fa-cog"></i></button>
+            <button onclick="abrirLogin()" class="absolute top-6 right-6 text-white/40 text-xl hover:text-white transition"><i class="fas fa-cog"></i></button>
         </header>
 
         <div class="px-5 -mt-3 relative z-10">
-            <button onclick="window.abrirMontador()" class="w-full bg-red-600 text-white p-5 rounded-[25px] font-black text-[11px] uppercase shadow-xl flex justify-between items-center active:scale-95 transition">
+            <button onclick="abrirMontador()" class="w-full bg-red-600 text-white p-5 rounded-[25px] font-black text-[11px] uppercase shadow-xl flex justify-between items-center active:scale-95 transition">
                 <span>🍕 Montar Pizza 2 Sabores</span>
                 <i class="fas fa-plus bg-white/20 p-2 rounded-lg"></i>
             </button>
@@ -106,7 +117,7 @@
         <main id="cardapio" class="px-5 space-y-3 mt-2 text-black"></main>
 
         <div id="cart-fixed" class="fixed bottom-6 left-0 right-0 px-6 hidden z-30 flex justify-center">
-            <button onclick="window.abrirCheckout()" class="w-full max-w-md bg-black text-white py-5 rounded-[25px] font-black flex justify-between px-8 shadow-2xl items-center border-b-4 border-gray-800 transition active:scale-95">
+            <button onclick="abrirCheckout()" class="w-full max-w-md bg-black text-white py-5 rounded-[25px] font-black flex justify-between px-8 shadow-2xl items-center border-b-4 border-gray-800 transition active:scale-95">
                 <span class="text-xs uppercase tracking-widest">Ver Pedido</span>
                 <span id="cart-total-display" class="bg-white/10 px-3 py-1 rounded-lg text-sm font-black italic">R$ 0,00</span>
             </button>
@@ -116,12 +127,12 @@
     <!-- [MODAL CHECKOUT] -->
     <div id="modal-checkout" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end justify-center">
         <div class="bg-white w-full max-w-md rounded-t-[45px] p-7 space-y-4 max-h-[94vh] overflow-y-auto shadow-2xl text-black">
-            <div class="flex justify-between items-center font-black uppercase italic tracking-tighter text-xl text-red-600"><h2>Finalizar</h2><button onclick="window.fecharCheckout()" class="text-2xl text-gray-300">✕</button></div>
+            <div class="flex justify-between items-center font-black uppercase italic tracking-tighter text-xl text-red-600"><h2>Finalizar</h2><button onclick="fecharCheckout()" class="text-2xl text-gray-300">✕</button></div>
             
             <div class="grid grid-cols-3 gap-2 p-1 bg-gray-100 rounded-2xl">
-                <button onclick="window.setModoConsumo('delivery')" id="btn-m-delivery" class="p-3 text-[9px] font-black rounded-xl bg-white shadow-sm border border-gray-200 text-black uppercase">Delivery</button>
-                <button onclick="window.setModoConsumo('retirada')" id="btn-m-retirada" class="p-3 text-[9px] font-black rounded-xl text-gray-400 uppercase">Retirada</button>
-                <button onclick="window.setModoConsumo('local')" id="btn-m-local" class="p-3 text-[9px] font-black rounded-xl text-gray-400 uppercase tracking-tighter">No Local</button>
+                <button onclick="setModoConsumo('delivery')" id="btn-m-delivery" class="p-3 text-[9px] font-black rounded-xl bg-white shadow-sm border border-gray-200 text-black uppercase">Delivery</button>
+                <button onclick="setModoConsumo('retirada')" id="btn-m-retirada" class="p-3 text-[9px] font-black rounded-xl text-gray-400 uppercase">Retirada</button>
+                <button onclick="setModoConsumo('local')" id="btn-m-local" class="p-3 text-[9px] font-black rounded-xl text-gray-400 uppercase tracking-tighter">No Local</button>
             </div>
 
             <div id="checkout-itens-list" class="bg-gray-50 p-4 rounded-3xl border border-gray-100 space-y-2 text-[10px] font-bold text-gray-600 italic"></div>
@@ -131,7 +142,7 @@
                 <input id="f-whatsapp" type="tel" placeholder="WhatsApp (Ex: 85999999999)" class="w-full p-4 bg-gray-50 rounded-2xl border-none outline-none font-bold text-sm shadow-inner">
                 
                 <div id="area-gps-cli" class="space-y-2">
-                    <button id="btn-gps-cli" onclick="window.obterGPSCliente()" class="w-full bg-black text-white p-4 rounded-2xl text-[10px] font-black uppercase shadow-lg tracking-widest italic">📍 CALCULAR FRETE POR GPS *</button>
+                    <button id="btn-gps-cli" onclick="obterGPSCliente()" class="w-full bg-black text-white p-4 rounded-2xl text-[10px] font-black uppercase shadow-lg tracking-widest italic">📍 CALCULAR FRETE POR GPS *</button>
                     <div id="res-km" class="hidden bg-green-50 p-3 rounded-2xl flex justify-between text-[10px] font-black text-green-700 border border-green-100"><span id="dist-txt">0.0 km</span><span id="taxa-txt">R$ 0,00</span></div>
                     <div class="grid grid-cols-4 gap-2">
                         <input id="f-rua" type="text" placeholder="Rua" class="col-span-3 p-4 bg-gray-50 rounded-2xl outline-none text-sm">
@@ -144,7 +155,7 @@
 
                 <div class="flex gap-2">
                     <input id="f-cupom" type="text" placeholder="Código Cupom" class="flex-1 p-4 bg-gray-50 rounded-2xl outline-none text-sm uppercase font-black shadow-inner">
-                    <button onclick="window.aplicarCupom()" class="bg-gray-200 px-4 rounded-2xl font-black text-[10px] uppercase tracking-tighter">Validar</button>
+                    <button onclick="aplicarCupom()" class="bg-gray-200 px-4 rounded-2xl font-black text-[10px] uppercase tracking-tighter">Validar</button>
                 </div>
 
                 <select id="f-pag" onchange="document.getElementById('div-troco').classList.toggle('hidden', this.value!='Dinheiro')" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border text-sm"><option value="Pix">Pix</option><option value="Cartão">Cartão</option><option value="Dinheiro">Dinheiro</option></select>
@@ -155,7 +166,7 @@
                 <div id="div-desconto-txt" class="hidden flex justify-between text-[10px] text-green-400 mb-1"><span>Desconto Aplicado:</span><span id="txt-val-cupom">- R$ 0,00</span></div>
                 <div class="flex justify-between text-2xl text-red-500 tracking-tighter"><span>Total Final:</span><span id="res-total">R$ 0,00</span></div>
             </div>
-            <button onclick="window.enviarPedido()" id="btn-final-zap" class="w-full bg-green-600 text-white py-6 rounded-[25px] font-black uppercase tracking-widest border-b-4 border-green-800 shadow-xl transition-all active:scale-95">🚀 ENVIAR NO WHATSAPP</button>
+            <button onclick="enviarPedido()" id="btn-final-zap" class="w-full bg-green-600 text-white py-6 rounded-[25px] font-black uppercase tracking-widest border-b-4 border-green-800 shadow-xl transition-all active:scale-95">🚀 ENVIAR NO WHATSAPP</button>
         </div>
     </div>
 
@@ -163,14 +174,14 @@
     <div id="view-admin" class="hidden w-full max-w-4xl mx-auto min-h-screen pb-20 bg-gray-100">
         <header class="bg-black text-white p-4 flex justify-between items-center sticky top-0 z-50">
             <h1 class="font-black italic text-red-500 uppercase tracking-tighter italic">Painel PDV</h1>
-            <button onclick="window.sairAdmin()" class="text-[9px] font-bold border px-3 py-1 rounded-full uppercase">Sair</button>
+            <button onclick="sairAdmin()" class="text-[9px] font-bold border px-3 py-1 rounded-full uppercase">Sair</button>
         </header>
         <div class="flex bg-white border-b sticky top-14 z-40 overflow-x-auto no-scrollbar shadow-sm">
-            <button onclick="window.switchTab('pedidos')" id="tab-pedidos" class="flex-1 p-4 font-bold text-[9px] tab-active uppercase">Pedidos</button>
-            <button onclick="window.switchTab('produtos')" id="tab-produtos" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">Cardápio</button>
-            <button onclick="window.switchTab('categorias')" id="tab-categorias" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">Categorias</button>
-            <button onclick="window.switchTab('cupons')" id="tab-cupons" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">Cupons</button>
-            <button onclick="window.switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[9px] uppercase whitespace-nowrap tracking-tighter text-gray-400">Config</button>
+            <button onclick="switchTab('pedidos')" id="tab-pedidos" class="flex-1 p-4 font-bold text-[9px] tab-active uppercase">Pedidos</button>
+            <button onclick="switchTab('produtos')" id="tab-produtos" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">Cardápio</button>
+            <button onclick="switchTab('categorias')" id="tab-categorias" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">Categorias</button>
+            <button onclick="switchTab('cupons')" id="tab-cupons" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">Cupons</button>
+            <button onclick="switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[9px] uppercase whitespace-nowrap tracking-tighter text-gray-400">Config</button>
         </div>
         <div id="adm-content" class="p-4 space-y-4">
             <div id="sec-pedidos" class="space-y-4 text-black"></div>
@@ -184,7 +195,7 @@
     <!-- [MODAL EDIÇÃO PRODUTO] -->
     <div id="modal-editar-prod" class="fixed inset-0 bg-black/80 z-[110] hidden flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="bg-white w-full max-w-md p-6 rounded-[40px] shadow-2xl space-y-4 text-black">
-            <div class="flex justify-between items-center font-black uppercase text-sm italic"><h2>Editar Produto</h2><button onclick="window.fecharModalEditar()">✕</button></div>
+            <div class="flex justify-between items-center font-black uppercase text-sm italic"><h2>Editar Produto</h2><button onclick="fecharModalEditar()">✕</button></div>
             <input id="edit-n" type="text" placeholder="Nome" class="w-full p-3 border rounded-xl text-sm font-bold">
             <input id="edit-d" type="text" placeholder="Descrição" class="w-full p-3 border rounded-xl text-sm">
             <div class="flex gap-2">
@@ -197,106 +208,171 @@
                 <label class="switch"><input type="checkbox" id="edit-disp"><span class="slider"></span></label>
             </div>
             <input id="edit-id-hidden" type="hidden">
-            <button onclick="window.salvarEdicaoFinal()" class="w-full bg-green-600 text-white p-4 rounded-2xl font-black uppercase text-xs shadow-lg">Confirmar</button>
+            <button onclick="salvarEdicaoFinal()" class="w-full bg-green-600 text-white p-4 rounded-2xl font-black uppercase text-xs shadow-lg">Confirmar</button>
         </div>
     </div>
 
     <!-- [MODAL MEIO A MEIO] -->
     <div id="modal-montador" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end justify-center text-black">
         <div class="bg-white w-full max-w-md rounded-t-[40px] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div class="flex justify-between items-center font-black italic uppercase tracking-tighter text-red-600"><h2>2 Sabores</h2><button onclick="window.fecharMontador()" class="text-2xl">✕</button></div>
+            <div class="flex justify-between items-center font-black italic uppercase tracking-tighter text-red-600"><h2>2 Sabores</h2><button onclick="fecharMontador()" class="text-2xl">✕</button></div>
             <div class="grid grid-cols-2 gap-2 text-center text-[10px] font-black uppercase italic">
                 <div class="bg-gray-50 p-2 rounded-xl border border-gray-100 truncate" id="txt-m1">Lado 1: ---</div>
                 <div class="bg-gray-50 p-2 rounded-xl border border-gray-100 truncate" id="txt-m2">Lado 2: ---</div>
             </div>
             <div id="lista-sabores-montador" class="space-y-2"></div>
-            <button id="btn-confirm-meio" onclick="window.confirmarMeioAMeio()" class="w-full bg-green-600 text-white py-5 rounded-[25px] font-black uppercase disabled:opacity-30 transition" disabled>Confirmar Pizza</button>
+            <button id="btn-confirm-meio" onclick="confirmarMeioAMeio()" class="w-full bg-green-600 text-white py-5 rounded-[25px] font-black uppercase disabled:opacity-30 transition" disabled>Confirmar Pizza</button>
         </div>
     </div>
 
-    <!-- Firebase SDK v10.7+ -->
     <script type="module">
-        // CONFIGURAÇÃO SEGURA DO FIREBASE
-        // IMPORTANTE: Substitua estas variáveis com suas próprias credenciais
-        // ou configure-as via variáveis de ambiente em produção
-        const FIREBASE_CONFIG = {
-            apiKey: "SUA_API_KEY_AQUI",
-            authDomain: "SEU_PROJETO.firebaseapp.com",
-            projectId: "SEU_PROJETO_ID",
-            storageBucket: "SEU_PROJETO.appspot.com",
-            messagingSenderId: "SEU_SENDER_ID",
-            appId: "SEU_APP_ID",
-            measurementId: "SEU_MEASUREMENT_ID"
+        // Configuração do Firebase - **ATENÇÃO**: Substitua com suas credenciais
+        const firebaseConfig = {
+            apiKey: "AIzaSyAFguAugN53y4D_YCUu5R1nTE0yG-HDqCY",
+            authDomain: "pizza-3b7f3.firebaseapp.com",
+            projectId: "pizza-3b7f3",
+            storageBucket: "pizza-3b7f3.firebasestorage.app",
+            messagingSenderId: "122787498715",
+            appId: "1:122787498715:web:121001f2924da28376dafe",
+            measurementId: "G-F3SPKCFK9X"
         };
 
-        // Função para obter configuração segura (em produção, usar variáveis de ambiente)
-        function getFirebaseConfig() {
-            // Em ambiente de desenvolvimento, você pode usar valores padrão
-            // Em produção, configure variáveis de ambiente ou use um backend
-            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                return {
-                    apiKey: "AIzaSyAFguAugN53y4D_YCUu5R1nTE0yG-HDqCY",
-                    authDomain: "pizza-3b7f3.firebaseapp.com",
-                    projectId: "pizza-3b7f3",
-                    storageBucket: "pizza-3b7f3.firebasestorage.app",
-                    messagingSenderId: "122787498715",
-                    appId: "1:122787498715:web:121001f2924da28376dafe",
-                    measurementId: "G-F3SPKCFK9X"
-                };
-            }
-            return FIREBASE_CONFIG;
-        }
-
+        // Importações do Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, doc, getDoc, setDoc, getDocs, collection, addDoc, updateDoc, onSnapshot, query, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            getDocs, 
+            collection, 
+            addDoc, 
+            updateDoc, 
+            onSnapshot, 
+            query, 
+            orderBy, 
+            limit, 
+            deleteDoc 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        const firebaseConfig = getFirebaseConfig();
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-
-        let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {}, CUPONS = [], curCat = 'todos';
+        // Variáveis globais
+        let app, db;
+        let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {}, CUPONS = [];
+        let curCat = 'todos';
         let dKM = 0, tFRETE = 0, latCli = 0, lngCli = 0, gpsOk = false, modoConsumo = 'delivery', vCUPOM = 0;
         let s1 = null, s2 = null;
         let isAdmin = false;
 
-        async function init() {
-            const params = new URLSearchParams(window.location.search);
-            if(params.has('pedido')) return window.carregarAcompanhamento(params.get('pedido'));
+        // Função para inicializar o Firebase
+        async function initializeFirebase() {
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                console.log("Firebase inicializado com sucesso!");
+                return true;
+            } catch (error) {
+                console.error("Erro ao inicializar Firebase:", error);
+                return false;
+            }
+        }
 
+        // Função principal de inicialização
+        async function init() {
+            try {
+                // Inicializar Firebase
+                const firebaseReady = await initializeFirebase();
+                if (!firebaseReady) {
+                    document.getElementById('initial-loading').innerHTML = `
+                        <div class="text-center">
+                            <div class="text-4xl mb-4">❌</div>
+                            <h2 class="text-xl font-black text-red-600 mb-2">Erro de Conexão</h2>
+                            <div class="text-gray-600 mb-4">Não foi possível conectar ao banco de dados.</div>
+                            <button onclick="location.reload()" class="bg-red-600 text-white px-4 py-2 rounded-lg">Tentar Novamente</button>
+                        </div>`;
+                    return;
+                }
+
+                // Verificar se é página de acompanhamento
+                const params = new URLSearchParams(window.location.search);
+                if(params.has('pedido')) {
+                    await carregarAcompanhamento(params.get('pedido'));
+                    return;
+                }
+
+                // Carregar configuração da loja
+                await carregarConfiguracao();
+
+                // Carregar dados
+                await loadData();
+
+                // Configurar listeners
+                listenPedidos();
+
+                // Carregar dados locais
+                carregarDadosLocal();
+
+                // Esconder loading e mostrar cliente
+                document.getElementById('initial-loading').style.display = 'none';
+                document.getElementById('view-cliente').classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Erro na inicialização:", error);
+                document.getElementById('initial-loading').innerHTML = `
+                    <div class="text-center">
+                        <div class="text-4xl mb-4">⚠️</div>
+                        <h2 class="text-xl font-black text-red-600 mb-2">Erro ao Carregar</h2>
+                        <div class="text-gray-600 mb-4">${error.message}</div>
+                        <button onclick="location.reload()" class="bg-red-600 text-white px-4 py-2 rounded-lg">Recarregar Página</button>
+                    </div>`;
+            }
+        }
+
+        async function carregarConfiguracao() {
             try {
                 const docRef = doc(db, "configuracoes", "loja");
                 const snap = await getDoc(docRef);
                 if(snap.exists()) {
                     CONFIG = snap.data();
                     document.getElementById('cli-nome').innerText = CONFIG.nome_pizzaria || "MINHA PIZZARIA";
-                    if(CONFIG.logo_url) document.getElementById('cli-logo').src = CONFIG.logo_url;
+                    if(CONFIG.logo_url) {
+                        document.getElementById('cli-logo').src = CONFIG.logo_url;
+                    }
                     updateStatusLojaUI();
+                } else {
+                    // Configuração padrão se não existir
+                    CONFIG = {
+                        nome_pizzaria: "MINHA PIZZARIA",
+                        loja_aberta: true,
+                        taxa_base: 5,
+                        preco_km: 2
+                    };
                 }
-                await loadData();
-                listenPedidos();
-                
-                // Verificar se há dados salvos localmente
-                carregarDadosLocal();
             } catch (error) {
-                console.error("Erro ao inicializar:", error);
-                alert("Erro ao carregar dados. Recarregue a página.");
+                console.error("Erro ao carregar configuração:", error);
             }
         }
 
         async function loadData() {
             try {
+                // Carregar categorias
                 const catsSnap = await getDocs(collection(db, "categorias"));
                 CATS = catsSnap.docs.map(d => ({id: d.id, ...d.data()}));
+                
+                // Carregar produtos
                 const prodsSnap = await getDocs(collection(db, "produtos"));
                 PRODS = prodsSnap.docs.map(d => ({id: d.id, ...d.data()}));
+                
+                // Carregar cupons
                 const cuponsSnap = await getDocs(collection(db, "cupons"));
                 CUPONS = cuponsSnap.docs.map(d => ({id: d.id, ...d.data()}));
                 
-                // Ordenar categorias por ordem
+                // Ordenar categorias
                 CATS.sort((a, b) => (a.ordem || 999) - (b.ordem || 999));
                 
-                window.renderFiltros(); 
-                window.renderCardapio('todos');
+                // Renderizar
+                renderFiltros();
+                renderCardapio('todos');
+                
             } catch (error) {
                 console.error("Erro ao carregar dados:", error);
             }
@@ -308,9 +384,15 @@
                 onSnapshot(q, (snapshot) => {
                     const pedidos = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
                     renderPedidosADM(pedidos);
+                    
+                    // Tocar som se houver novo pedido e estiver no painel ADM
                     if(!document.getElementById('view-admin').classList.contains('hidden') && 
                        snapshot.docChanges().some(c => c.type === "added")) {
-                        document.getElementById('alerta-som').play().catch(()=>{});
+                        try {
+                            document.getElementById('alerta-som').play();
+                        } catch (e) {
+                            console.log("Não foi possível tocar o som:", e);
+                        }
                     }
                 }, (error) => {
                     console.error("Erro ao escutar pedidos:", error);
@@ -320,96 +402,59 @@
             }
         }
 
-        // --- FUNÇÕES DE FILTRO ---
-        window.renderFiltros = () => {
+        // ==================== FUNÇÕES DE INTERFACE ====================
+
+        function renderFiltros() {
             const div = document.getElementById('filtros');
             if (!div) return;
             
-            div.innerHTML = `<button onclick="window.renderCardapio('todos')" class="whitespace-nowrap px-4 py-2 text-[10px] font-black uppercase border rounded-full ${curCat === 'todos' ? 'cat-active' : 'border-gray-200 text-gray-400'}">Todos</button>`;
+            let html = `<button onclick="renderCardapio('todos')" class="whitespace-nowrap px-4 py-2 text-[10px] font-black uppercase border rounded-full ${curCat === 'todos' ? 'cat-active' : 'border-gray-200 text-gray-400'}">Todos</button>`;
             
             CATS.forEach(c => {
-                div.innerHTML += `<button onclick="window.renderCardapio('${c.id}')" class="whitespace-nowrap px-4 py-2 text-[10px] font-black uppercase border rounded-full ${curCat === c.id ? 'cat-active' : 'border-gray-200 text-gray-400'}">${c.nome}</button>`;
+                html += `<button onclick="renderCardapio('${c.id}')" class="whitespace-nowrap px-4 py-2 text-[10px] font-black uppercase border rounded-full ${curCat === c.id ? 'cat-active' : 'border-gray-200 text-gray-400'}">${c.nome}</button>`;
             });
-        };
-
-        // --- EXPORTAÇÕES GLOBAIS ---
-        window.abrirLogin = () => document.getElementById('view-login').classList.remove('hidden');
-        window.fecharLogin = () => document.getElementById('view-login').classList.add('hidden');
-        
-        window.processarLogin = async () => { 
-            const senha = document.getElementById('login-pass').value;
             
-            // Em produção, substituir por autenticação Firebase real
-            const senhaCorreta = await verificarSenhaSegura(senha);
-            
-            if (senhaCorreta) { 
-                window.fecharLogin(); 
-                document.getElementById('view-cliente').classList.add('hidden'); 
-                document.getElementById('view-admin').classList.remove('hidden'); 
-                window.switchTab('pedidos');
-                isAdmin = true;
-            } else { 
-                alert("Senha Incorreta!"); 
-                document.getElementById('login-pass').value = '';
-                document.getElementById('login-pass').focus();
-            } 
-        };
-        
-        async function verificarSenhaSegura(senha) {
-            // Em produção, implementar autenticação Firebase
-            // Por enquanto, usar sistema simples mas não expor senha no código
-            try {
-                const configRef = doc(db, "configuracoes", "admin");
-                const snap = await getDoc(configRef);
-                if (snap.exists()) {
-                    return senha === snap.data().senha_admin;
-                }
-            } catch (error) {
-                console.error("Erro ao verificar senha:", error);
-            }
-            
-            // Fallback para desenvolvimento
-            return senha === "123";
+            div.innerHTML = html;
         }
-        
-        window.sairAdmin = () => {
-            isAdmin = false;
-            document.getElementById('view-admin').classList.add('hidden');
-            document.getElementById('view-cliente').classList.remove('hidden');
-            location.reload();
-        };
 
-        window.renderCardapio = (cid) => {
-            curCat = cid; 
-            window.renderFiltros();
-            const div = document.getElementById('cardapio'); 
+        function renderCardapio(cid) {
+            curCat = cid;
+            renderFiltros();
+            
+            const div = document.getElementById('cardapio');
             if (!div) return;
             
-            div.innerHTML = "";
-            const filtrados = cid === 'todos' ? PRODS.filter(p => p.disponivel !== false) : 
-                PRODS.filter(p => p.categoria_id === cid && p.disponivel !== false);
+            // Filtrar produtos
+            const filtrados = cid === 'todos' 
+                ? PRODS.filter(p => p.disponivel !== false)
+                : PRODS.filter(p => p.categoria_id === cid && p.disponivel !== false);
             
             if (filtrados.length === 0) {
                 div.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm">Nenhum produto disponível nesta categoria.</div>`;
                 return;
             }
             
+            let html = '';
             filtrados.forEach(p => {
-                div.innerHTML += `<div class="bg-white rounded-[35px] shadow-sm p-4 flex gap-4 border border-gray-100 items-center">
-                    <img src="${p.imagem_url || ''}" class="w-16 h-16 object-contain rounded-xl" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3595/3595455.png'">
+                html += `
+                <div class="bg-white rounded-[35px] shadow-sm p-4 flex gap-4 border border-gray-100 items-center">
+                    <img src="${p.imagem_url || ''}" class="w-16 h-16 object-contain rounded-xl" 
+                         onerror="this.src='https://cdn-icons-png.flaticon.com/512/3595/3595455.png'">
                     <div class="flex-1">
                         <h3 class="font-black text-[11px] uppercase italic text-gray-800">${p.nome}</h3>
                         <p class="text-[9px] text-gray-400 line-clamp-1 mb-1">${p.descricao || ''}</p>
                         <div class="flex justify-between items-center mt-2">
                             <span class="text-red-600 font-black text-md">R$ ${Number(p.preco || 0).toFixed(2).replace('.',',')}</span>
-                            <button onclick="window.addCart('${p.id}')" class="bg-yellow-400 text-black w-8 h-8 rounded-xl font-black text-xl shadow active:scale-95 transition">+</button>
+                            <button onclick="addCart('${p.id}')" class="bg-yellow-400 text-black w-8 h-8 rounded-xl font-black text-xl shadow active:scale-95 transition">+</button>
                         </div>
                     </div>
                 </div>`;
             });
-        };
+            
+            div.innerHTML = html;
+        }
 
-        window.addCart = (id) => {
+        function addCart(id) {
             if(!CONFIG.loja_aberta) {
                 alert("A pizzaria está fechada no momento. Volte mais tarde!");
                 return;
@@ -439,7 +484,7 @@
                 btn.classList.remove('bg-green-500');
                 btn.classList.add('bg-yellow-400');
             }, 500);
-        };
+        }
 
         function updateCartFooter() {
             const total = CARRINHO.reduce((a, b) => a + Number(b.preco || 0), 0);
@@ -451,18 +496,22 @@
         }
 
         function salvarCarrinhoLocal() {
-            const carrinhoData = {
-                itens: CARRINHO.map(item => ({id: item.id, nome: item.nome, preco: item.preco})),
-                timestamp: new Date().getTime()
-            };
-            localStorage.setItem('pizzaria_carrinho', JSON.stringify(carrinhoData));
+            try {
+                const carrinhoData = {
+                    itens: CARRINHO.map(item => ({id: item.id, nome: item.nome, preco: item.preco})),
+                    timestamp: new Date().getTime()
+                };
+                localStorage.setItem('pizzaria_carrinho', JSON.stringify(carrinhoData));
+            } catch (e) {
+                console.error("Erro ao salvar carrinho:", e);
+            }
         }
 
         function carregarDadosLocal() {
-            // Carregar carrinho salvo
-            const carrinhoSalvo = localStorage.getItem('pizzaria_carrinho');
-            if (carrinhoSalvo) {
-                try {
+            try {
+                // Carregar carrinho salvo
+                const carrinhoSalvo = localStorage.getItem('pizzaria_carrinho');
+                if (carrinhoSalvo) {
                     const data = JSON.parse(carrinhoSalvo);
                     const umaHoraAtras = new Date().getTime() - (60 * 60 * 1000);
                     
@@ -477,74 +526,164 @@
                             updateCartFooter();
                         }
                     }
-                } catch (e) {
-                    console.error("Erro ao carregar carrinho:", e);
                 }
-            }
 
-            // Carregar dados do cliente
-            const memoria = localStorage.getItem('pizzaria_memoria');
-            if (memoria) {
-                try {
+                // Carregar dados do cliente
+                const memoria = localStorage.getItem('pizzaria_memoria');
+                if (memoria && document.getElementById('f-nome')) {
                     const m = JSON.parse(memoria);
-                    if (document.getElementById('f-nome')) {
-                        document.getElementById('f-nome').value = m.nome || "";
-                        document.getElementById('f-whatsapp').value = m.zap || "";
-                        document.getElementById('f-rua').value = m.rua || "";
-                        document.getElementById('f-num').value = m.num || "";
-                        document.getElementById('f-bairro').value = m.bairro || "";
-                        document.getElementById('f-comp').value = m.comp || "";
-                    }
-                } catch (e) {
-                    console.error("Erro ao carregar memória:", e);
+                    document.getElementById('f-nome').value = m.nome || "";
+                    document.getElementById('f-whatsapp').value = m.zap || "";
+                    document.getElementById('f-rua').value = m.rua || "";
+                    document.getElementById('f-num').value = m.num || "";
+                    document.getElementById('f-bairro').value = m.bairro || "";
+                    document.getElementById('f-comp').value = m.comp || "";
                 }
+            } catch (e) {
+                console.error("Erro ao carregar dados locais:", e);
             }
         }
 
-        window.obterGPSCliente = () => {
+        // ==================== FUNÇÕES DE CHECKOUT ====================
+
+        function abrirCheckout() {
+            if (CARRINHO.length === 0) {
+                alert("Seu carrinho está vazio!");
+                return;
+            }
+            
+            document.getElementById('modal-checkout').classList.remove('hidden');
+            
+            // Carregar dados salvos
+            try {
+                const memoria = localStorage.getItem('pizzaria_memoria');
+                if (memoria) {
+                    const m = JSON.parse(memoria);
+                    document.getElementById('f-nome').value = m.nome || "";
+                    document.getElementById('f-whatsapp').value = m.zap || "";
+                    document.getElementById('f-rua').value = m.rua || "";
+                    document.getElementById('f-num').value = m.num || "";
+                    document.getElementById('f-bairro').value = m.bairro || "";
+                    document.getElementById('f-comp').value = m.comp || "";
+                }
+            } catch (e) {
+                console.error("Erro ao carregar memória:", e);
+            }
+            
+            // Listar itens do carrinho
+            const ag = CARRINHO.reduce((acc, i) => {
+                acc[i.nome] = (acc[i.nome] || 0) + 1;
+                return acc;
+            }, {});
+            
+            let itensHTML = '';
+            for (const [nome, qtd] of Object.entries(ag)) {
+                const produto = PRODS.find(p => p.nome === nome);
+                const preco = produto ? produto.preco : 0;
+                itensHTML += `
+                <div class="flex justify-between border-b border-gray-100 pb-2">
+                    <span>${qtd}x ${nome}</span>
+                    <span class="text-red-600 font-black">R$ ${(qtd * preco).toFixed(2)}</span>
+                </div>`;
+            }
+            
+            document.getElementById('checkout-itens-list').innerHTML = itensHTML;
+            
+            setModoConsumo(modoConsumo);
+            renderCheckoutTotal();
+        }
+
+        function fecharCheckout() {
+            document.getElementById('modal-checkout').classList.add('hidden');
+        }
+
+        function setModoConsumo(m) {
+            modoConsumo = m;
+            const botoes = ['delivery', 'retirada', 'local'];
+            
+            botoes.forEach(x => {
+                const btn = document.getElementById(`btn-m-${x}`);
+                if (btn) {
+                    if (x === m) {
+                        btn.className = "p-3 text-[9px] font-black rounded-xl bg-white shadow-sm border border-gray-200 text-black uppercase";
+                    } else {
+                        btn.className = "p-3 text-[9px] font-black rounded-xl text-gray-400 uppercase";
+                    }
+                }
+            });
+            
+            const areaGPS = document.getElementById('area-gps-cli');
+            if (areaGPS) {
+                areaGPS.classList.toggle('hidden', m !== 'delivery');
+            }
+            
+            if (m !== 'delivery') {
+                tFRETE = 0;
+                gpsOk = true;
+                document.getElementById('res-km').classList.add('hidden');
+            } else {
+                gpsOk = false;
+            }
+            
+            renderCheckoutTotal();
+        }
+
+        function renderCheckoutTotal() {
+            const sub = CARRINHO.reduce((a, b) => a + Number(b.preco || 0), 0);
+            const final = sub + tFRETE - vCUPOM;
+            const totalFinal = Math.max(0, final);
+            
+            document.getElementById('res-total').innerText = `R$ ${totalFinal.toFixed(2).replace('.', ',')}`;
+        }
+
+        // ==================== FUNÇÕES DE GEOLOCALIZAÇÃO ====================
+
+        function obterGPSCliente() {
             if (!navigator.geolocation) {
                 alert("Seu navegador não suporta geolocalização.");
                 return;
             }
             
-            const b = document.getElementById('btn-gps-cli'); 
-            const textoOriginal = b.innerText;
-            b.innerText = "⏳ LOCALIZANDO...";
-            b.disabled = true;
+            const btn = document.getElementById('btn-gps-cli');
+            const textoOriginal = btn.innerText;
+            btn.innerText = "⏳ LOCALIZANDO...";
+            btn.disabled = true;
             
             navigator.geolocation.getCurrentPosition(
                 pos => {
-                    latCli = pos.coords.latitude; 
+                    latCli = pos.coords.latitude;
                     lngCli = pos.coords.longitude;
                     
                     if (!CONFIG.lat_pizzaria || !CONFIG.lng_pizzaria) {
                         alert("A pizzaria ainda não configurou sua localização. Entre em contato diretamente.");
-                        b.innerText = textoOriginal;
-                        b.disabled = false;
+                        btn.innerText = textoOriginal;
+                        btn.disabled = false;
                         return;
                     }
                     
-                    const R = 6371; 
-                    const lat1 = Number(CONFIG.lat_pizzaria || 0);
-                    const lon1 = Number(CONFIG.lng_pizzaria || 0);
+                    // Calcular distância
+                    const R = 6371;
+                    const lat1 = Number(CONFIG.lat_pizzaria || 0) * Math.PI / 180;
+                    const lat2 = latCli * Math.PI / 180;
+                    const dLat = (latCli - CONFIG.lat_pizzaria) * Math.PI / 180;
+                    const dLon = (lngCli - CONFIG.lng_pizzaria) * Math.PI / 180;
                     
-                    const dLat = (latCli-lat1)*Math.PI/180; 
-                    const dLon = (lngCli-lon1)*Math.PI/180;
-                    const a = Math.sin(dLat/2)*Math.sin(dLat/2) + 
-                              Math.cos(lat1*Math.PI/180)*Math.cos(latCli*Math.PI/180)*
-                              Math.sin(dLon/2)*Math.sin(dLon/2);
-                    dKM = R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                              Math.cos(lat1) * Math.cos(lat2) *
+                              Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    dKM = R * c;
                     
                     tFRETE = Number(CONFIG.taxa_base || 0) + (dKM * Number(CONFIG.preco_km || 0));
                     
                     document.getElementById('res-km').classList.remove('hidden');
                     document.getElementById('dist-txt').innerText = `${dKM.toFixed(1)} km`;
                     document.getElementById('taxa-txt').innerText = `R$ ${tFRETE.toFixed(2)}`;
-                    b.innerText = "✅ FRETE CALCULADO"; 
-                    b.className = "w-full bg-green-600 text-white p-4 rounded-2xl text-[10px] font-black uppercase";
-                    gpsOk = true; 
-                    window.renderCheckoutTotal();
-                    b.disabled = false;
+                    btn.innerText = "✅ FRETE CALCULADO";
+                    btn.className = "w-full bg-green-600 text-white p-4 rounded-2xl text-[10px] font-black uppercase";
+                    gpsOk = true;
+                    renderCheckoutTotal();
+                    btn.disabled = false;
                 },
                 error => {
                     let mensagem = "Erro ao obter localização: ";
@@ -562,85 +701,89 @@
                             mensagem += "Erro desconhecido.";
                     }
                     alert(mensagem);
-                    b.innerText = textoOriginal;
-                    b.disabled = false;
+                    btn.innerText = textoOriginal;
+                    btn.disabled = false;
                 },
                 { timeout: 10000, enableHighAccuracy: true }
             );
-        };
+        }
 
-        window.enviarPedido = async () => {
-            const n = document.getElementById('f-nome').value.trim();
+        // ==================== FUNÇÕES DE PEDIDO ====================
+
+        async function enviarPedido() {
+            const nome = document.getElementById('f-nome').value.trim();
             const totalStr = document.getElementById('res-total').innerText;
             
             // Validações
-            if(!gpsOk && modoConsumo === 'delivery') {
+            if (!gpsOk && modoConsumo === 'delivery') {
                 alert("📍 É necessário calcular o frete pelo GPS para delivery!");
                 return;
             }
             
-            if(!n) {
+            if (!nome) {
                 alert("Por favor, preencha seu nome!");
                 document.getElementById('f-nome').focus();
                 return;
             }
             
             const whatsapp = document.getElementById('f-whatsapp').value.replace(/\D/g, '');
-            if(whatsapp.length < 10) {
+            if (whatsapp.length < 10) {
                 alert("Por favor, informe um WhatsApp válido!");
                 document.getElementById('f-whatsapp').focus();
                 return;
             }
             
             // Agrupar itens
-            const ag = CARRINHO.reduce((acc, i) => { 
-                acc[i.nome] = (acc[i.nome] || 0) + 1; 
-                return acc; 
+            const ag = CARRINHO.reduce((acc, i) => {
+                acc[i.nome] = (acc[i.nome] || 0) + 1;
+                return acc;
             }, {});
             
-            // Preparar dados do pedido
+            // Preparar pedido
             const pedido = {
-                cliente_nome: n, 
+                cliente_nome: nome,
                 cliente_whatsapp: whatsapp,
                 rua: modoConsumo === 'delivery' ? document.getElementById('f-rua').value.trim() : modoConsumo.toUpperCase(),
                 numero: document.getElementById('f-num').value || "S/N",
                 bairro: document.getElementById('f-bairro').value || "",
                 complemento: document.getElementById('f-comp').value || "",
-                total: Number(totalStr.replace('R$ ', '').replace(',','.').replace('.', '').replace(',', '.')),
-                status: 'Novo', 
+                total: parseFloat(totalStr.replace('R$ ', '').replace('.', '').replace(',', '.')),
+                status: 'Novo',
                 created_at: new Date().getTime(),
-                pagamento: document.getElementById('f-pag').value, 
+                pagamento: document.getElementById('f-pag').value,
                 troco: document.getElementById('f-troco').value || "Não solicitado",
                 itens: Object.keys(ag),
                 itens_quantidade: ag,
-                taxa_entrega: tFRETE, 
-                lat_cli: latCli, 
-                lng_cli: lngCli, 
+                taxa_entrega: tFRETE,
+                lat_cli: latCli,
+                lng_cli: lngCli,
                 desconto: vCUPOM,
                 modo_consumo: modoConsumo
             };
-
+            
             try {
-                // Desabilitar botão durante o envio
+                // Desabilitar botão
                 const btn = document.getElementById('btn-final-zap');
                 const textoOriginal = btn.innerHTML;
                 btn.innerHTML = "⏳ ENVIANDO...";
                 btn.disabled = true;
-
+                
+                // Salvar no Firebase
                 const docRef = await addDoc(collection(db, "pedidos"), pedido);
                 
-                // Criar mensagem para WhatsApp
-                let itensTxt = ""; 
-                for (const [nome, qtd] of Object.entries(ag)) { 
-                    itensTxt += `• ${qtd}x *${nome}*\n`; 
+                // Criar mensagem WhatsApp
+                let itensTxt = "";
+                for (const [nomeItem, qtd] of Object.entries(ag)) {
+                    itensTxt += `• ${qtd}x *${nomeItem}*\n`;
                 }
                 
                 const url = `${window.location.origin}${window.location.pathname}?pedido=${docRef.id}`;
                 const maps = modoConsumo === 'delivery' ? `\n📍 *Mapa:* https://www.google.com/maps?q=${latCli},${lngCli}` : "";
+                
                 const msg = `*NOVO PEDIDO - ${CONFIG.nome_pizzaria || 'Pizzaria'}*\n` +
                            `------------------\n` +
                            `*Modo:* ${modoConsumo.toUpperCase()}\n` +
-                           `*Cliente:* ${n}\n` +
+                           `*Cliente:* ${nome}\n` +
                            `*WhatsApp:* ${whatsapp}\n` +
                            (modoConsumo === 'delivery' ? `*Endereço:* ${pedido.rua}, ${pedido.numero} - ${pedido.bairro}\n` : "") +
                            `------------------\n` +
@@ -651,20 +794,22 @@
                            `*TOTAL:* ${totalStr}${maps}\n\n` +
                            `🛰️ *Acompanhar:* ${url}`;
                 
-                // Salvar dados do cliente localmente
-                localStorage.setItem('pizzaria_memoria', JSON.stringify({ 
-                    nome: n, 
-                    zap: whatsapp, 
-                    rua: document.getElementById('f-rua').value, 
-                    num: document.getElementById('f-num').value, 
-                    bairro: document.getElementById('f-bairro').value, 
-                    comp: document.getElementById('f-comp').value 
+                // Salvar dados do cliente
+                localStorage.setItem('pizzaria_memoria', JSON.stringify({
+                    nome: nome,
+                    zap: whatsapp,
+                    rua: document.getElementById('f-rua').value,
+                    num: document.getElementById('f-num').value,
+                    bairro: document.getElementById('f-bairro').value,
+                    comp: document.getElementById('f-comp').value
                 }));
                 
                 // Limpar carrinho
                 localStorage.removeItem('pizzaria_carrinho');
+                CARRINHO = [];
+                updateCartFooter();
                 
-                // Abrir WhatsApp e redirecionar para acompanhamento
+                // Abrir WhatsApp e redirecionar
                 setTimeout(() => {
                     window.open(`https://api.whatsapp.com/send?phone=${(CONFIG.whatsapp || '').replace(/\D/g, '')}&text=${encodeURIComponent(msg)}`, '_blank');
                     window.location.href = url;
@@ -679,745 +824,20 @@
                 btn.innerHTML = "🚀 ENVIAR NO WHATSAPP";
                 btn.disabled = false;
             }
-        };
-
-        // --- GESTÃO ADM ---
-        function renderPedidosADM(pedidos) {
-            const div = document.getElementById('sec-pedidos');
-            if (!div) return;
-            
-            const hoje = new Date();
-            const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).getTime();
-            
-            const totalDia = pedidos
-                .filter(p => p.status === 'Finalizado' && p.created_at >= inicioHoje)
-                .reduce((acc, cur) => acc + Number(cur.total || 0), 0);
-                
-            const pedidosHoje = pedidos.filter(p => p.created_at >= inicioHoje).length;
-            
-            div.innerHTML = `
-                <div class="bg-gray-900 text-white p-6 rounded-[35px] shadow-lg mb-6">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Vendas Hoje</p>
-                            <h2 class="text-3xl font-black text-green-400 tracking-tighter">R$ ${totalDia.toFixed(2)}</h2>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Pedidos Hoje</p>
-                            <h2 class="text-xl font-black text-white">${pedidosHoje}</h2>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Total Geral</p>
-                            <h2 class="text-xl font-black text-white">${pedidos.length}</h2>
-                        </div>
-                    </div>
-                </div>
-                <div id="lista-peds"></div>`;
-                
-            const lista = document.getElementById('lista-peds');
-            lista.innerHTML = "";
-            
-            pedidos.forEach(p => {
-                const ag = (p.itens_quantidade || p.itens || []).reduce((acc, i) => { 
-                    if (typeof i === 'string') {
-                        acc[i] = (acc[i] || 0) + 1;
-                    }
-                    return acc; 
-                }, {});
-                
-                const itensTexto = Object.entries(ag).map(([n, q]) => `${q}x ${n}`).join(', ') || "Sem itens";
-                const dataHora = p.created_at ? new Date(p.created_at).toLocaleString('pt-BR') : "Data não disponível";
-                
-                lista.innerHTML += `
-                    <div class="bg-white p-5 rounded-[35px] shadow-sm mb-4 border-l-[12px] status-${(p.status || 'Novo').replace(/ /g, '')}">
-                        <div class="flex justify-between items-center font-black text-[10px] mb-2 text-black">
-                            <span>${p.cliente_nome || "Cliente não informado"}</span>
-                            <span class="bg-black text-white px-2 py-1 rounded-full text-[8px] uppercase tracking-tighter">${p.status || 'Novo'}</span>
-                        </div>
-                        <div class="text-[9px] text-gray-500 mb-1">${dataHora}</div>
-                        <div class="text-[9px] font-bold border-y border-dashed py-3 my-2 italic tracking-tighter text-gray-600">
-                            ${itensTexto}
-                        </div>
-                        <div class="flex justify-between items-center text-black mt-3">
-                            <span class="font-black text-sm">R$ ${(p.total || 0).toFixed(2)}</span>
-                            <div class="flex gap-1">
-                                <button onclick="window.imprimirPedido('${p.id}')" class="bg-gray-100 p-2 rounded-xl text-lg shadow-sm hover:bg-gray-200 transition">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                                ${p.cliente_whatsapp ? 
-                                    `<button onclick="window.notificarCliente('${p.id}')" class="bg-blue-50 text-blue-600 p-2 rounded-xl text-lg shadow-sm hover:bg-blue-100 transition">
-                                        <i class="fab fa-whatsapp"></i>
-                                    </button>` : ''
-                                }
-                                <select onchange="window.updateStatus('${p.id}', this.value)" class="text-[9px] bg-black text-white p-2 rounded-xl font-bold">
-                                    <option value="">Status</option>
-                                    <option value="Novo" ${p.status === 'Novo' ? 'selected' : ''}>Novo</option>
-                                    <option value="Preparando" ${p.status === 'Preparando' ? 'selected' : ''}>Preparando</option>
-                                    <option value="Pronto" ${p.status === 'Pronto' ? 'selected' : ''}>Pronto</option>
-                                    <option value="Saiu" ${p.status === 'Saiu' ? 'selected' : ''}>Saiu</option>
-                                    <option value="Finalizado" ${p.status === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
-                                    <option value="Cancelado" ${p.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
-                                </select>
-                                <button onclick="window.apagarPedido('${p.id}')" class="bg-red-50 text-red-500 p-2 rounded-xl shadow-sm hover:bg-red-100 transition">
-                                    <i class="fas fa-trash-alt text-xs"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>`;
-            });
         }
 
-        window.notificarCliente = async (id) => {
-            try {
-                const snap = await getDoc(doc(db, "pedidos", id));
-                const p = snap.data();
-                
-                if (!p || !p.cliente_whatsapp) {
-                    alert("Cliente sem WhatsApp cadastrado!");
-                    return;
-                }
-                
-                const status = p.status || 'Novo';
-                const mensagens = {
-                    'Preparando': `Olá ${p.cliente_nome}! Seu pedido #${id.slice(-6)} está sendo preparado! 🍕`,
-                    'Pronto': `Olá ${p.cliente_nome}! Seu pedido #${id.slice(-6)} está pronto para ${p.modo_consumo === 'retirada' ? 'retirada' : 'entrega'}! ✅`,
-                    'Saiu': `Olá ${p.cliente_nome}! Seu pedido #${id.slice(-6)} saiu para entrega! 🚗`,
-                    'Finalizado': `Olá ${p.cliente_nome}! Obrigado pelo seu pedido #${id.slice(-6)}! Volte sempre! ❤️`
-                };
-                
-                const mensagem = mensagens[status] || `Olá ${p.cliente_nome}! Status do seu pedido: ${status}`;
-                const url = `https://api.whatsapp.com/send?phone=55${p.cliente_whatsapp}&text=${encodeURIComponent(mensagem)}`;
-                window.open(url, '_blank');
-                
-            } catch (error) {
-                console.error("Erro ao notificar cliente:", error);
-                alert("Erro ao abrir WhatsApp.");
-            }
-        };
+        // ==================== FUNÇÕES DO MONTADOR ====================
 
-        window.imprimirPedido = async (id) => {
-            try {
-                const snap = await getDoc(doc(db, "pedidos", id)); 
-                const p = snap.data();
-                
-                if (!p) {
-                    alert("Pedido não encontrado!");
-                    return;
-                }
-                
-                const ag = (p.itens_quantidade || p.itens || []).reduce((acc, i) => { 
-                    if (typeof i === 'string') {
-                        acc[i] = (acc[i] || 0) + 1;
-                    }
-                    return acc; 
-                }, {});
-                
-                const html = `
-                    <center>
-                        <h2 style="font-size:18px; font-weight:bold">${CONFIG.nome_pizzaria || 'Pizzaria'}</h2>
-                        <p><b>PEDIDO: #${id.slice(-6)}</b></p>
-                        <p><b>MODO: ${p.modo_consumo || p.rua || 'Não informado'}</b></p>
-                        <p>${new Date(p.created_at || Date.now()).toLocaleString('pt-BR')}</p>
-                    </center>
-                    <p>===============================</p>
-                    <p><b>CLIENTE:</b> ${p.cliente_nome || 'Não informado'}</p>
-                    <p><b>TEL:</b> ${p.cliente_whatsapp || 'Não informado'}</p>
-                    ${p.modo_consumo === 'delivery' ? `<p><b>END:</b> ${p.rua || ''}, ${p.numero || ''} - ${p.bairro || ''}</p>` : ''}
-                    <p><b>PAGAMENTO:</b> ${p.pagamento || 'Não informado'}</p>
-                    <p>===============================</p>
-                    <div style="font-weight:bold">
-                        ${Object.entries(ag).map(([n, q]) => `<div>${q}x ${n}</div>`).join('')}
-                    </div>
-                    <p>===============================</p>
-                    ${p.taxa_entrega > 0 ? `<p><b>Taxa entrega:</b> R$ ${(p.taxa_entrega || 0).toFixed(2)}</p>` : ''}
-                    ${p.desconto > 0 ? `<p><b>Desconto:</b> -R$ ${(p.desconto || 0).toFixed(2)}</p>` : ''}
-                    <h3 style="text-align:right; font-size:20px; margin-top:10px">
-                        TOTAL: R$ ${(p.total || 0).toFixed(2)}
-                    </h3>
-                    ${p.troco && p.troco !== 'Não solicitado' ? `<p><b>Troco para:</b> R$ ${p.troco}</p>` : ''}
-                    <p style="text-align:center; margin-top:20px; font-size:10px">Obrigado pela preferência!</p>
-                `;
-                
-                document.getElementById('print-content').innerHTML = html;
-                setTimeout(() => {
-                    window.print();
-                }, 600);
-                
-            } catch (error) {
-                console.error("Erro ao imprimir:", error);
-                alert("Erro ao gerar impressão.");
-            }
-        };
-
-        window.switchTab = (t) => { 
-            ['pedidos', 'produtos', 'categorias', 'cupons', 'config'].forEach(x => { 
-                const sec = document.getElementById(`sec-${x}`);
-                const btn = document.getElementById(`tab-${x}`);
-                
-                if (sec && btn) {
-                    sec.classList.toggle('hidden', x !== t);
-                    
-                    if(x === t) { 
-                        btn.classList.add('tab-active'); 
-                        btn.classList.remove('text-gray-400'); 
-                    } else { 
-                        btn.classList.remove('tab-active'); 
-                        btn.classList.add('text-gray-400'); 
-                    }
-                }
-            }); 
-            
-            if(t === 'config') window.renderConfigADM(); 
-            if(t === 'produtos') window.renderProdutosADM(); 
-            if(t === 'categorias') window.renderCategoriasADM(); 
-            if(t === 'cupons') window.renderCuponsADM(); 
-        };
-
-        // --- ABA PRODUTOS ADM ---
-        window.renderProdutosADM = () => {
-            const div = document.getElementById('sec-produtos');
-            if (!div) return;
-            
-            div.innerHTML = `
-                <button onclick="window.abrirModalNovoProd()" class="w-full bg-red-600 text-white p-4 rounded-xl font-bold text-xs uppercase mb-4 shadow-lg hover:bg-red-700 transition">
-                    + Novo Produto
-                </button>
-                <div id="adm-prod-list" class="space-y-2"></div>`;
-                
-            const lista = document.getElementById('adm-prod-list');
-            lista.innerHTML = "";
-            
-            PRODS.forEach(p => {
-                const categoria = CATS.find(c => c.id === p.categoria_id);
-                lista.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center text-black hover:shadow-md transition">
-                        <div>
-                            <p class="font-bold text-[10px] uppercase">${p.nome || 'Sem nome'}</p>
-                            <p class="text-[8px] text-gray-400">R$ ${Number(p.preco || 0).toFixed(2)} | ${categoria ? categoria.nome : 'Sem categoria'}</p>
-                            <span class="text-[7px] px-2 py-1 rounded-full ${p.disponivel !== false ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
-                                ${p.disponivel !== false ? 'Disponível' : 'Indisponível'}
-                            </span>
-                        </div>
-                        <div class="flex gap-1">
-                            <button onclick="window.abrirModalEditar('${p.id}')" class="bg-blue-50 text-blue-600 p-3 rounded-xl text-xs hover:bg-blue-100 transition">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="window.delProd('${p.id}')" class="bg-red-50 text-red-500 p-3 rounded-xl text-xs hover:bg-red-100 transition">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    </div>`;
-            });
-        };
-
-        window.abrirModalNovoProd = () => { 
-            document.getElementById('modal-editar-prod').classList.remove('hidden'); 
-            document.getElementById('edit-id-hidden').value = ""; 
-            document.getElementById('edit-n').value = ""; 
-            document.getElementById('edit-d').value = ""; 
-            document.getElementById('edit-p').value = ""; 
-            document.getElementById('edit-i').value = ""; 
-            document.getElementById('edit-disp').checked = true; 
-            
-            const select = document.getElementById('edit-c');
-            select.innerHTML = '<option value="">Selecione uma categoria</option>' + 
-                CATS.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
-        };
-        
-        window.abrirModalEditar = (id) => { 
-            const p = PRODS.find(x => x.id === id);
-            if (!p) {
-                alert("Produto não encontrado!");
-                return;
-            }
-            
-            document.getElementById('modal-editar-prod').classList.remove('hidden'); 
-            document.getElementById('edit-id-hidden').value = p.id; 
-            document.getElementById('edit-n').value = p.nome || ""; 
-            document.getElementById('edit-d').value = p.descricao || ""; 
-            document.getElementById('edit-p').value = p.preco || ""; 
-            document.getElementById('edit-i').value = p.imagem_url || ""; 
-            document.getElementById('edit-disp').checked = p.disponivel !== false; 
-            
-            const select = document.getElementById('edit-c');
-            select.innerHTML = CATS.map(c => 
-                `<option value="${c.id}" ${p.categoria_id === c.id ? 'selected' : ''}>${c.nome}</option>`
-            ).join('');
-        };
-        
-        window.salvarEdicaoFinal = async () => { 
-            const id = document.getElementById('edit-id-hidden').value; 
-            const nome = document.getElementById('edit-n').value.trim();
-            const preco = Number(document.getElementById('edit-p').value);
-            
-            if (!nome) {
-                alert("O nome do produto é obrigatório!");
-                return;
-            }
-            
-            if (isNaN(preco) || preco < 0) {
-                alert("Preço inválido!");
-                return;
-            }
-            
-            const dados = { 
-                nome: nome, 
-                descricao: document.getElementById('edit-d').value.trim(), 
-                preco: preco, 
-                imagem_url: document.getElementById('edit-i').value.trim(), 
-                categoria_id: document.getElementById('edit-c').value, 
-                disponivel: document.getElementById('edit-disp').checked,
-                atualizado_em: new Date().getTime()
-            }; 
-            
-            try {
-                if(id) {
-                    await updateDoc(doc(db, "produtos", id), dados);
-                } else {
-                    dados.criado_em = new Date().getTime();
-                    await addDoc(collection(db, "produtos"), dados);
-                }
-                
-                alert("Salvo com sucesso!"); 
-                document.getElementById('modal-editar-prod').classList.add('hidden'); 
-                await loadData(); 
-                window.renderProdutosADM(); 
-                
-            } catch (error) {
-                console.error("Erro ao salvar produto:", error);
-                alert("Erro ao salvar. Tente novamente.");
-            }
-        };
-        
-        window.delProd = async (id) => { 
-            if(!confirm("Tem certeza que deseja apagar este produto?")) return;
-            
-            try {
-                await deleteDoc(doc(db, "produtos", id)); 
-                await loadData(); 
-                window.renderProdutosADM(); 
-                alert("Produto apagado!");
-            } catch (error) {
-                console.error("Erro ao apagar produto:", error);
-                alert("Erro ao apagar produto.");
-            }
-        };
-
-        window.renderCategoriasADM = () => { 
-            const div = document.getElementById('sec-categorias'); 
-            if (!div) return;
-            
-            div.innerHTML = `
-                <div class="bg-white p-5 rounded-3xl border mb-4 space-y-3 text-black">
-                    <input id="new-cat" type="text" placeholder="Nome da categoria" class="w-full p-3 border rounded-xl text-sm">
-                    <button onclick="window.addNovaCat()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-xs uppercase shadow-md hover:bg-green-700 transition">
-                        Criar Categoria
-                    </button>
-                </div>
-                <div id="adm-cat-list" class="space-y-2"></div>`;
-                
-            const lista = document.getElementById('adm-cat-list');
-            lista.innerHTML = "";
-            
-            CATS.forEach(c => {
-                const qtdProdutos = PRODS.filter(p => p.categoria_id === c.id).length;
-                lista.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl border flex justify-between items-center font-bold text-xs uppercase text-black hover:shadow-sm transition">
-                        <div>
-                            <span>${c.nome}</span>
-                            <span class="text-[8px] text-gray-400 ml-2">(${qtdProdutos} produtos)</span>
-                        </div>
-                        <button onclick="window.delCat('${c.id}')" class="text-red-500 hover:text-red-700 transition">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>`;
-            });
-        };
-        
-        window.addNovaCat = async () => { 
-            const n = document.getElementById('new-cat').value.trim(); 
-            if(!n) {
-                alert("Digite um nome para a categoria!");
-                return;
-            }
-            
-            if(CATS.some(c => c.nome.toLowerCase() === n.toLowerCase())) {
-                alert("Já existe uma categoria com este nome!");
-                return;
-            }
-            
-            try {
-                await addDoc(collection(db, "categorias"), { 
-                    nome: n, 
-                    ordem: CATS.length,
-                    criado_em: new Date().getTime()
-                }); 
-                await loadData(); 
-                window.renderCategoriasADM(); 
-                document.getElementById('new-cat').value = "";
-            } catch (error) {
-                console.error("Erro ao criar categoria:", error);
-                alert("Erro ao criar categoria.");
-            }
-        };
-        
-        window.delCat = async (id) => { 
-            const cat = CATS.find(c => c.id === id);
-            if (!cat) return;
-            
-            const qtdProdutos = PRODS.filter(p => p.categoria_id === id).length;
-            
-            if (qtdProdutos > 0) {
-                if(!confirm(`Esta categoria tem ${qtdProdutos} produtos. Ao apagá-la, esses produtos ficarão sem categoria. Deseja continuar?`)) {
-                    return;
-                }
-            } else {
-                if(!confirm("Tem certeza que deseja apagar esta categoria?")) return;
-            }
-            
-            try {
-                await deleteDoc(doc(db, "categorias", id)); 
-                await loadData(); 
-                window.renderCategoriasADM(); 
-            } catch (error) {
-                console.error("Erro ao apagar categoria:", error);
-                alert("Erro ao apagar categoria.");
-            }
-        };
-
-        window.renderCuponsADM = () => { 
-            const div = document.getElementById('sec-cupons'); 
-            if (!div) return;
-            
-            div.innerHTML = `
-                <div class="bg-white p-5 rounded-3xl border mb-4 space-y-3 text-black">
-                    <input id="new-cup-c" type="text" placeholder="Código do cupom" class="w-full p-3 border rounded-xl text-sm font-black uppercase" maxlength="20">
-                    <input id="new-cup-v" type="number" step="0.01" placeholder="Valor do desconto (R$)" class="w-full p-3 border rounded-xl text-sm">
-                    <button onclick="window.addNovoCup()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold text-xs uppercase shadow-md hover:bg-orange-600 transition">
-                        Criar Cupom
-                    </button>
-                </div>
-                <div id="adm-cup-list"></div>`;
-                
-            const lista = document.getElementById('adm-cup-list');
-            lista.innerHTML = "";
-            
-            if (CUPONS.length === 0) {
-                lista.innerHTML = `<div class="text-center py-8 text-gray-400 text-sm">Nenhum cupom cadastrado</div>`;
-                return;
-            }
-            
-            CUPONS.forEach(c => {
-                lista.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl border flex justify-between items-center font-bold text-xs uppercase text-orange-600 shadow-sm mb-2 hover:shadow-md transition">
-                        <div>
-                            <span class="font-black">${c.codigo}</span>
-                            <span class="text-[9px] text-gray-600 ml-2">(-R$ ${(c.valor || 0).toFixed(2)})</span>
-                            <span class="text-[7px] ml-2 px-2 py-1 rounded-full ${c.ativo !== false ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}">
-                                ${c.ativo !== false ? 'Ativo' : 'Inativo'}
-                            </span>
-                        </div>
-                        <button onclick="window.delCup('${c.id}')" class="text-red-500 p-2 hover:text-red-700 transition">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>`;
-            });
-        };
-        
-        window.addNovoCup = async () => { 
-            const c = document.getElementById('new-cup-c').value.trim().toUpperCase(); 
-            const v = document.getElementById('new-cup-v').value;
-            
-            if(!c) {
-                alert("Digite um código para o cupom!");
-                return;
-            }
-            
-            if(!v || Number(v) <= 0) {
-                alert("Digite um valor válido para o desconto!");
-                return;
-            }
-            
-            if(CUPONS.some(cup => cup.codigo === c)) {
-                alert("Já existe um cupom com este código!");
-                return;
-            }
-            
-            try {
-                await addDoc(collection(db, "cupons"), { 
-                    codigo: c, 
-                    valor: Number(v), 
-                    ativo: true,
-                    criado_em: new Date().getTime(),
-                    criado_por: isAdmin ? "admin" : "sistema"
-                }); 
-                await loadData(); 
-                window.renderCuponsADM(); 
-                document.getElementById('new-cup-c').value = "";
-                document.getElementById('new-cup-v').value = "";
-            } catch (error) {
-                console.error("Erro ao criar cupom:", error);
-                alert("Erro ao criar cupom.");
-            }
-        };
-        
-        window.delCup = async (id) => { 
-            if(!confirm("Tem certeza que deseja apagar este cupom?")) return;
-            
-            try {
-                await deleteDoc(doc(db, "cupons", id)); 
-                await loadData(); 
-                window.renderCuponsADM(); 
-            } catch (error) {
-                console.error("Erro ao apagar cupom:", error);
-                alert("Erro ao apagar cupom.");
-            }
-        };
-
-        window.renderConfigADM = () => { 
-            const div = document.getElementById('sec-config'); 
-            if (!div) return;
-            
-            div.innerHTML = `
-                <div class="bg-white p-6 rounded-[35px] shadow-sm space-y-4 text-black">
-                    <h3 class="font-black text-sm uppercase border-b pb-2 mb-4">Configurações da Loja</h3>
-                    
-                    <div class="space-y-3">
-                        <div>
-                            <label class="text-[10px] font-black text-gray-500 uppercase block mb-1">Nome da Pizzaria</label>
-                            <input id="adm-n" type="text" value="${CONFIG.nome_pizzaria || ''}" class="w-full p-3 border rounded-xl font-bold tracking-tighter uppercase italic">
-                        </div>
-                        
-                        <div>
-                            <label class="text-[10px] font-black text-gray-500 uppercase block mb-1">WhatsApp para Pedidos</label>
-                            <input id="adm-z" type="text" value="${CONFIG.whatsapp || ''}" placeholder="Ex: 5511999999999" class="w-full p-3 border rounded-xl">
-                        </div>
-                        
-                        <div>
-                            <label class="text-[10px] font-black text-gray-500 uppercase block mb-1">Localização da Loja</label>
-                            <button onclick="window.obterGPSLoja()" id="btn-gps-adm" class="w-full ${CONFIG.lat_pizzaria ? 'bg-green-600 hover:bg-green-700' : 'bg-red-500 hover:bg-red-600'} text-white p-4 rounded-2xl text-[10px] font-black uppercase shadow-lg tracking-widest italic transition">
-                                📍 ${CONFIG.lat_pizzaria ? 'ATUALIZAR' : 'DEFINIR'} GPS DA LOJA
-                            </button>
-                            <div id="coords-adm" class="text-center text-[9px] font-bold text-gray-400 mt-2 ${CONFIG.lat_pizzaria ? '' : 'hidden'}">
-                                GPS: ${CONFIG.lat_pizzaria || 'N/D'}, ${CONFIG.lng_pizzaria || 'N/D'}
-                            </div>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] font-black text-gray-500 uppercase block mb-1">Frete Base (R$)</label>
-                                <input id="adm-b" type="number" step="0.01" value="${CONFIG.taxa_base || 0}" class="w-full p-3 border rounded-xl text-sm">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-black text-gray-500 uppercase block mb-1">Adicional por KM (R$)</label>
-                                <input id="adm-k" type="number" step="0.01" value="${CONFIG.preco_km || 0}" class="w-full p-3 border rounded-xl text-sm">
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <label class="text-[10px] font-black text-gray-500 uppercase block mb-1">URL da Logo/Banner</label>
-                            <input id="adm-l" type="text" value="${CONFIG.logo_url || ''}" class="w-full p-3 border rounded-xl" placeholder="https://...">
-                        </div>
-                        
-                        <div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border font-black text-[10px] uppercase italic">
-                            <span>Loja Aberta para Pedidos?</span>
-                            <label class="switch">
-                                <input type="checkbox" onchange="window.toggleLoja(this.checked)" ${CONFIG.loja_aberta?'checked':''}>
-                                <span class="slider"></span>
-                            </label>
-                        </div>
-                        
-                        <div class="pt-4">
-                            <button onclick="window.salvarConfig()" class="w-full bg-black text-white p-4 rounded-2xl font-black text-xs uppercase shadow-xl tracking-widest hover:bg-gray-800 transition">
-                                💾 Salvar Todas as Configurações
-                            </button>
-                        </div>
-                    </div>
-                </div>`;
-        };
-        
-        window.obterGPSLoja = () => { 
-            if (!navigator.geolocation) {
-                alert("Seu navegador não suporta geolocalização.");
-                return;
-            }
-            
-            const btn = document.getElementById('btn-gps-adm');
-            const textoOriginal = btn.innerHTML;
-            btn.innerHTML = "⏳ OBTENDO LOCALIZAÇÃO...";
-            btn.disabled = true;
-            
-            navigator.geolocation.getCurrentPosition(
-                async pos => {
-                    try {
-                        await updateDoc(doc(db, "configuracoes", "loja"), { 
-                            lat_pizzaria: pos.coords.latitude, 
-                            lng_pizzaria: pos.coords.longitude 
-                        });
-                        
-                        alert("Localização salva com sucesso!"); 
-                        location.reload();
-                        
-                    } catch (error) {
-                        console.error("Erro ao salvar GPS:", error);
-                        alert("Erro ao salvar localização.");
-                        btn.innerHTML = textoOriginal;
-                        btn.disabled = false;
-                    }
-                },
-                error => {
-                    let mensagem = "Erro ao obter localização: ";
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            mensagem += "Permissão negada pelo usuário.";
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            mensagem += "Localização indisponível.";
-                            break;
-                        case error.TIMEOUT:
-                            mensagem += "Tempo esgotado.";
-                            break;
-                        default:
-                            mensagem += "Erro desconhecido.";
-                    }
-                    alert(mensagem);
-                    btn.innerHTML = textoOriginal;
-                    btn.disabled = false;
-                },
-                { timeout: 15000, enableHighAccuracy: true }
-            );
-        };
-        
-        window.salvarConfig = async () => { 
-            const nome = document.getElementById('adm-n').value.trim();
-            const whatsapp = document.getElementById('adm-z').value.trim();
-            
-            if (!nome) {
-                alert("O nome da pizzaria é obrigatório!");
-                return;
-            }
-            
-            const dados = { 
-                nome_pizzaria: nome,
-                whatsapp: whatsapp,
-                taxa_base: Number(document.getElementById('adm-b').value) || 0,
-                preco_km: Number(document.getElementById('adm-k').value) || 0,
-                logo_url: document.getElementById('adm-l').value.trim(),
-                atualizado_em: new Date().getTime()
-            };
-            
-            // Manter dados existentes
-            if (CONFIG.lat_pizzaria) dados.lat_pizzaria = CONFIG.lat_pizzaria;
-            if (CONFIG.lng_pizzaria) dados.lng_pizzaria = CONFIG.lng_pizzaria;
-            if (CONFIG.loja_aberta !== undefined) dados.loja_aberta = CONFIG.loja_aberta;
-            
-            try {
-                await updateDoc(doc(db, "configuracoes", "loja"), dados); 
-                alert("Configurações salvas com sucesso!"); 
-                location.reload();
-            } catch (error) {
-                console.error("Erro ao salvar configurações:", error);
-                alert("Erro ao salvar configurações.");
-            }
-        };
-
-        // --- FUNÇÕES AUXILIARES UI CLIENTE ---
-        window.fecharCheckout = () => document.getElementById('modal-checkout').classList.add('hidden');
-        
-        window.setModoConsumo = (m) => { 
-            modoConsumo = m; 
-            const botoes = ['delivery','retirada','local'];
-            
-            botoes.forEach(x => {
-                const btn = document.getElementById(`btn-m-${x}`);
-                if (btn) {
-                    if (x === m) {
-                        btn.className = "p-3 text-[9px] font-black rounded-xl bg-white shadow-sm border border-gray-200 text-black uppercase";
-                    } else {
-                        btn.className = "p-3 text-[9px] font-black rounded-xl text-gray-400 uppercase";
-                    }
-                }
-            }); 
-            
-            const areaGPS = document.getElementById('area-gps-cli');
-            if (areaGPS) {
-                areaGPS.classList.toggle('hidden', m !== 'delivery');
-            }
-            
-            if(m !== 'delivery') { 
-                tFRETE = 0; 
-                gpsOk = true; 
-                document.getElementById('res-km').classList.add('hidden');
-            } else { 
-                gpsOk = false; 
-            } 
-            
-            window.renderCheckoutTotal(); 
-        };
-        
-        window.renderCheckoutTotal = () => { 
-            const sub = CARRINHO.reduce((a, b) => a + Number(b.preco || 0), 0); 
-            const final = sub + tFRETE - vCUPOM; 
-            const totalFinal = Math.max(0, final);
-            
-            const totalElement = document.getElementById('res-total');
-            if (totalElement) {
-                totalElement.innerText = `R$ ${totalFinal.toFixed(2).replace('.',',')}`;
-            }
-        };
-        
-        window.abrirCheckout = () => { 
-            if (CARRINHO.length === 0) {
-                alert("Seu carrinho está vazio!");
-                return;
-            }
-            
-            document.getElementById('modal-checkout').classList.remove('hidden'); 
-            
-            // Carregar dados salvos
-            const m = JSON.parse(localStorage.getItem('pizzaria_memoria') || '{}');
-            
-            const campos = ['f-nome', 'f-whatsapp', 'f-rua', 'f-num', 'f-bairro', 'f-comp'];
-            const valores = ['nome', 'zap', 'rua', 'num', 'bairro', 'comp'];
-            
-            campos.forEach((campo, index) => {
-                const element = document.getElementById(campo);
-                if (element && m[valores[index]]) {
-                    element.value = m[valores[index]];
-                }
-            });
-            
-            // Listar itens do carrinho
-            const ag = CARRINHO.reduce((acc, i) => { 
-                acc[i.nome] = (acc[i.nome] || 0) + 1; 
-                return acc; 
-            }, {}); 
-            
-            const listaItens = document.getElementById('checkout-itens-list');
-            if (listaItens) {
-                listaItens.innerHTML = Object.entries(ag).map(([n, q]) => 
-                    `<div class="flex justify-between border-b border-gray-100 pb-2">
-                        <span>${q}x ${n}</span>
-                        <span class="text-red-600 font-black">R$ ${(q * (PRODS.find(p => p.nome === n)?.preco || 0)).toFixed(2)}</span>
-                    </div>`
-                ).join('');
-            }
-            
-            window.setModoConsumo(modoConsumo); 
-            window.renderCheckoutTotal();
-        };
-        
-        window.abrirMontador = () => { 
-            document.getElementById('modal-montador').classList.remove('hidden'); 
+        function abrirMontador() {
+            document.getElementById('modal-montador').classList.remove('hidden');
             
             // Encontrar categoria de pizzas
             const catPizza = CATS.find(c => 
                 c.nome && (c.nome.toLowerCase().includes('pizza') || 
-                          c.nome.toLowerCase().includes('sabor') ||
-                          c.nome.toLowerCase().includes('mass'))
+                          c.nome.toLowerCase().includes('sabor'))
             );
             
-            const div = document.getElementById('lista-sabores-montador'); 
+            const div = document.getElementById('lista-sabores-montador');
             if (!div) return;
             
             if (!catPizza) {
@@ -1435,45 +855,43 @@
                 return;
             }
             
-            div.innerHTML = pizzas.map(p => `
-                <div onclick="window.selMetade('${p.id}','${p.nome.replace(/'/g, "\\'")}',${p.preco || 0},this)" 
+            let html = '';
+            pizzas.forEach(p => {
+                html += `
+                <div onclick="selMetade('${p.id}','${p.nome.replace(/'/g, "\\'")}',${p.preco || 0},this)" 
                      class="bg-gray-50 p-3 rounded-xl border border-gray-200 flex justify-between font-bold text-xs uppercase mb-1 shadow-sm hover:bg-gray-100 transition cursor-pointer">
                     <span>${p.nome}</span>
                     <span>R$ ${Number(p.preco || 0).toFixed(2)}</span>
-                </div>`
-            ).join('');
-        };
-        
-        window.confirmarMeioAMeio = () => { 
-            if (!s1 || !s2) {
-                alert("Selecione dois sabores!");
-                return;
-            }
+                </div>`;
+            });
             
-            const precoFinal = Math.max(s1.p, s2.p);
-            CARRINHO.push({ 
-                id: `meio-${Date.now()}`, 
-                nome: `MEIO A MEIO (${s1.n} + ${s2.n})`, 
-                preco: precoFinal,
-                tipo: 'meio-a-meio'
-            }); 
+            div.innerHTML = html;
+        }
+
+        function fecharMontador() {
+            document.getElementById('modal-montador').classList.add('hidden');
+            s1 = null;
+            s2 = null;
             
-            updateCartFooter(); 
-            window.fecharMontador(); 
+            // Resetar UI
+            document.getElementById('txt-m1').innerText = `Lado 1: ---`;
+            document.getElementById('txt-m2').innerText = `Lado 2: ---`;
+            document.getElementById('btn-confirm-meio').disabled = true;
+            document.getElementById('btn-confirm-meio').classList.add('disabled:opacity-30');
             
-            // Feedback
-            alert(`Pizza meio a meio adicionada ao carrinho! R$ ${precoFinal.toFixed(2)}`);
-        };
-        
-        window.selMetade = (id, n, p, el) => { 
+            const elementos = document.querySelectorAll('#lista-sabores-montador div');
+            elementos.forEach(x => x.style.borderColor = '#e5e7eb');
+        }
+
+        function selMetade(id, n, p, el) {
             const elementos = document.querySelectorAll('#lista-sabores-montador div');
             elementos.forEach(x => x.style.borderColor = '#e5e7eb');
             
-            if(!s1) {
+            if (!s1) {
                 s1 = {id, n, p};
                 document.getElementById('txt-m1').innerText = `Lado 1: ${n}`;
                 el.style.borderColor = "#ef4444";
-            } else if(!s2) {
+            } else if (!s2) {
                 s2 = {id, n, p};
                 document.getElementById('txt-m2').innerText = `Lado 2: ${n}`;
                 el.style.borderColor = "#3b82f6";
@@ -1489,158 +907,175 @@
                 document.getElementById('btn-confirm-meio').classList.add('disabled:opacity-30');
                 el.style.borderColor = "#ef4444";
             }
-        };
-        
-        window.fecharMontador = () => { 
-            document.getElementById('modal-montador').classList.add('hidden'); 
-            s1 = null; 
-            s2 = null; 
+        }
+
+        function confirmarMeioAMeio() {
+            if (!s1 || !s2) {
+                alert("Selecione dois sabores!");
+                return;
+            }
             
-            // Resetar UI
-            document.getElementById('txt-m1').innerText = `Lado 1: ---`;
-            document.getElementById('txt-m2').innerText = `Lado 2: ---`;
-            document.getElementById('btn-confirm-meio').disabled = true;
-            document.getElementById('btn-confirm-meio').classList.add('disabled:opacity-30');
+            const precoFinal = Math.max(s1.p, s2.p);
+            CARRINHO.push({
+                id: `meio-${Date.now()}`,
+                nome: `MEIO A MEIO (${s1.n} + ${s2.n})`,
+                preco: precoFinal,
+                tipo: 'meio-a-meio'
+            });
             
-            const elementos = document.querySelectorAll('#lista-sabores-montador div');
-            elementos.forEach(x => x.style.borderColor = '#e5e7eb');
-        };
-        
-        window.carregarAcompanhamento = (id) => { 
-            document.getElementById('view-cliente').classList.add('hidden'); 
-            document.getElementById('view-acompanhar').classList.remove('hidden'); 
+            updateCartFooter();
+            fecharMontador();
+            
+            alert(`Pizza meio a meio adicionada ao carrinho! R$ ${precoFinal.toFixed(2)}`);
+        }
+
+        // ==================== FUNÇÕES DE ACOMPANHAMENTO ====================
+
+        async function carregarAcompanhamento(id) {
+            document.getElementById('initial-loading').style.display = 'none';
+            document.getElementById('view-cliente').classList.add('hidden');
+            document.getElementById('view-acompanhar').classList.remove('hidden');
             
             if (!id) {
                 document.getElementById('rastreio-status').innerText = "PEDIDO NÃO ENCONTRADO";
                 return;
             }
             
-            onSnapshot(doc(db, "pedidos", id), (snap) => { 
-                if (!snap.exists()) {
-                    document.getElementById('rastreio-status').innerText = "PEDIDO NÃO ENCONTRADO";
-                    document.getElementById('box-status-cliente').className = `py-12 px-4 rounded-3xl border-4 border-double mb-6 status-Cancelado`;
-                    return;
-                }
+            try {
+                // Inicializar Firebase primeiro
+                await initializeFirebase();
+                await carregarConfiguracao();
                 
-                const dados = snap.data();
-                const s = dados.status || 'Novo'; 
-                document.getElementById('rastreio-status').innerText = s.toUpperCase(); 
-                document.getElementById('box-status-cliente').className = `py-12 px-4 rounded-3xl border-4 border-double mb-6 status-${s.replace(/ /g, '')}`;
+                // Escutar pedido
+                onSnapshot(doc(db, "pedidos", id), (snap) => {
+                    if (!snap.exists()) {
+                        document.getElementById('rastreio-status').innerText = "PEDIDO NÃO ENCONTRADO";
+                        document.getElementById('box-status-cliente').className = `py-12 px-4 rounded-3xl border-4 border-double mb-6 status-Cancelado`;
+                        return;
+                    }
+                    
+                    const dados = snap.data();
+                    const s = dados.status || 'Novo';
+                    document.getElementById('rastreio-status').innerText = s.toUpperCase();
+                    document.getElementById('box-status-cliente').className = `py-12 px-4 rounded-3xl border-4 border-double mb-6 status-${s.replace(/ /g, '')}`;
+                    
+                    // Atualizar título
+                    const titulo = document.querySelector('#view-acompanhar h2');
+                    if (titulo) {
+                        titulo.innerHTML = `Acompanhar Pedido <span class="text-xs">#${id.slice(-6)}</span>`;
+                    }
+                }, (error) => {
+                    console.error("Erro ao acompanhar pedido:", error);
+                    document.getElementById('rastreio-status').innerText = "ERRO AO CARREGAR";
+                });
                 
-                // Atualizar título com número do pedido
-                const titulo = document.querySelector('#view-acompanhar h2');
-                if (titulo) {
-                    titulo.innerHTML = `Acompanhar Pedido <span class="text-xs">#${id.slice(-6)}</span>`;
-                }
-            }, (error) => {
-                console.error("Erro ao acompanhar pedido:", error);
+            } catch (error) {
+                console.error("Erro ao carregar acompanhamento:", error);
                 document.getElementById('rastreio-status').innerText = "ERRO AO CARREGAR";
-            });
-        };
-        
-        window.updateStatusLojaUI = () => { 
-            const b = document.getElementById('cli-status-loja'); 
+            }
+        }
+
+        // ==================== FUNÇÕES ADMIN ====================
+
+        function abrirLogin() {
+            document.getElementById('view-login').classList.remove('hidden');
+        }
+
+        function fecharLogin() {
+            document.getElementById('view-login').classList.add('hidden');
+        }
+
+        async function processarLogin() {
+            const senha = document.getElementById('login-pass').value;
+            
+            // Em produção, usar autenticação Firebase
+            // Aqui uso uma senha fixa para demonstração
+            if (senha === "123") {
+                isAdmin = true;
+                fecharLogin();
+                document.getElementById('view-cliente').classList.add('hidden');
+                document.getElementById('view-admin').classList.remove('hidden');
+                switchTab('pedidos');
+                document.getElementById('login-pass').value = '';
+            } else {
+                alert("Senha Incorreta!");
+                document.getElementById('login-pass').value = '';
+                document.getElementById('login-pass').focus();
+            }
+        }
+
+        function sairAdmin() {
+            isAdmin = false;
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-cliente').classList.remove('hidden');
+            location.reload();
+        }
+
+        function updateStatusLojaUI() {
+            const b = document.getElementById('cli-status-loja');
             if (!b) return;
             
             if (CONFIG.loja_aberta) {
-                b.innerText = "● ABERTO AGORA"; 
+                b.innerText = "● ABERTO AGORA";
                 b.className = "inline-block px-4 py-1.5 rounded-full text-[9px] font-black mt-2 border text-green-600 bg-green-50 shadow-sm border-green-200";
             } else {
-                b.innerText = "○ FECHADO AGORA"; 
+                b.innerText = "○ FECHADO AGORA";
                 b.className = "inline-block px-4 py-1.5 rounded-full text-[9px] font-black mt-2 border text-gray-400 bg-gray-50 shadow-sm border-gray-200";
             }
-        };
-        
-        window.updateStatus = async (id, s) => { 
-            if (!s) return;
-            
-            try {
-                await updateDoc(doc(db, "pedidos", id), { 
-                    status: s,
-                    atualizado_em: new Date().getTime()
-                }); 
-                
-                // Notificar cliente se configurado
-                if (['Pronto', 'Saiu', 'Finalizado'].includes(s)) {
-                    setTimeout(() => window.notificarCliente(id), 1000);
-                }
-                
-            } catch (error) {
-                console.error("Erro ao atualizar status:", error);
-                alert("Erro ao atualizar status.");
-            }
-        };
-        
-        window.toggleLoja = async (v) => { 
-            try {
-                await updateDoc(doc(db, "configuracoes", "loja"), { 
-                    loja_aberta: v,
-                    atualizado_em: new Date().getTime()
-                }); 
-                CONFIG.loja_aberta = v; 
-                window.updateStatusLojaUI(); 
-                
-                // Feedback
-                if (v) {
-                    alert("Loja aberta para pedidos!");
-                } else {
-                    alert("Loja fechada para novos pedidos!");
-                }
-                
-            } catch (error) {
-                console.error("Erro ao atualizar status da loja:", error);
-                alert("Erro ao atualizar status da loja.");
-            }
-        };
-        
-        window.aplicarCupom = () => {
+        }
+
+        // ==================== EXPORTA FUNÇÕES PARA O ESCOPO GLOBAL ====================
+
+        // Funções do cliente
+        window.abrirLogin = abrirLogin;
+        window.fecharLogin = fecharLogin;
+        window.processarLogin = processarLogin;
+        window.sairAdmin = sairAdmin;
+        window.renderCardapio = renderCardapio;
+        window.addCart = addCart;
+        window.obterGPSCliente = obterGPSCliente;
+        window.enviarPedido = enviarPedido;
+        window.renderFiltros = renderFiltros;
+        window.fecharCheckout = fecharCheckout;
+        window.setModoConsumo = setModoConsumo;
+        window.abrirCheckout = abrirCheckout;
+        window.abrirMontador = abrirMontador;
+        window.fecharMontador = fecharMontador;
+        window.confirmarMeioAMeio = confirmarMeioAMeio;
+        window.selMetade = selMetade;
+        window.carregarAcompanhamento = carregarAcompanhamento;
+        window.updateStatusLojaUI = updateStatusLojaUI;
+
+        // Funções auxiliares
+        window.renderCheckoutTotal = renderCheckoutTotal;
+        window.aplicarCupom = function() {
             const codigo = document.getElementById('f-cupom').value.trim().toUpperCase();
             if (!codigo) {
                 alert("Digite um código de cupom!");
                 return;
             }
             
-            const cupom = CUPONS.find(c => 
-                c.codigo === codigo && 
-                c.ativo !== false
-            );
-            
+            const cupom = CUPONS.find(c => c.codigo === codigo && c.ativo !== false);
             if (!cupom) {
                 alert("Cupom inválido ou expirado!");
                 return;
             }
             
             vCUPOM = Number(cupom.valor || 0);
-            
-            // Atualizar UI
             document.getElementById('div-desconto-txt').classList.remove('hidden');
             document.getElementById('txt-val-cupom').innerText = `- R$ ${vCUPOM.toFixed(2)}`;
             document.getElementById('f-cupom').value = "";
             document.getElementById('f-cupom').placeholder = `Cupom ${codigo} aplicado!`;
-            
-            window.renderCheckoutTotal();
-        };
-        
-        window.apagarPedido = async (id) => {
-            if (!confirm("Tem certeza que deseja apagar este pedido? Esta ação não pode ser desfeita.")) {
-                return;
-            }
-            
-            try {
-                await deleteDoc(doc(db, "pedidos", id));
-                alert("Pedido apagado com sucesso!");
-            } catch (error) {
-                console.error("Erro ao apagar pedido:", error);
-                alert("Erro ao apagar pedido.");
-            }
-        };
-        
-        window.fecharModalEditar = () => {
-            document.getElementById('modal-editar-prod').classList.add('hidden');
+            renderCheckoutTotal();
         };
 
-        // Inicializar a aplicação quando o DOM estiver carregado
-        document.addEventListener('DOMContentLoaded', init);
+        // Iniciar quando o DOM estiver carregado
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
     </script>
 </body>
 </html>
