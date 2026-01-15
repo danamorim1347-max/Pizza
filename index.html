@@ -184,7 +184,11 @@
             <button onclick="switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[9px] uppercase whitespace-nowrap tracking-tighter text-gray-400">Config</button>
         </div>
         <div id="adm-content" class="p-4 space-y-4">
-            <div id="sec-pedidos" class="space-y-4 text-black"></div>
+            <div id="sec-pedidos" class="space-y-4 text-black">
+                <div class="text-center py-10">
+                    <div class="text-gray-400">Carregando pedidos...</div>
+                </div>
+            </div>
             <div id="sec-produtos" class="hidden space-y-4 text-black"></div>
             <div id="sec-categorias" class="hidden space-y-4 text-black"></div>
             <div id="sec-cupons" class="hidden space-y-4 text-black"></div>
@@ -262,6 +266,7 @@
         let dKM = 0, tFRETE = 0, latCli = 0, lngCli = 0, gpsOk = false, modoConsumo = 'delivery', vCUPOM = 0;
         let s1 = null, s2 = null;
         let isAdmin = false;
+        let pedidosListenerUnsubscribe = null;
 
         // ==================== FUNÇÕES DO SISTEMA ====================
 
@@ -380,9 +385,16 @@
 
         function listenPedidos() {
             try {
-                const q = query(collection(db, "pedidos"), orderBy("created_at", "desc"), limit(50));
-                onSnapshot(q, (snapshot) => {
+                const q = query(collection(db, "pedidos"), orderBy("created_at", "desc"), limit(100));
+                
+                // Se já existe um listener, cancela ele primeiro
+                if (pedidosListenerUnsubscribe) {
+                    pedidosListenerUnsubscribe();
+                }
+                
+                pedidosListenerUnsubscribe = onSnapshot(q, (snapshot) => {
                     const pedidos = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+                    console.log("Pedidos recebidos:", pedidos.length);
                     renderPedidosADM(pedidos);
                     
                     // Tocar som se houver novo pedido e estiver no painel ADM
@@ -996,6 +1008,12 @@
                 document.getElementById('view-admin').classList.remove('hidden');
                 switchTab('pedidos');
                 document.getElementById('login-pass').value = '';
+                
+                // Forçar atualização dos pedidos ao entrar no ADM
+                setTimeout(() => {
+                    // Recarregar listener para garantir que está funcionando
+                    listenPedidos();
+                }, 500);
             } else {
                 alert("Senha Incorreta!");
                 document.getElementById('login-pass').value = '';
@@ -1027,16 +1045,44 @@
 
         function renderPedidosADM(pedidos) {
             const div = document.getElementById('sec-pedidos');
-            if (!div) return;
+            if (!div) {
+                console.error("Elemento sec-pedidos não encontrado!");
+                return;
+            }
             
+            console.log("Renderizando", pedidos.length, "pedidos");
+            
+            // Filtrar pedidos do dia atual
             const hoje = new Date();
             const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).getTime();
             
+            // Calcular vendas do dia (pedidos finalizados hoje)
             const totalDia = pedidos
-                .filter(p => p.status === 'Finalizado' && p.created_at >= inicioHoje)
-                .reduce((acc, cur) => acc + Number(cur.total || 0), 0);
+                .filter(p => {
+                    if (!p.created_at) return false;
+                    
+                    // Verificar se o pedido foi criado hoje
+                    const dataPedido = new Date(p.created_at);
+                    const mesmoDia = dataPedido.getDate() === hoje.getDate() &&
+                                     dataPedido.getMonth() === hoje.getMonth() &&
+                                     dataPedido.getFullYear() === hoje.getFullYear();
+                    
+                    return p.status === 'Finalizado' && mesmoDia;
+                })
+                .reduce((acc, cur) => {
+                    const total = parseFloat(cur.total) || 0;
+                    return acc + total;
+                }, 0);
                 
-            const pedidosHoje = pedidos.filter(p => p.created_at >= inicioHoje).length;
+            // Contar pedidos de hoje
+            const pedidosHoje = pedidos.filter(p => {
+                if (!p.created_at) return false;
+                
+                const dataPedido = new Date(p.created_at);
+                return dataPedido.getDate() === hoje.getDate() &&
+                       dataPedido.getMonth() === hoje.getMonth() &&
+                       dataPedido.getFullYear() === hoje.getFullYear();
+            }).length;
             
             div.innerHTML = `
                 <div class="bg-gray-900 text-white p-6 rounded-[35px] shadow-lg mb-6">
@@ -1058,20 +1104,64 @@
                 <div id="lista-peds"></div>`;
                 
             const lista = document.getElementById('lista-peds');
-            if (!lista) return;
+            if (!lista) {
+                console.error("Elemento lista-peds não encontrado!");
+                return;
+            }
             
             lista.innerHTML = "";
             
+            if (pedidos.length === 0) {
+                lista.innerHTML = `
+                    <div class="bg-white p-8 rounded-[35px] shadow-sm text-center">
+                        <div class="text-gray-400 mb-2">📭</div>
+                        <p class="text-gray-500 font-bold">Nenhum pedido encontrado</p>
+                        <p class="text-gray-400 text-sm">Os pedidos aparecerão aqui quando forem feitos.</p>
+                    </div>`;
+                return;
+            }
+            
             pedidos.forEach(p => {
-                const ag = (p.itens_quantidade || p.itens || []).reduce((acc, i) => { 
-                    if (typeof i === 'string') {
-                        acc[i] = (acc[i] || 0) + 1;
-                    }
-                    return acc; 
-                }, {});
+                // Processar itens do pedido
+                let itensTexto = "";
+                if (p.itens_quantidade && typeof p.itens_quantidade === 'object') {
+                    itensTexto = Object.entries(p.itens_quantidade)
+                        .map(([n, q]) => `${q}x ${n}`)
+                        .join(', ');
+                } else if (Array.isArray(p.itens)) {
+                    // Agrupar itens do array
+                    const ag = p.itens.reduce((acc, item) => {
+                        acc[item] = (acc[item] || 0) + 1;
+                        return acc;
+                    }, {});
+                    itensTexto = Object.entries(ag)
+                        .map(([n, q]) => `${q}x ${n}`)
+                        .join(', ');
+                } else {
+                    itensTexto = "Sem itens";
+                }
                 
-                const itensTexto = Object.entries(ag).map(([n, q]) => `${q}x ${n}`).join(', ') || "Sem itens";
-                const dataHora = p.created_at ? new Date(p.created_at).toLocaleString('pt-BR') : "Data não disponível";
+                // Formatando data
+                let dataHora = "Data não disponível";
+                if (p.created_at) {
+                    try {
+                        const data = new Date(p.created_at);
+                        if (!isNaN(data.getTime())) {
+                            dataHora = data.toLocaleString('pt-BR', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+                    } catch (e) {
+                        console.error("Erro ao formatar data:", e);
+                    }
+                }
+                
+                // Calcular total seguro
+                const totalPedido = parseFloat(p.total) || 0;
                 
                 lista.innerHTML += `
                     <div class="bg-white p-5 rounded-[35px] shadow-sm mb-4 border-l-[12px] status-${(p.status || 'Novo').replace(/ /g, '')}">
@@ -1084,7 +1174,7 @@
                             ${itensTexto}
                         </div>
                         <div class="flex justify-between items-center text-black mt-3">
-                            <span class="font-black text-sm">R$ ${(p.total || 0).toFixed(2)}</span>
+                            <span class="font-black text-sm">R$ ${totalPedido.toFixed(2)}</span>
                             <div class="flex gap-1">
                                 <button onclick="imprimirPedido('${p.id}')" class="bg-gray-100 p-2 rounded-xl text-lg shadow-sm hover:bg-gray-200 transition">
                                     <i class="fas fa-print"></i>
@@ -1122,12 +1212,23 @@
                     return;
                 }
                 
-                const ag = (p.itens_quantidade || p.itens || []).reduce((acc, i) => { 
-                    if (typeof i === 'string') {
-                        acc[i] = (acc[i] || 0) + 1;
-                    }
-                    return acc; 
-                }, {});
+                // Processar itens
+                let itensHTML = "";
+                if (p.itens_quantidade && typeof p.itens_quantidade === 'object') {
+                    itensHTML = Object.entries(p.itens_quantidade)
+                        .map(([n, q]) => `<div>${q}x ${n}</div>`)
+                        .join('');
+                } else if (Array.isArray(p.itens)) {
+                    const ag = p.itens.reduce((acc, item) => {
+                        acc[item] = (acc[item] || 0) + 1;
+                        return acc;
+                    }, {});
+                    itensHTML = Object.entries(ag)
+                        .map(([n, q]) => `<div>${q}x ${n}</div>`)
+                        .join('');
+                } else {
+                    itensHTML = "<div>Sem itens</div>";
+                }
                 
                 const html = `
                     <center>
@@ -1143,13 +1244,13 @@
                     <p><b>PAGAMENTO:</b> ${p.pagamento || 'Não informado'}</p>
                     <p>===============================</p>
                     <div style="font-weight:bold">
-                        ${Object.entries(ag).map(([n, q]) => `<div>${q}x ${n}</div>`).join('')}
+                        ${itensHTML}
                     </div>
                     <p>===============================</p>
                     ${p.taxa_entrega > 0 ? `<p><b>Taxa entrega:</b> R$ ${(p.taxa_entrega || 0).toFixed(2)}</p>` : ''}
                     ${p.desconto > 0 ? `<p><b>Desconto:</b> -R$ ${(p.desconto || 0).toFixed(2)}</p>` : ''}
                     <h3 style="text-align:right; font-size:20px; margin-top:10px">
-                        TOTAL: R$ ${(p.total || 0).toFixed(2)}
+                        TOTAL: R$ ${(parseFloat(p.total) || 0).toFixed(2)}
                     </h3>
                     ${p.troco && p.troco !== 'Não solicitado' ? `<p><b>Troco para:</b> R$ ${p.troco}</p>` : ''}
                     <p style="text-align:center; margin-top:20px; font-size:10px">Obrigado pela preferência!</p>
@@ -1207,6 +1308,8 @@
                 if (['Pronto', 'Saiu', 'Finalizado'].includes(s)) {
                     setTimeout(() => notificarCliente(id), 1000);
                 }
+                
+                alert(`Status atualizado para: ${s}`);
                 
             } catch (error) {
                 console.error("Erro ao atualizar status:", error);
@@ -1798,6 +1901,7 @@
         window.renderCategoriasADM = renderCategoriasADM;
         window.renderCuponsADM = renderCuponsADM;
         window.renderConfigADM = renderConfigADM;
+        window.renderPedidosADM = renderPedidosADM;
 
         // Iniciar quando o DOM estiver carregado
         if (document.readyState === 'loading') {
