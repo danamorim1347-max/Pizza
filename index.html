@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Master Pizza Pro | Edição & Gestão</title>
+    <title>Pizzaria Pro | Gestão Master</title>
     
-    <!-- PWA Config -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#ef4444">
     <link rel="manifest" href="data:application/manifest+json,{'name':'Master Pizza Pro','display':'standalone','theme_color':'#ef4444'}">
@@ -41,66 +40,55 @@
         .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #10b981; }
-        input:checked + .slider:before { transform: translateX(18px); }
+        input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
-<body class="flex justify-center overflow-x-hidden">
+<body>
 
     <audio id="alerta-som" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
     <!-- [IMPRESSÃO] -->
     <div id="secao-impressao" class="hidden font-mono text-[12px] leading-tight text-black bg-white p-4"><div id="print-content"></div></div>
 
-    <!-- [MODAL EDIÇÃO PRODUTO] -->
-    <div id="modal-editar-prod" class="hidden fixed inset-0 bg-black/80 z-[120] flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md p-6 rounded-[40px] shadow-2xl space-y-4">
-            <div class="flex justify-between items-center font-black uppercase text-sm italic">
-                <h2>Configurar Produto</h2>
-                <button onclick="window.fecharModalEditar()" class="text-2xl">✕</button>
-            </div>
-            <input id="edit-n" type="text" placeholder="Nome do Produto" class="w-full p-3 border rounded-xl text-sm font-bold text-black outline-none focus:border-red-500">
-            <input id="edit-d" type="text" placeholder="Ingredientes / Descrição" class="w-full p-3 border rounded-xl text-sm text-black outline-none focus:border-red-500">
-            <div class="flex gap-2">
-                <input id="edit-p" type="number" step="0.01" placeholder="Preço" class="flex-1 p-3 border rounded-xl text-sm font-black text-black outline-none focus:border-red-500">
-                <select id="edit-c" class="flex-1 p-3 border rounded-xl text-sm font-bold text-red-600 outline-none"></select>
-            </div>
-            <input id="edit-i" type="text" placeholder="URL da Foto PNG" class="w-full p-3 border rounded-xl text-sm text-black outline-none">
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border text-xs font-black uppercase">
-                <span>Ativo no Cardápio?</span>
-                <label class="switch"><input type="checkbox" id="edit-disp"><span class="slider"></span></label>
-            </div>
-            <input id="edit-id-hidden" type="hidden">
-            <button onclick="window.salvarEdicaoFinal()" class="w-full bg-green-600 text-white p-4 rounded-2xl font-black uppercase text-xs shadow-lg active:scale-95 transition">Confirmar Mudanças</button>
-        </div>
-    </div>
-
-    <!-- [LOGIN ADM INTERNO] -->
+    <!-- [LOGIN ADM] -->
     <div id="view-login" class="hidden fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-6">
         <div class="bg-white w-full max-w-sm p-8 rounded-[40px] text-center shadow-2xl">
-            <h2 class="text-xl font-black uppercase mb-6 italic tracking-tighter">Acesso Restrito</h2>
-            <input id="login-pass" type="password" placeholder="Senha" class="w-full p-4 bg-gray-100 rounded-2xl border-none outline-none mb-4 text-center font-bold tracking-widest">
+            <h2 class="text-xl font-black uppercase mb-6 tracking-tighter">Acesso Master</h2>
+            <input id="login-pass" type="password" placeholder="Senha" class="w-full p-4 bg-gray-100 rounded-2xl border-none outline-none mb-4 text-center font-bold">
             <button onclick="window.processarLogin()" class="w-full bg-red-600 text-white p-4 rounded-2xl font-black uppercase">Entrar</button>
             <button onclick="window.fecharLogin()" class="mt-4 text-gray-400 text-xs font-bold uppercase underline">Voltar</button>
         </div>
     </div>
 
+    <!-- [RASTREIO CLIENTE] -->
+    <div id="view-acompanhar" class="hidden max-w-md mx-auto min-h-screen p-6 text-center">
+        <div class="bg-white p-8 rounded-[40px] shadow-xl border">
+            <h2 class="text-2xl font-black italic text-red-600 mb-6 uppercase">Status do Pedido</h2>
+            <div id="box-status-cliente" class="py-12 px-4 rounded-3xl border-4 border-double mb-6 transition-all duration-500">
+                <h3 id="rastreio-status" class="text-3xl font-black uppercase italic text-gray-800 tracking-tighter">---</h3>
+            </div>
+            <button onclick="location.reload()" class="w-full bg-black text-white p-5 rounded-2xl font-black shadow-lg">ATUALIZAR STATUS</button>
+            <button onclick="location.href=location.pathname" class="mt-6 text-gray-400 font-bold text-[10px] uppercase underline">Fazer novo pedido</button>
+        </div>
+    </div>
+
     <!-- [VISÃO CLIENTE] -->
-    <div id="view-cliente" class="w-full max-w-md min-h-screen pb-32 bg-white shadow-2xl">
+    <div id="view-cliente" class="max-w-md mx-auto min-h-screen pb-32 shadow-2xl bg-white">
         <header class="header-banner">
             <img id="cli-logo" src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800" alt="Banner">
             <div class="header-overlay">
-                <h1 id="cli-nome" class="text-3xl font-black italic uppercase tracking-tighter">CARREGANDO...</h1>
+                <h1 id="cli-nome" class="text-2xl font-black italic uppercase tracking-widest">MINHA PIZZARIA</h1>
                 <div id="cli-status-loja" class="inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border border-white/30 uppercase italic backdrop-blur-md">---</div>
             </div>
             <button onclick="window.abrirLogin()" class="absolute top-4 right-4 text-white/50 text-xl"><i class="fas fa-cog"></i></button>
         </header>
 
         <div class="px-4 mt-6">
-            <button onclick="window.abrirMontador()" class="w-full bg-orange-500 text-white p-4 rounded-[25px] font-black text-xs uppercase shadow-xl flex justify-between items-center active:scale-95 transition">
+            <button onclick="window.abrirMontador()" class="w-full bg-orange-500 text-white p-5 rounded-[25px] font-black text-xs uppercase shadow-xl flex justify-between items-center active:scale-95 transition">
                 <span>🍕 Montar Pizza 2 Sabores</span>
-                <span class="bg-white/20 px-3 py-1 rounded-lg italic">MONTAR</span>
+                <span class="bg-white/20 px-3 py-1 rounded-lg">MONTAR</span>
             </button>
         </div>
 
@@ -115,19 +103,39 @@
         </div>
     </div>
 
+    <!-- [MODAL EDIÇÃO PRODUTO] -->
+    <div id="modal-editar-prod" class="fixed inset-0 bg-black/80 z-[110] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md p-6 rounded-[40px] shadow-2xl space-y-4">
+            <div class="flex justify-between items-center font-black uppercase text-sm italic"><h2>Configurar Item</h2><button onclick="window.fecharModalEditar()" class="text-2xl">✕</button></div>
+            <input id="edit-n" type="text" placeholder="Nome" class="w-full p-3 border rounded-xl text-sm font-bold text-black outline-none focus:border-red-500">
+            <input id="edit-d" type="text" placeholder="Descrição" class="w-full p-3 border rounded-xl text-sm text-black outline-none">
+            <div class="flex gap-2">
+                <input id="edit-p" type="number" step="0.01" placeholder="Preço" class="flex-1 p-3 border rounded-xl text-sm font-black text-black outline-none">
+                <select id="edit-c" class="flex-1 p-3 border rounded-xl text-sm font-bold text-red-600"></select>
+            </div>
+            <input id="edit-i" type="text" placeholder="URL da Imagem PNG" class="w-full p-3 border rounded-xl text-sm text-black outline-none">
+            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl border text-xs font-black uppercase">
+                <span>Disponível?</span>
+                <label class="switch"><input type="checkbox" id="edit-disp"><span class="slider"></span></label>
+            </div>
+            <input id="edit-id-hidden" type="hidden">
+            <button onclick="window.salvarEdicaoFinal()" class="w-full bg-green-600 text-white p-4 rounded-2xl font-black uppercase text-xs shadow-lg">Confirmar</button>
+        </div>
+    </div>
+
     <!-- [PAINEL ADM] -->
     <div id="view-admin" class="hidden w-full max-w-md min-h-screen pb-20 bg-gray-50">
         <header class="bg-black text-white p-4 flex justify-between items-center sticky top-0 z-50">
             <h1 class="font-black italic text-red-500 uppercase tracking-tighter">ADM MASTER</h1>
-            <button onclick="window.sairAdmin()" class="text-[9px] font-bold border px-3 py-1 rounded-full uppercase">Sair</button>
+            <button onclick="window.sairAdmin()" class="text-[10px] font-bold border px-3 py-1 rounded-full uppercase">Sair</button>
         </header>
-        <div class="flex bg-white border-b sticky top-14 z-40 shadow-sm overflow-x-auto no-scrollbar">
+        <div class="flex bg-white border-b sticky top-14 z-40 overflow-x-auto no-scrollbar shadow-sm">
             <button onclick="window.switchTab('pedidos')" id="tab-pedidos" class="flex-1 p-4 font-bold text-[9px] tab-active uppercase">Pedidos</button>
             <button onclick="window.switchTab('produtos')" id="tab-produtos" class="flex-1 p-4 font-bold text-[9px] uppercase">Cardápio</button>
             <button onclick="window.switchTab('categorias')" id="tab-categorias" class="flex-1 p-4 font-bold text-[9px] uppercase">Categorias</button>
-            <button onclick="window.switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[9px] uppercase whitespace-nowrap tracking-tighter">Configuração</button>
+            <button onclick="window.switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[9px] uppercase whitespace-nowrap tracking-tighter">Config</button>
         </div>
-        <div id="adm-content" class="p-4 space-y-4">
+        <div id="adm-content" class="p-4 space-y-4 text-black">
             <div id="sec-pedidos" class="space-y-4"></div>
             <div id="sec-produtos" class="hidden space-y-4"></div>
             <div id="sec-categorias" class="hidden space-y-4"></div>
@@ -135,7 +143,42 @@
         </div>
     </div>
 
-    <!-- [MODAL CHECKOUT] e [MODAL MEIO A MEIO] omitidos para brevidade mas devem ser mantidos conforme as versões anteriores funcionais -->
+    <!-- [MODAIS DE APOIO OMITIDOS PARA BREVIDADE MAS INCLUSOS NA LÓGICA] -->
+    <div id="modal-checkout" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-[40px] p-6 space-y-4 max-h-[94vh] overflow-y-auto shadow-2xl text-black">
+            <div class="flex justify-between items-center font-black uppercase italic tracking-tighter text-xl"><h2>Finalizar</h2><button onclick="window.fecharCheckout()" class="text-2xl">✕</button></div>
+            <div id="checkout-itens-list" class="bg-gray-50 p-4 rounded-3xl border space-y-2 text-[10px] font-bold text-gray-600 italic"></div>
+            <div class="space-y-2">
+                <input id="f-nome" type="text" placeholder="Seu Nome" class="w-full p-4 bg-gray-50 rounded-2xl border outline-none font-bold text-sm">
+                <div id="area-gps-cli" class="space-y-2">
+                    <button id="btn-gps-cli" onclick="window.obterGPSCliente()" class="w-full bg-black text-white p-3 rounded-2xl text-[9px] font-black uppercase shadow-lg italic">📍 Calcular Frete por GPS *</button>
+                    <div id="res-km" class="hidden bg-green-50 p-3 rounded-2xl flex justify-between text-[10px] font-black text-green-700 border border-green-100"><span id="dist-txt">0.0 km</span><span id="taxa-txt">R$ 0,00</span></div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <input id="f-rua" type="text" placeholder="Rua" class="col-span-3 p-4 bg-gray-50 rounded-2xl border outline-none text-sm">
+                        <input id="f-num" type="text" placeholder="Nº" class="col-span-1 p-4 bg-gray-50 rounded-2xl border outline-none text-center text-sm">
+                    </div>
+                    <input id="f-bairro" type="text" placeholder="Bairro" class="w-full p-4 bg-gray-50 rounded-2xl border outline-none text-sm text-black">
+                </div>
+                <select id="f-pag" onchange="document.getElementById('div-troco').classList.toggle('hidden', this.value!='Dinheiro')" class="w-full p-4 bg-gray-50 rounded-2xl font-bold border text-sm"><option value="Pix">Pix</option><option value="Cartão">Cartão</option><option value="Dinheiro">Dinheiro</option></select>
+                <div id="div-troco" class="hidden"><input id="f-troco" type="number" placeholder="Troco para quanto?" class="w-full p-4 bg-orange-50 border-2 border-orange-100 rounded-2xl font-bold text-sm"></div>
+            </div>
+            <div class="bg-gray-900 text-white p-5 rounded-[35px] shadow-xl font-black italic uppercase"><div class="flex justify-between text-2xl text-red-500 tracking-tighter"><span>Total:</span><span id="res-total">R$ 0,00</span></div></div>
+            <button onclick="window.enviarPedido()" id="btn-final-zap" class="w-full bg-green-600 text-white py-6 rounded-[25px] font-black uppercase tracking-widest border-b-4 border-green-800 shadow-xl transition-all">🚀 ENVIAR NO WHATSAPP</button>
+        </div>
+    </div>
+
+    <!-- [MODAL MONTAGEM PIZZA] -->
+    <div id="modal-montador" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end justify-center">
+        <div class="bg-white w-full max-w-md rounded-t-[40px] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl text-black">
+            <div class="flex justify-between items-center font-black italic uppercase"><h2>2 Sabores</h2><button onclick="window.fecharMontador()" class="text-2xl">✕</button></div>
+            <div class="grid grid-cols-2 gap-2 text-center text-[10px] font-black uppercase italic text-red-600">
+                <div class="bg-gray-50 p-2 rounded-xl border" id="txt-m1">Metade 1: ---</div>
+                <div class="bg-gray-50 p-2 rounded-xl border" id="txt-m2">Metade 2: ---</div>
+            </div>
+            <div id="lista-sabores-montador" class="space-y-2"></div>
+            <button id="btn-confirm-meio" onclick="window.confirmarMeioAMeio()" class="w-full bg-green-600 text-white py-5 rounded-[25px] font-black uppercase disabled:opacity-30 transition" disabled>Confirmar Pizza</button>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -156,16 +199,28 @@
 
         let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {}, curCat = 'todos';
         let dKM = 0, tFRETE = 0, latCli = 0, lngCli = 0, gpsOk = false, modoConsumo = 'delivery';
+        let s1 = null, s2 = null;
 
-        // --- INICIALIZAÇÃO ---
+        // --- INICIALIZAÇÃO BLINDADA ---
         async function init() {
+            const params = new URLSearchParams(window.location.search);
+            if(params.has('pedido')) return window.carregarAcompanhamento(params.get('pedido'));
+
             const docRef = doc(db, "configuracoes", "loja");
             const snap = await getDoc(docRef);
+            
             if(snap.exists()) {
                 CONFIG = snap.data();
                 document.getElementById('cli-nome').innerText = CONFIG.nome_pizzaria;
                 if(CONFIG.logo_url) document.getElementById('cli-logo').src = CONFIG.logo_url;
                 updateStatusLojaUI();
+            } else {
+                // Auto-Instalação se banco estiver vazio
+                const def = { nome_pizzaria: "Minha Pizzaria", whatsapp: "5585999999999", taxa_base: 5, preco_km: 2, loja_aberta: true, lat_pizzaria: -3.7, lng_pizzaria: -38.5 };
+                await setDoc(docRef, def);
+                const c1 = await addDoc(collection(db, "categorias"), { nome: "Pizzas", ordem: 1 });
+                await addDoc(collection(db, "produtos"), { nome: "Pizza Teste", preco: 35, categoria_id: c1.id, disponivel: true, imagem_url: "" });
+                location.reload();
             }
             loadData();
             listenPedidos();
@@ -191,7 +246,7 @@
             });
         }
 
-        // --- PONTE GLOBAL OBRIGATÓRIA PARA BOTÕES ---
+        // --- PONTE GLOBAL (EXPORTAÇÕES) ---
         window.abrirLogin = () => document.getElementById('view-login').classList.remove('hidden');
         window.fecharLogin = () => document.getElementById('view-login').classList.add('hidden');
         window.processarLogin = () => {
@@ -200,114 +255,142 @@
                 document.getElementById('view-cliente').classList.add('hidden');
                 document.getElementById('view-admin').classList.remove('hidden');
                 window.switchTab('pedidos');
-            } else { alert("Senha Errada!"); }
+            } else { alert("Senha Incorreta!"); }
         };
         window.sairAdmin = () => location.reload();
 
-        window.renderProdutosADM = () => {
-            const div = document.getElementById('sec-produtos');
-            div.innerHTML = `<button onclick="window.abrirModalNovoProd()" class="w-full bg-red-600 text-white p-4 rounded-xl font-bold text-xs uppercase mb-4 shadow-lg">+ Novo Produto</button><div id="adm-prod-list" class="space-y-2"></div>`;
-            const list = document.getElementById('adm-prod-list');
-            PRODS.forEach(p => {
-                list.innerHTML += `
-                    <div class="bg-white p-4 rounded-2xl border shadow-sm flex justify-between items-center">
-                        <div class="flex gap-3 items-center">
-                            <img src="${p.imagem_url}" class="w-10 h-10 object-contain rounded-lg">
-                            <div><p class="font-bold text-[10px] uppercase">${p.nome}</p><p class="text-[8px] text-gray-400">R$ ${p.preco.toFixed(2)} - ${p.disponivel ? 'Ativo' : 'Off'}</p></div>
+        window.renderFiltros = () => {
+            const div = document.getElementById('filtros');
+            div.innerHTML = `<button onclick="window.renderCardapio('todos')" class="${curCat === 'todos' ? 'cat-active' : 'bg-white text-gray-400 border'} px-6 py-2 rounded-full font-black text-[10px] shadow-sm italic">TODOS</button>`;
+            CATS.forEach(c => div.innerHTML += `<button onclick="window.renderCardapio('${c.id}')" class="${curCat === c.id ? 'cat-active' : 'bg-white text-gray-400 border'} px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-sm whitespace-nowrap">${c.nome}</button>`);
+        };
+
+        window.renderCardapio = (cid) => {
+            curCat = cid; window.renderFiltros();
+            const div = document.getElementById('cardapio'); div.innerHTML = "";
+            const f = cid === 'todos' ? PRODS : PRODS.filter(p => p.categoria_id === cid);
+            f.forEach(p => {
+                if(!p.disponivel) return;
+                div.innerHTML += `<div class="bg-white rounded-[30px] shadow-sm p-3 flex gap-4 border border-gray-100 items-center">
+                    <img src="${p.imagem_url || ''}" class="w-16 h-16 object-contain rounded-xl" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3595/3595455.png'">
+                    <div class="flex-1 text-black">
+                        <h3 class="font-black text-[11px] uppercase italic">${p.nome}</h3>
+                        <p class="text-[9px] text-gray-400 line-clamp-1">${p.descricao || ''}</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-red-600 font-black text-md">R$ ${Number(p.preco).toFixed(2).replace('.',',')}</span>
+                            <button onclick="window.addCart('${p.id}')" class="bg-yellow-400 text-black w-8 h-8 rounded-xl font-black text-xl shadow active:scale-95 transition">+</button>
                         </div>
-                        <div class="flex gap-1">
-                            <button onclick="window.abrirModalEditar('${p.id}')" class="bg-blue-50 text-blue-600 p-3 rounded-xl text-xs"><i class="fas fa-edit"></i></button>
-                            <button onclick="window.delProd('${p.id}')" class="bg-red-50 text-red-500 p-3 rounded-xl text-xs"><i class="fas fa-trash-alt"></i></button>
-                        </div>
-                    </div>`;
+                    </div>
+                </div>`;
             });
         };
 
-        window.abrirModalNovoProd = () => {
-            document.getElementById('modal-editar-prod').classList.remove('hidden');
-            document.getElementById('edit-id-hidden').value = "";
-            document.getElementById('edit-n').value = ""; document.getElementById('edit-d').value = "";
-            document.getElementById('edit-p').value = ""; document.getElementById('edit-i').value = "";
-            document.getElementById('edit-disp').checked = true;
-            document.getElementById('edit-c').innerHTML = CATS.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+        window.addCart = (id) => {
+            const p = PRODS.find(i => i.id === id);
+            CARRINHO.push(p);
+            const total = CARRINHO.reduce((a, b) => a + Number(b.preco), 0);
+            document.getElementById('cart-total-display').innerText = `R$ ${total.toFixed(2).replace('.',',')}`;
+            document.getElementById('cart-fixed').classList.remove('hidden');
         };
 
-        window.abrirModalEditar = (id) => {
-            const p = PRODS.find(x => x.id === id);
-            if(!p) return alert("Erro ao carregar produto!");
-            document.getElementById('modal-editar-prod').classList.remove('hidden');
-            document.getElementById('edit-id-hidden').value = p.id;
-            document.getElementById('edit-n').value = p.nome;
-            document.getElementById('edit-d').value = p.descricao || "";
-            document.getElementById('edit-p').value = p.preco;
-            document.getElementById('edit-i').value = p.imagem_url || "";
-            document.getElementById('edit-disp').checked = p.disponivel !== false;
-            document.getElementById('edit-c').innerHTML = CATS.map(c=>`<option value="${c.id}" ${p.categoria_id===c.id?'selected':''}>${c.nome}</option>`).join('');
-        };
+        window.enviarPedido = async () => {
+            const n = document.getElementById('f-nome').value, totalStr = document.getElementById('res-total').innerText;
+            if(!gpsOk && modoConsumo === 'delivery') return alert("📍 GPS Obrigatório!");
+            if(!n) return alert("Preencha seu nome!");
 
-        window.fecharModalEditar = () => document.getElementById('modal-editar-prod').classList.add('hidden');
-
-        window.salvarEdicaoFinal = async () => {
-            const id = document.getElementById('edit-id-hidden').value;
-            const dados = {
-                nome: document.getElementById('edit-n').value,
-                descricao: document.getElementById('edit-d').value,
-                preco: Number(document.getElementById('edit-p').value),
-                imagem_url: document.getElementById('edit-i').value,
-                categoria_id: document.getElementById('edit-c').value,
-                disponivel: document.getElementById('edit-disp').checked
+            const pedido = {
+                cliente_nome: n, cliente_whatsapp: document.getElementById('f-whatsapp').value.replace(/\D/g, ''),
+                rua: modoConsumo === 'delivery' ? document.getElementById('f-rua').value : modoConsumo.toUpperCase(),
+                numero: document.getElementById('f-num').value, bairro: document.getElementById('f-bairro').value, complemento: document.getElementById('f-comp').value,
+                total: Number(totalStr.replace('R$ ', '').replace(',','.')), status: 'Novo', created_at: new Date().getTime(),
+                pagamento: document.getElementById('f-pag').value, troco: document.getElementById('f-troco').value || "Não",
+                itens: CARRINHO.map(i => i.nome), taxa_entrega: tFRETE, lat_cli: latCli, lng_cli: lngCli
             };
-            if(id) await updateDoc(doc(db, "produtos", id), dados); 
-            else await addDoc(collection(db, "produtos"), dados);
-            alert("Salvo!"); window.fecharModalEditar(); loadData(); window.renderProdutosADM();
+
+            const docRef = await addDoc(collection(db, "pedidos"), pedido);
+            const msg = `*NOVO PEDIDO - ${CONFIG.nome_pizzaria}*\nCliente: ${n}\nTOTAL: ${totalStr}`;
+            window.open(`https://api.whatsapp.com/send?phone=${CONFIG.whatsapp.replace(/\D/g, '')}&text=${encodeURIComponent(msg)}`);
+            location.reload();
         };
 
-        window.delProd = async (id) => { if(confirm("Apagar produto?")) { await deleteDoc(doc(db, "produtos", id)); loadData(); window.renderProdutosADM(); } };
-
-        // --- OUTRAS FUNÇÕES ADM ---
-        function renderPedidosADM(pedidos) {
+        window.renderPedidosADM = (peds) => {
             const div = document.getElementById('sec-pedidos');
-            div.innerHTML = `<h2 class="text-[10px] font-black text-gray-400 uppercase mb-4 text-center tracking-widest uppercase">Pedidos Ativos</h2>`;
-            pedidos.forEach(p => {
+            div.innerHTML = `<h2 class="text-[10px] font-black text-gray-400 uppercase mb-4 text-center tracking-widest uppercase italic">Painel de Comandas</h2>`;
+            peds.forEach(p => {
                 const ag = (p.itens || []).reduce((acc, i) => { acc[i] = (acc[i] || 0) + 1; return acc; }, {});
                 div.innerHTML += `
                     <div class="bg-white p-5 rounded-[35px] shadow-sm mb-4 border-l-[12px] status-${p.status.replace(/ /g, '')}">
-                        <div class="flex justify-between font-black text-[10px] mb-2"><span>${p.cliente_nome}</span><span class="bg-black text-white px-2 rounded-full text-[8px] uppercase tracking-tighter">${p.status}</span></div>
-                        <div class="text-[9px] font-bold border-y border-dashed py-3 my-2 italic tracking-tighter text-gray-600">${Object.entries(ag).map(([n, q]) => `${q}x ${n}`).join(', ')}</div>
+                        <div class="flex justify-between font-black text-[10px] mb-2 text-black"><span>${p.cliente_nome}</span><span class="bg-black text-white px-2 rounded-full text-[8px] uppercase tracking-tighter">${p.status}</span></div>
+                        <div class="text-[9px] font-bold border-y border-dashed py-3 my-2 italic text-gray-700">${Object.entries(ag).map(([n, q]) => `${q}x ${n}`).join(', ')}</div>
                         <div class="flex justify-between items-center">
-                            <span class="font-black text-sm text-gray-900">R$ ${p.total.toFixed(2)}</span>
+                            <span class="font-black text-sm text-gray-900">R$ ${Number(p.total).toFixed(2)}</span>
                             <div class="flex gap-1">
                                 <button onclick="window.imprimirPedido('${p.id}')" class="bg-gray-100 p-2 rounded-xl text-lg shadow-sm"><i class="fas fa-print"></i></button>
                                 <select onchange="window.updateStatus('${p.id}', this.value)" class="text-[9px] bg-black text-white p-2 rounded-xl font-bold">
-                                    <option value="">Ação</option><option value="Preparando">Preparando</option><option value="Pronto">Pronto</option><option value="Saiu">Saiu</option><option value="Finalizado">Finalizado</option>
+                                    <option value="">Ação</option><option value="Preparando">Preparando</option><option value="Pronto">Pronto</option><option value="Saiu">Saiu</option><option value="Finalizado">Finalizado</option><option value="Cancelado">Cancelar</option>
                                 </select>
-                                <button onclick="window.apagarPedido('${p.id}')" class="bg-red-50 text-red-500 p-2 rounded-xl shadow-sm"><i class="fas fa-trash-alt"></i></button>
+                                <button onclick="window.apagarPedido('${p.id}')" class="bg-red-50 text-red-500 p-2 rounded-xl shadow-sm"><i class="fas fa-trash-alt text-xs"></i></button>
                             </div>
                         </div>
                     </div>`;
             });
-        }
+        };
+
+        window.apagarPedido = async (id) => { if(confirm("Apagar?")) await deleteDoc(doc(db, "pedidos", id)); };
+        window.updateStatus = async (id, s) => await updateDoc(doc(db, "pedidos", id), { status: s });
 
         window.imprimirPedido = async (id) => {
             const snap = await getDoc(doc(db, "pedidos", id)); const p = snap.data();
             const ag = (p.itens || []).reduce((acc, i) => { acc[i] = (acc[i] || 0) + 1; return acc; }, {});
             const html = `<center><h2 style="font-size:18px; font-weight:bold">${CONFIG.nome_pizzaria}</h2><p><b>MODO: ${p.rua}</b></p></center><p>===============================</p><p><b>CLIENTE:</b> ${p.cliente_nome}</p><p><b>END:</b> ${p.rua}, ${p.numero || ''}</p><div style="font-weight:bold">${Object.entries(ag).map(([n, q]) => `<div>${q}x ${n}</div>`).join('')}</div><p>===============================</p><h3 style="text-align:right">TOTAL: R$ ${p.total.toFixed(2)}</h3>`;
             document.getElementById('print-content').innerHTML = html;
-            setTimeout(() => window.print(), 500);
+            setTimeout(() => window.print(), 600);
         };
 
-        window.switchTab = (t) => { ['pedidos', 'produtos', 'categorias', 'config'].forEach(x => { document.getElementById(`sec-${x}`).classList.toggle('hidden', x !== t); document.getElementById(`tab-${x}`).classList.toggle('tab-active', x === t); }); if(t === 'config') window.renderConfigADM(); if(t === 'produtos') window.renderProdutosADM(); if(t === 'categorias') window.renderCategoriasADM(); };
-        window.toggleLoja = async (v) => { await updateDoc(doc(db, "configuracoes", "loja"), { loja_aberta: v }); CONFIG.loja_aberta = v; updateStatusLojaUI(); };
-        window.updateStatus = async (id, s) => { await updateDoc(doc(db, "pedidos", id), { status: s }); };
-        window.apagarPedido = async (id) => { if(confirm("Apagar?")) await deleteDoc(doc(db, "pedidos", id)); };
+        window.switchTab = (t) => {
+            ['pedidos', 'produtos', 'categorias', 'config'].forEach(x => {
+                document.getElementById(`sec-${x}`).classList.toggle('hidden', x !== t);
+                const btn = document.getElementById(`tab-${x}`);
+                if(x === t) { btn.classList.add('tab-active'); } else { btn.classList.remove('tab-active'); }
+            });
+            if(t === 'config') window.renderConfigADM();
+            if(t === 'produtos') window.renderProdutosADM();
+            if(t === 'categorias') window.renderCategoriasADM();
+        };
 
-        // Outras funções de GPS, Checkout e Categorias permanecem funcionais...
-        window.renderCategoriasADM = () => { const div = document.getElementById('sec-categorias'); div.innerHTML = `<div class="bg-white p-5 rounded-3xl border mb-4 space-y-3"><input id="new-cat" type="text" placeholder="Nome" class="w-full p-2 border rounded-lg text-sm"><button onclick="window.addNovaCat()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-xs uppercase shadow-md">Criar</button></div><div id="adm-cat-list"></div>`; CATS.forEach(c => document.getElementById('adm-cat-list').innerHTML += `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center mb-2 font-bold text-xs"><span>${c.nome}</span><button onclick="window.delCat('${c.id}')" class="text-red-500"><i class="fas fa-times"></i></button></div>`); };
+        window.renderProdutosADM = () => {
+            const div = document.getElementById('sec-produtos');
+            div.innerHTML = `<button onclick="window.abrirModalNovoProd()" class="w-full bg-red-600 text-white p-4 rounded-xl font-bold text-xs uppercase mb-4">+ Novo Produto</button><div id="adm-prod-list" class="space-y-2"></div>`;
+            PRODS.forEach(p => {
+                document.getElementById('adm-prod-list').innerHTML += `<div class="bg-white p-4 rounded-2xl border flex justify-between items-center text-black"><div><p class="font-bold text-[10px] uppercase">${p.nome}</p><p class="text-[8px] text-gray-400">R$ ${p.preco.toFixed(2)}</p></div><div class="flex gap-1"><button onclick="window.abrirModalEditar('${p.id}')" class="bg-blue-50 text-blue-600 p-3 rounded-xl text-xs"><i class="fas fa-edit"></i></button><button onclick="window.delProd('${p.id}')" class="bg-red-50 text-red-500 p-3 rounded-xl text-xs"><i class="fas fa-trash-alt"></i></button></div></div>`;
+            });
+        };
+
+        window.abrirModalNovoProd = () => { document.getElementById('modal-editar-prod').classList.remove('hidden'); document.getElementById('edit-id-hidden').value = ""; document.getElementById('edit-c').innerHTML = CATS.map(c=>`<option value="${c.id}">${c.nome}</option>`).join(''); };
+        window.abrirModalEditar = (id) => { const p = PRODS.find(x => x.id === id); document.getElementById('modal-editar-prod').classList.remove('hidden'); document.getElementById('edit-id-hidden').value = p.id; document.getElementById('edit-n').value = p.nome; document.getElementById('edit-d').value = p.descricao || ""; document.getElementById('edit-p').value = p.preco; document.getElementById('edit-i').value = p.imagem_url || ""; document.getElementById('edit-disp').checked = p.disponivel !== false; document.getElementById('edit-c').innerHTML = CATS.map(c=>`<option value="${c.id}" ${p.categoria_id===c.id?'selected':''}>${c.nome}</option>`).join(''); };
+        window.salvarEdicaoFinal = async () => { const id = document.getElementById('edit-id-hidden').value; const d = { nome: document.getElementById('edit-n').value, descricao: document.getElementById('edit-d').value, preco: Number(document.getElementById('edit-p').value), imagem_url: document.getElementById('edit-i').value, categoria_id: document.getElementById('edit-c').value, disponivel: document.getElementById('edit-disp').checked }; if(id) await updateDoc(doc(db, "produtos", id), d); else await addDoc(collection(db, "produtos"), d); alert("OK!"); document.getElementById('modal-editar-prod').classList.add('hidden'); loadData(); window.renderProdutosADM(); };
+        window.delProd = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "produtos", id)); loadData(); window.renderProdutosADM(); } };
+
+        window.renderCategoriasADM = () => { const div = document.getElementById('sec-categorias'); div.innerHTML = `<div class="bg-white p-5 rounded-3xl border mb-4 space-y-3"><input id="new-cat" type="text" placeholder="Nome" class="w-full p-2 border rounded-lg text-sm text-black"><button onclick="window.addNovaCat()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-xs uppercase">Criar</button></div><div id="adm-cat-list"></div>`; CATS.forEach(c => document.getElementById('adm-cat-list').innerHTML += `<div class="bg-white p-4 rounded-2xl border flex justify-between font-bold text-xs uppercase text-black"><span>${c.nome}</span><button onclick="window.delCat('${c.id}')" class="text-red-500"><i class="fas fa-times"></i></button></div>`); };
         window.addNovaCat = async () => { const n = document.getElementById('new-cat').value; if(n) { await addDoc(collection(db, "categorias"), { nome: n, ordem: CATS.length }); loadData(); window.renderCategoriasADM(); } };
         window.delCat = async (id) => { if(confirm("Apagar?")) { await deleteDoc(doc(db, "categorias", id)); loadData(); window.renderCategoriasADM(); } };
 
+        window.renderConfigADM = () => { div = document.getElementById('sec-config'); div.innerHTML = `<div class="bg-white p-6 rounded-[35px] shadow-sm space-y-4 text-black"><button onclick="window.obterGPSLoja()" class="w-full ${CONFIG.lat_pizzaria ? 'bg-green-600' : 'bg-red-500'} text-white p-4 rounded-2xl text-[10px] font-black uppercase">📍 GPS DA LOJA</button><div class="flex justify-between items-center p-4 bg-gray-50 rounded-2xl border font-black text-[10px] uppercase italic"><span>Loja Aberta?</span><label class="switch"><input type="checkbox" onchange="window.toggleLoja(this.checked)" ${CONFIG.loja_aberta?'checked':''}><span class="slider"></span></label></div><input id="adm-n" type="text" value="${CONFIG.nome_pizzaria}" class="w-full p-3 border rounded-xl"><input id="adm-z" type="text" value="${CONFIG.whatsapp}" class="w-full p-3 border rounded-xl"><div class="flex gap-2"><input id="adm-b" type="number" value="${CONFIG.taxa_base}" class="flex-1 p-3 border rounded-xl"><input id="adm-k" type="number" value="${CONFIG.preco_km}" class="flex-1 p-3 border rounded-xl"></div><input id="adm-l" type="text" value="${CONFIG.logo_url || ''}" class="w-full p-3 border rounded-xl" placeholder="Link Logo PNG"><button onclick="window.salvarConfig()" class="w-full bg-black text-white p-4 rounded-2xl font-black text-xs uppercase">Salvar Config</button></div>`; };
+        window.obterGPSLoja = () => { navigator.geolocation.getCurrentPosition(async pos => { await updateDoc(doc(db, "configuracoes", "loja"), { lat_pizzaria: pos.coords.latitude, lng_pizzaria: pos.coords.longitude }); alert("Localização Salva!"); location.reload(); }); };
+        window.salvarConfig = async () => { await updateDoc(doc(db, "configuracoes", "loja"), { nome_pizzaria: document.getElementById('adm-n').value, whatsapp: document.getElementById('adm-z').value, taxa_base: Number(document.getElementById('adm-b').value), preco_km: Number(document.getElementById('adm-k').value), logo_url: document.getElementById('adm-l').value }); alert("Salvo!"); location.reload(); };
+        window.toggleLoja = async (v) => { await updateDoc(doc(db, "configuracoes", "loja"), { loja_aberta: v }); CONFIG.loja_aberta = v; updateStatusLojaUI(); };
+        
+        window.fecharModalEditar = () => document.getElementById('modal-editar-prod').classList.add('hidden');
+        window.abrirCheckout = () => { document.getElementById('modal-checkout').classList.remove('hidden'); const m = JSON.parse(localStorage.getItem('pizzaria_memoria')); if(m){ document.getElementById('f-nome').value = m.nome; document.getElementById('f-whatsapp').value = m.zap || ""; } const ag = CARRINHO.reduce((acc, i) => { acc[i.nome] = (acc[i.nome] || 0) + 1; return acc; }, {}); document.getElementById('checkout-itens-list').innerHTML = Object.entries(ag).map(([n, q]) => `<div>${q}x ${n}</div>`).join(''); window.setModoConsumo(modoConsumo); };
+        window.fecharCheckout = () => document.getElementById('modal-checkout').classList.add('hidden');
+        window.setModoConsumo = (m) => { modoConsumo=m; ['delivery','retirada','local'].forEach(x=>document.getElementById(`btn-m-${x}`).className = x === m ? "p-3 text-[9px] font-black rounded-xl bg-white shadow-sm border border-gray-200 text-black uppercase" : "p-3 text-[9px] font-black rounded-xl text-gray-400 uppercase"); document.getElementById('area-gps-cli').classList.toggle('hidden', m !== 'delivery'); if(m !== 'delivery'){ tFRETE = 0; gpsOk = true; } else { gpsOk = false; } window.renderCheckoutTotal(); };
+        window.renderCheckoutTotal = () => { const sub = CARRINHO.reduce((a, b) => a + Number(b.preco), 0); document.getElementById('res-total').innerText = `R$ ${(sub + tFRETE).toFixed(2).replace('.',',')}`; };
+        window.abrirMontador = () => { document.getElementById('modal-montador').classList.remove('hidden'); const div = document.getElementById('lista-sabores-montador'); const catP = CATS.find(c => c.nome.toLowerCase().includes('pizza')); div.innerHTML = PRODS.filter(p => p.categoria_id === catP?.id && p.disponivel).map(p => `<div onclick="window.selMetade('${p.id}','${p.nome}',${p.preco},this)" class="bg-gray-50 p-3 rounded-xl border flex justify-between font-bold text-xs uppercase mb-1"><span>${p.nome}</span><span>R$ ${p.preco}</span></div>`).join(''); };
+        window.selMetade = (id, n, p, el) => { if(!s1){s1={n,p};document.getElementById('txt-m1').innerText=n;el.style.borderColor="red";} else if(!s2){s2={n,p};document.getElementById('txt-m2').innerText=n;el.style.borderColor="red";document.getElementById('btn-confirm-meio').disabled=false;} else {s1={n,p};s2=null;document.getElementById('txt-m1').innerText=n;document.getElementById('txt-m2').innerText="---";document.getElementById('btn-confirm-meio').disabled=true;document.querySelectorAll('#lista-sabores-montador div').forEach(x=>x.style.borderColor="#e5e7eb");el.style.borderColor="red";} };
+        window.confirmarMeioAMeio = () => { CARRINHO.push({ nome: `MEIO A MEIO (${s1.n} + ${s2.n})`, preco: Math.max(s1.p, s2.p) }); document.getElementById('cart-total-display').innerText = `R$ ${CARRINHO.reduce((a,b)=>a+Number(b.preco),0).toFixed(2)}`; document.getElementById('cart-fixed').classList.remove('hidden'); window.fecharMontador(); };
+        window.fecharMontador = () => { document.getElementById('modal-montador').classList.add('hidden'); s1 = null; s2 = null; };
+        window.carregarAcompanhamento = (id) => { document.getElementById('view-cliente').classList.add('hidden'); document.getElementById('view-acompanhar').classList.remove('hidden'); onSnapshot(doc(db, "pedidos", id), (snap) => { const s = snap.exists() ? snap.data().status : "Novo"; document.getElementById('rastreio-status').innerText = s.toUpperCase(); document.getElementById('box-status-cliente').className = `py-12 px-4 rounded-3xl border-4 border-double mb-6 status-${s.replace(/ /g, '')}`; }); };
         function updateStatusLojaUI() { const b = document.getElementById('cli-status-loja'); b.innerText = CONFIG.loja_aberta ? "● ABERTO AGORA" : "○ FECHADO AGORA"; b.className = CONFIG.loja_aberta ? "inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border text-green-600 bg-green-50" : "inline-block px-4 py-1 rounded-full text-[9px] font-black mt-2 border text-gray-400 bg-gray-50"; }
-        window.renderFiltros = () => { const div = document.getElementById('filtros'); div.innerHTML = `<button onclick="window.renderCardapio('todos')" class="${curCat === 'todos' ? 'cat-active' : 'bg-white text-gray-400 border'} px-6 py-2 rounded-full font-black text-[10px] italic transition-all shadow-sm">TODOS</button>`; CATS.forEach(c => div.innerHTML += `<button onclick="window.renderCardapio('${c.id}')" class="${curCat === c.id ? 'cat-active' : 'bg-white text-gray-400 border'} px-6 py-2 rounded-full font-black text-[10px] uppercase shadow-sm transition-all whitespace-nowrap">${c.nome}</button>`); };
 
         init();
     </script>
