@@ -16,7 +16,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fef2f2; -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fef2f2; -webkit-tap-highlight-color: transparent; overflow-x: hidden; font-size: 14px; }
         .font-bebas { font-family: 'Bebas Neue', cursive; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .hidden { display: none !important; }
@@ -75,6 +75,58 @@
         
         /* Modal montador pizza */
         .borda-pizza { border: 3px dashed #fca5a5; }
+        
+        /* Textos ajustados */
+        .text-xs { font-size: 0.7rem !important; }
+        .text-sm { font-size: 0.8rem !important; }
+        .text-lg { font-size: 1rem !important; }
+        
+        /* Ajustar espaçamentos */
+        .space-y-4 > * + * { margin-top: 12px !important; }
+        .space-y-2 > * + * { margin-top: 6px !important; }
+        
+        /* Ajustar botões */
+        button i.fas { font-size: 12px !important; }
+        
+        /* Layout otimizado para mobile */
+        @media (max-width: 640px) {
+            .header-banner { height: 180px !important; }
+            .header-overlay { padding: 15px !important; }
+            #cli-nome { font-size: 1.75rem !important; }
+            #cli-status-loja { font-size: 8px !important; padding: 3px 10px !important; margin-top: 1px !important; }
+            #cardapio > div { padding: 12px !important; gap: 12px !important; margin-bottom: 8px !important; }
+            #cardapio .w-20 { width: 60px !important; height: 60px !important; }
+            button:not(.switch) { padding: 12px !important; }
+            #filtros { padding: 10px 15px !important; }
+            #filtros button { padding: 6px 12px !important; font-size: 9px !important; }
+            #cart-fixed button { padding: 12px 16px !important; font-size: 10px !important; }
+            #modal-checkout, #modal-carrinho { padding: 20px !important; }
+            #modal-checkout h2, #modal-carrinho h2 { font-size: 1.25rem !important; }
+            input, select { padding: 12px !important; font-size: 14px !important; }
+            #view-admin { padding-bottom: 10px !important; }
+            .flex-1.p-4 { padding: 12px 8px !important; font-size: 8px !important; }
+            #modal-montador-pizza { padding: 15px !important; }
+            .tamanho-option { padding: 10px !important; }
+            #promocao-container div { padding: 12px !important; }
+            #cart-fixed { bottom: 10px !important; padding: 0 10px !important; }
+            #cart-fixed button { padding: 10px 14px !important; font-size: 9px !important; border-radius: 20px !important; }
+            #modal-checkout .max-h-\[94vh\] { max-height: 85vh !important; }
+            #carrinho-itens-list > div { padding: 10px !important; margin-bottom: 6px !important; }
+            #modal-montador-pizza .mb-6 { margin-bottom: 15px !important; }
+            #lista-sabores > div, #lista-bordas > div, #lista-adicionais-pizza > div { padding: 10px !important; margin-bottom: 5px !important; }
+        }
+        
+        @media (max-width: 360px) {
+            .header-banner { height: 150px !important; }
+            #cli-nome { font-size: 1.5rem !important; }
+            #lista-tamanhos-pizza { grid-template-columns: repeat(2, 1fr) !important; }
+            button[onclick="abrirMontadorPizza()"] { padding: 10px !important; font-size: 10px !important; }
+            #cardapio > div { padding: 10px !important; gap: 10px !important; }
+        }
+        
+        /* Ajustes gerais para telas pequenas */
+        #view-cliente, #view-admin, #view-acompanhar { max-width: 100% !important; padding-left: 0; padding-right: 0; }
+        header.p-4 { padding: 12px !important; }
     </style>
 </head>
 <body class="flex justify-center">
@@ -219,6 +271,7 @@
             <button onclick="switchTab('config')" id="tab-config" class="flex-1 p-4 font-bold text-[9px] uppercase whitespace-nowrap tracking-tighter text-gray-400">⚙️ Config</button>
             <button onclick="switchTab('promocoes')" id="tab-promocoes" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">🔥 Promoções</button>
             <button onclick="switchTab('tamanhos')" id="tab-tamanhos" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">📏 Tamanhos</button>
+            <button onclick="switchTab('especiais')" id="tab-especiais" class="flex-1 p-4 font-bold text-[9px] uppercase whitespace-nowrap tracking-tighter text-gray-400">🔧 Especiais</button>
         </div>
         <div id="adm-content" class="p-4 space-y-4">
             <div id="sec-pedidos" class="space-y-4 text-black">
@@ -232,6 +285,7 @@
             <div id="sec-config" class="hidden space-y-4 text-black"></div>
             <div id="sec-promocoes" class="hidden space-y-4 text-black"></div>
             <div id="sec-tamanhos" class="hidden space-y-4 text-black"></div>
+            <div id="sec-especiais" class="hidden space-y-4 text-black"></div>
         </div>
     </div>
 
@@ -1837,7 +1891,7 @@
 
         function switchTab(tab) {
             // Atualizar botões das tabs
-            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos'].forEach(t => {
+            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos', 'especiais'].forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
                 if (btn) {
                     if (t === tab) {
@@ -1849,7 +1903,7 @@
             });
             
             // Atualizar conteúdo
-            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos'].forEach(t => {
+            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos', 'especiais'].forEach(t => {
                 const sec = document.getElementById(`sec-${t}`);
                 if (sec) {
                     if (t === tab) {
@@ -1873,6 +1927,8 @@
                 renderPromocoesADM();
             } else if (tab === 'tamanhos') {
                 renderTamanhosADM();
+            } else if (tab === 'especiais') {
+                renderEspeciaisADM();
             }
         }
 
@@ -2188,11 +2244,34 @@
             try {
                 await loadData(); // Recarregar produtos
                 
+                // Filtrar categorias especiais (Bordas e Adicionais)
+                const catBordas = CATS.find(c => c.nome === "Bordas");
+                const catAdicionais = CATS.find(c => c.nome === "Adicionais");
+                
                 let html = `
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bebas text-xl text-gray-800">Produtos do Cardápio</h3>
                         <button onclick="novoProduto()" class="bg-green-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-green-700 transition">+ Novo Produto</button>
-                    </div>`;
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-bold text-sm text-gray-700 mb-3">Categorias Especiais</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="bg-red-50 p-4 rounded-xl">
+                                <div class="font-black text-[10px] uppercase text-red-600 mb-1">BORDAS</div>
+                                ${catBordas ? `<div class="text-xs">${PRODS.filter(p => p.categoria_id === catBordas.id).length} itens</div>` : '<div class="text-xs text-gray-500">Categoria não criada</div>'}
+                                ${catBordas ? `<button onclick="novoProdutoEspecial('${catBordas.id}')" class="mt-2 text-[10px] bg-red-100 text-red-700 px-3 py-1 rounded-lg font-bold hover:bg-red-200 transition">+ Nova Borda</button>` : ''}
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-xl">
+                                <div class="font-black text-[10px] uppercase text-blue-600 mb-1">ADICIONAIS</div>
+                                ${catAdicionais ? `<div class="text-xs">${PRODS.filter(p => p.categoria_id === catAdicionais.id).length} itens</div>` : '<div class="text-xs text-gray-500">Categoria não criada</div>'}
+                                ${catAdicionais ? `<button onclick="novoProdutoEspecial('${catAdicionais.id}')" class="mt-2 text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-lg font-bold hover:bg-blue-200 transition">+ Novo Adicional</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-bold text-sm text-gray-700 mb-3">Todos os Produtos</h4>`;
                 
                 if (PRODS.length === 0) {
                     html += `<div class="bg-white p-8 rounded-[35px] shadow-sm text-center text-gray-500">Nenhum produto cadastrado</div>`;
@@ -2200,26 +2279,27 @@
                     PRODS.forEach(p => {
                         const cat = CATS.find(c => c.id === p.categoria_id);
                         const catNome = cat ? cat.nome : 'Sem categoria';
+                        const isEspecial = catNome === "Bordas" || catNome === "Adicionais";
                         
                         html += `
-                        <div class="bg-white p-4 rounded-[25px] shadow-sm mb-3 flex justify-between items-center">
+                        <div class="bg-white p-4 rounded-[25px] shadow-sm mb-3 flex justify-between items-center ${isEspecial ? 'border-l-4 border-red-500' : ''}">
                             <div class="flex-1">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 rounded-xl overflow-hidden">
+                                    <div class="w-12 h-12 rounded-xl overflow-hidden ${isEspecial ? 'bg-red-100' : 'bg-gray-100'}">
                                         <img src="${p.imagem_url || 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png'}" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3075/3075977.png'">
                                     </div>
                                     <div>
-                                        <div class="font-black text-[11px] uppercase text-gray-800">${p.nome}</div>
+                                        <div class="font-black text-[11px] uppercase text-gray-800">${p.nome} ${isEspecial ? '🔧' : ''}</div>
                                         <div class="text-[9px] text-gray-400 line-clamp-1">${p.descricao || ''}</div>
                                         <div class="flex gap-2 mt-1">
-                                            <span class="text-[8px] bg-red-100 text-red-800 px-2 py-1 rounded-full">${catNome}</span>
+                                            <span class="text-[8px] ${isEspecial ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'} px-2 py-1 rounded-full">${catNome}</span>
                                             <span class="text-[8px] ${p.disponivel !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded-full">${p.disponivel !== false ? 'Disponível' : 'Indisponível'}</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="text-right">
-                                <div class="font-black text-lg text-red-600 mb-1">R$ ${Number(p.preco || 0).toFixed(2)}</div>
+                                <div class="font-black text-lg ${isEspecial ? 'text-red-600' : 'text-gray-800'} mb-1">R$ ${Number(p.preco || 0).toFixed(2)}</div>
                                 <div class="flex gap-1">
                                     <button onclick="editarProduto('${p.id}')" class="bg-red-100 text-red-700 p-2 rounded-lg hover:bg-red-200 transition"><i class="fas fa-edit text-xs"></i></button>
                                     <button onclick="toggleDisponibilidade('${p.id}', ${p.disponivel !== false})" class="bg-gray-100 text-gray-700 p-2 rounded-lg hover:bg-gray-200 transition">
@@ -2236,6 +2316,36 @@
             } catch (error) {
                 console.error("Erro ao renderizar produtos:", error);
                 sec.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl">Erro ao carregar produtos: ${error.message}</div>`;
+            }
+        }
+
+        async function novoProdutoEspecial(categoriaId) {
+            try {
+                const categoria = CATS.find(c => c.id === categoriaId);
+                if (!categoria) return;
+                
+                const nome = prompt(`Nome do ${categoria.nome.toLowerCase()}:`);
+                if (!nome) return;
+                
+                const descricao = prompt(`Descrição (opcional):`);
+                const precoStr = prompt(`Preço (R$):`);
+                const preco = parseFloat(precoStr) || 0;
+                
+                const novoProd = {
+                    nome: nome,
+                    descricao: descricao || "",
+                    preco: preco,
+                    categoria_id: categoriaId,
+                    imagem_url: "",
+                    disponivel: true
+                };
+                
+                const docRef = await addDoc(collection(db, "produtos"), novoProd);
+                alert(`${categoria.nome} criada com sucesso! R$ ${preco.toFixed(2)}`);
+                renderProdutosADM();
+            } catch (error) {
+                console.error("Erro ao criar produto especial:", error);
+                alert("Erro ao criar produto!");
             }
         }
 
@@ -2863,7 +2973,7 @@
             }
         }
 
-        // ==================== FUNÇÕES DE TAMANHOS (NOVO) ====================
+        // ==================== FUNÇÕES DE TAMANHOS ====================
 
         async function renderTamanhosADM() {
             const sec = document.getElementById('sec-tamanhos');
@@ -3036,6 +3146,118 @@
             }
         }
 
+        // ==================== FUNÇÕES DE BORDAS E ADICIONAIS (NOVO) ====================
+
+        async function renderEspeciaisADM() {
+            const sec = document.getElementById('sec-especiais');
+            if (!sec) return;
+            
+            try {
+                await loadData();
+                
+                const catBordas = CATS.find(c => c.nome === "Bordas");
+                const catAdicionais = CATS.find(c => c.nome === "Adicionais");
+                
+                // Criar categorias se não existirem
+                if (!catBordas || !catAdicionais) {
+                    if (!catBordas) {
+                        await addDoc(collection(db, "categorias"), {
+                            nome: "Bordas",
+                            tipo: "montador",
+                            subtipo: "borda",
+                            ordem: 99
+                        });
+                    }
+                    
+                    if (!catAdicionais) {
+                        await addDoc(collection(db, "categorias"), {
+                            nome: "Adicionais",
+                            tipo: "montador",
+                            subtipo: "adicional",
+                            ordem: 100
+                        });
+                    }
+                    
+                    await loadData(); // Recarregar dados
+                }
+                
+                // Produtos de bordas
+                const bordas = catBordas ? PRODS.filter(p => p.categoria_id === catBordas.id) : [];
+                const adicionais = catAdicionais ? PRODS.filter(p => p.categoria_id === catAdicionais.id) : [];
+                
+                let html = `
+                    <div class="mb-6">
+                        <h3 class="font-bebas text-xl text-gray-800 mb-4">Bordas e Adicionais</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Seção Bordas -->
+                            <div class="bg-white p-4 rounded-[25px] shadow-lg">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="font-black text-red-600 uppercase">BORDAS</h4>
+                                    <button onclick="novoProdutoEspecial('${catBordas?.id || ''}')" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-[10px] font-bold">+ Nova</button>
+                                </div>
+                                
+                                ${bordas.length === 0 ? 
+                                    '<div class="text-center py-8 text-gray-400 text-sm">Nenhuma borda cadastrada</div>' : 
+                                    bordas.map(b => `
+                                        <div class="flex justify-between items-center p-3 border-b border-gray-100">
+                                            <div>
+                                                <div class="font-bold text-sm">${b.nome}</div>
+                                                <div class="text-xs text-gray-500">${b.descricao || ''}</div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="font-black text-red-600">R$ ${Number(b.preco || 0).toFixed(2)}</div>
+                                                <div class="flex gap-1 mt-1">
+                                                    <button onclick="editarProduto('${b.id}')" class="text-red-500 text-xs"><i class="fas fa-edit"></i></button>
+                                                    <button onclick="excluirProduto('${b.id}')" class="text-red-500 text-xs"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')
+                                }
+                            </div>
+                            
+                            <!-- Seção Adicionais -->
+                            <div class="bg-white p-4 rounded-[25px] shadow-lg">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="font-black text-blue-600 uppercase">ADICIONAIS</h4>
+                                    <button onclick="novoProdutoEspecial('${catAdicionais?.id || ''}')" class="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-[10px] font-bold">+ Novo</button>
+                                </div>
+                                
+                                ${adicionais.length === 0 ? 
+                                    '<div class="text-center py-8 text-gray-400 text-sm">Nenhum adicional cadastrado</div>' : 
+                                    adicionais.map(a => `
+                                        <div class="flex justify-between items-center p-3 border-b border-gray-100">
+                                            <div>
+                                                <div class="font-bold text-sm">${a.nome}</div>
+                                                <div class="text-xs text-gray-500">${a.descricao || ''}</div>
+                                            </div>
+                                            <div class="text-right">
+                                                <div class="font-black text-blue-600">R$ ${Number(a.preco || 0).toFixed(2)}</div>
+                                                <div class="flex gap-1 mt-1">
+                                                    <button onclick="editarProduto('${a.id}')" class="text-blue-500 text-xs"><i class="fas fa-edit"></i></button>
+                                                    <button onclick="excluirProduto('${a.id}')" class="text-blue-500 text-xs"><i class="fas fa-trash"></i></button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('')
+                                }
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6 text-xs text-gray-500 italic">
+                            <p>💡 <strong>Dica:</strong> As bordas e adicionais aparecem automaticamente no montador de pizza.</p>
+                            <p>Para produtos normais do cardápio, use a aba "Produtos".</p>
+                        </div>
+                    </div>`;
+                
+                sec.innerHTML = html;
+            } catch (error) {
+                console.error("Erro ao renderizar especiais:", error);
+                sec.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl">Erro: ${error.message}</div>`;
+            }
+        }
+
         // ==================== FUNÇÕES ADICIONAIS ====================
 
         function aplicarCupom() {
@@ -3119,13 +3341,18 @@
         window.salvarPromocao = salvarPromocao;
         window.toggleStatusPromocao = toggleStatusPromocao;
 
-        // Funções de tamanhos (novas)
+        // Funções de tamanhos
         window.novoTamanho = novoTamanho;
         window.editarTamanho = editarTamanho;
         window.salvarEdicaoTamanho = salvarEdicaoTamanho;
         window.fecharModalEditarTamanho = fecharModalEditarTamanho;
         window.toggleDisponibilidadeTamanho = toggleDisponibilidadeTamanho;
         window.excluirTamanho = excluirTamanho;
+
+        // Funções de bordas e adicionais
+        window.novoProdutoEspecial = novoProdutoEspecial;
+        window.renderProdutosADM = renderProdutosADM;
+        window.renderEspeciaisADM = renderEspeciaisADM;
 
         // Iniciar quando o DOM estiver carregado
         if (document.readyState === 'loading') {
