@@ -588,10 +588,13 @@
         async function inicializarAcompanhamento() {
             const params = new URLSearchParams(window.location.search);
             if(params.has('pedido')) {
-                // Garantir que o Firebase está inicializado
+                // Garantir que o Firebase está inicializado e pronto
                 if (!app) {
                     await initializeFirebase();
                 }
+                // Esperar que o Firebase seja completamente inicializado
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
                 // Carregar configuração
                 await carregarConfiguracao();
                 // Carregar acompanhamento
@@ -2072,11 +2075,23 @@
             }
             
             try {
-                // Inicializar Firebase primeiro
-                await initializeFirebase();
+                // Verificar se o Firebase está inicializado
+                if (!app || !db) {
+                    console.warn("Firebase não inicializado. Tentando inicializar...");
+                    await initializeFirebase();
+                    
+                    // Aguardar inicialização completa
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                }
+                
+                // Verificar se ainda não foi inicializado
+                if (!app || !db) {
+                    throw new Error("Não foi possível inicializar o banco de dados");
+                }
+                
                 await carregarConfiguracao();
                 
-                // Escutar pedido - CORREÇÃO: Usar onSnapshot corretamente
+                // Escutar pedido
                 const unsub = onSnapshot(doc(db, "pedidos", id), (snap) => {
                     if (!snap.exists()) {
                         document.getElementById('rastreio-status').innerText = "PEDIDO NÃO ENCONTRADO";
@@ -2086,7 +2101,6 @@
                     
                     const dados = snap.data();
                     const status = dados.status || 'Novo';
-                    const statusSemEspacos = status.replace(/ /g, '');
                     
                     document.getElementById('rastreio-status').innerText = status.toUpperCase();
                     
@@ -2114,6 +2128,18 @@
                     console.error("Erro ao acompanhar pedido:", error);
                     document.getElementById('rastreio-status').innerText = "ERRO DE CONEXÃO";
                     document.getElementById('box-status-cliente').className = "py-16 px-4 rounded-[40px] border-4 border-double mb-8 transition-all duration-500 shadow-inner bg-gray-100";
+                    
+                    // Mostrar botão para tentar novamente
+                    const viewAcompanhar = document.getElementById('view-acompanhar');
+                    const existeBotaoErro = viewAcompanhar.querySelector('#btn-tentar-novamente');
+                    if (!existeBotaoErro) {
+                        const btnErro = document.createElement('button');
+                        btnErro.id = 'btn-tentar-novamente';
+                        btnErro.className = 'mt-4 bg-red-600 text-white p-3 rounded-xl text-sm font-bold hover:bg-red-700 transition';
+                        btnErro.innerHTML = '🔄 Tentar Novamente';
+                        btnErro.onclick = () => location.reload();
+                        viewAcompanhar.querySelector('.py-10').appendChild(btnErro);
+                    }
                 });
                 
                 // Guardar unsubscribe para limpar quando sair da página
@@ -2124,6 +2150,13 @@
             } catch (error) {
                 console.error("Erro ao carregar acompanhamento:", error);
                 document.getElementById('rastreio-status').innerText = "ERRO AO CARREGAR";
+                document.getElementById('box-status-cliente').className = "py-16 px-4 rounded-[40px] border-4 border-double mb-8 transition-all duration-500 shadow-inner bg-gray-100";
+                
+                // Mostrar mensagem de erro mais detalhada
+                const tempoElement = document.getElementById('rastreio-tempo');
+                if (tempoElement) {
+                    tempoElement.innerHTML = `<span class="text-red-500">Erro: ${error.message}</span>`;
+                }
             }
         }
 
@@ -2714,7 +2747,7 @@
                         <div class="bg-white p-4 rounded-[25px] shadow-sm mb-3 flex justify-between items-center ${isEspecial ? 'border-l-4 border-red-500' : ''}">
                             <div class="flex-1">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 rounded-xl overflow-hidden ${isEspecial ? 'bg-red-100' : 'bg-gray-100'}">
+                                    <div class="w-12 h-12 rounded-xl ${isEspecial ? 'bg-red-100' : 'bg-gray-100'}">
                                         <img src="${p.imagem_url || 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png'}" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3075/3075977.png'">
                                     </div>
                                     <div>
