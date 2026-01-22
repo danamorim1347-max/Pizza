@@ -150,9 +150,30 @@
     <div id="view-login" class="hidden fixed inset-0 bg-black/95 z-[150] flex items-center justify-center p-6 backdrop-blur-sm">
         <div class="bg-white w-full max-w-sm p-8 rounded-[40px] text-center shadow-2xl">
             <h2 class="text-2xl font-bebas uppercase mb-6 text-red-600">Login Master</h2>
-            <input id="login-pass" type="password" placeholder="Senha ADM" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-4 text-center font-bold tracking-widest focus:ring-2 focus:ring-red-500">
-            <button onclick="processarLogin()" class="w-full bg-red-600 text-white p-4 rounded-2xl font-black uppercase shadow-lg hover:bg-red-700 transition">Entrar no Painel</button>
-            <button onclick="fecharLogin()" class="mt-4 text-gray-400 text-xs font-bold uppercase underline">Voltar</button>
+            
+            <div id="login-tabs" class="flex mb-6 border-b border-gray-200">
+                <button onclick="switchLoginTab('login')" id="tab-login" class="flex-1 p-2 text-sm font-bold text-red-600 border-b-2 border-red-600">Entrar</button>
+                <button onclick="switchLoginTab('register')" id="tab-register" class="flex-1 p-2 text-sm font-bold text-gray-400">Registrar</button>
+            </div>
+            
+            <!-- Formulário de Login -->
+            <div id="login-form" class="space-y-4">
+                <input id="login-email" type="email" placeholder="Email" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-2 text-sm">
+                <input id="login-password" type="password" placeholder="Senha" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-4 text-sm">
+                <button onclick="processarLogin()" class="w-full bg-red-600 text-white p-4 rounded-2xl font-black uppercase shadow-lg hover:bg-red-700 transition">Entrar no Painel</button>
+            </div>
+            
+            <!-- Formulário de Registro -->
+            <div id="register-form" class="hidden space-y-4">
+                <input id="register-nome" type="text" placeholder="Nome Completo" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-2 text-sm">
+                <input id="register-email" type="email" placeholder="Email" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-2 text-sm">
+                <input id="register-password" type="password" placeholder="Senha (mínimo 6 caracteres)" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-4 text-sm">
+                <button onclick="processarRegistro()" class="w-full bg-green-600 text-white p-4 rounded-2xl font-black uppercase shadow-lg hover:bg-green-700 transition">Registrar Usuário</button>
+            </div>
+            
+            <div id="login-message" class="mt-4 text-xs text-red-600 font-bold hidden"></div>
+            
+            <button onclick="fecharLogin()" class="mt-6 text-gray-400 text-xs font-bold uppercase underline">Voltar para a Loja</button>
         </div>
     </div>
 
@@ -261,7 +282,10 @@
     <div id="view-admin" class="hidden w-full max-w-4xl mx-auto min-h-screen pb-20 bg-red-50">
         <header class="bg-gray-900 text-red-400 p-4 flex justify-between items-center sticky top-0 z-50">
             <h1 class="font-bebas text-red-400 uppercase tracking-tighter text-xl">PAINEL MASTER PIZZA</h1>
-            <button onclick="sairAdmin()" class="text-[9px] font-bold border border-red-400 text-red-400 px-3 py-1 rounded-full uppercase hover:bg-red-400 hover:text-gray-900 transition">Sair</button>
+            <div class="flex items-center gap-4">
+                <span id="admin-user-name" class="text-xs text-red-300"></span>
+                <button onclick="sairAdmin()" class="text-[9px] font-bold border border-red-400 text-red-400 px-3 py-1 rounded-full uppercase hover:bg-red-400 hover:text-gray-900 transition">Sair</button>
+            </div>
         </header>
         <div class="flex bg-white border-b border-red-200 sticky top-14 z-40 overflow-x-auto no-scrollbar shadow-sm">
             <button onclick="switchTab('pedidos')" id="tab-pedidos" class="flex-1 p-4 font-bold text-[9px] tab-active uppercase">📋 Pedidos</button>
@@ -272,6 +296,7 @@
             <button onclick="switchTab('promocoes')" id="tab-promocoes" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">🔥 Promoções</button>
             <button onclick="switchTab('tamanhos')" id="tab-tamanhos" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">📏 Tamanhos</button>
             <button onclick="switchTab('especiais')" id="tab-especiais" class="flex-1 p-4 font-bold text-[9px] uppercase whitespace-nowrap tracking-tighter text-gray-400">🔧 Especiais</button>
+            <button onclick="switchTab('usuarios')" id="tab-usuarios" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">👥 Usuários</button>
         </div>
         <div id="adm-content" class="p-4 space-y-4">
             <div id="sec-pedidos" class="space-y-4 text-black">
@@ -286,6 +311,7 @@
             <div id="sec-promocoes" class="hidden space-y-4 text-black"></div>
             <div id="sec-tamanhos" class="hidden space-y-4 text-black"></div>
             <div id="sec-especiais" class="hidden space-y-4 text-black"></div>
+            <div id="sec-usuarios" class="hidden space-y-4 text-black"></div>
         </div>
     </div>
 
@@ -429,7 +455,7 @@
                 </div>
             </div>
             
-            <!-- Opções de Personalização -->
+            <!-- Opções de Personalização - SIMPLIFICADO -->
             <div class="bg-yellow-50 p-4 rounded-2xl border border-yellow-200 mb-4">
                 <h3 class="font-black text-sm uppercase text-yellow-800 mb-2">Opções de Personalização</h3>
                 
@@ -445,18 +471,7 @@
                         </button>
                     </div>
                     
-                    <!-- Opção 2: Montar pizzas do zero -->
-                    <div class="flex items-center justify-between p-3 bg-white rounded-xl border">
-                        <div>
-                            <div class="font-bold text-sm">Montar Pizzas Personalizadas</div>
-                            <div class="text-xs text-gray-500">Use o montador para criar pizzas únicas</div>
-                        </div>
-                        <button onclick="usarMontadorParaCombo()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-700 transition">
-                            Montar
-                        </button>
-                    </div>
-                    
-                    <!-- Opção 3: Combo padrão (sem personalização) -->
+                    <!-- Opção 2: Combo padrão (sem personalização) -->
                     <div class="flex items-center justify-between p-3 bg-white rounded-xl border">
                         <div>
                             <div class="font-bold text-sm">Combo Padrão</div>
@@ -592,6 +607,26 @@
         </div>
     </div>
 
+    <!-- MODAL EDIÇÃO USUÁRIO -->
+    <div id="modal-editar-usuario" class="fixed inset-0 bg-black/80 z-[110] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md p-6 rounded-[40px] shadow-2xl space-y-4 text-black">
+            <div class="flex justify-between items-center font-bebas uppercase text-sm text-red-600"><h2>Editar Usuário</h2><button onclick="fecharModalEditarUsuario()">✕</button></div>
+            <input id="edit-usuario-nome" type="text" placeholder="Nome Completo" class="w-full p-3 border rounded-xl text-sm font-bold">
+            <input id="edit-usuario-email" type="email" placeholder="Email" class="w-full p-3 border rounded-xl text-sm">
+            <input id="edit-usuario-senha" type="password" placeholder="Nova Senha (deixe em branco para não alterar)" class="w-full p-3 border rounded-xl text-sm">
+            <div class="flex justify-between items-center p-3 bg-red-50 rounded-xl border text-[10px] font-black uppercase">
+                <span>Administrador?</span>
+                <label class="switch"><input type="checkbox" id="edit-usuario-admin"><span class="slider"></span></label>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-red-50 rounded-xl border text-[10px] font-black uppercase">
+                <span>Ativo?</span>
+                <label class="switch"><input type="checkbox" id="edit-usuario-ativo"><span class="slider"></span></label>
+            </div>
+            <input id="edit-usuario-id-hidden" type="hidden">
+            <button onclick="salvarEdicaoUsuario()" class="w-full bg-red-600 text-white p-4 rounded-2xl font-black uppercase text-xs shadow-lg hover:bg-red-700 transition">Salvar Usuário</button>
+        </div>
+    </div>
+
     <script type="module">
         // Configuração do Firebase para Pizzaria
         const firebaseConfig = {
@@ -622,14 +657,25 @@
             deleteDoc,
             where 
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        
+        // Importações do Firebase Authentication
+        import { 
+            getAuth, 
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword, 
+            signOut,
+            onAuthStateChanged,
+            updatePassword
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // Variáveis globais
-        let app, db;
-        let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {}, CUPONS = [], PROMOCAO = {}, TAMANHOS = [];
+        let app, db, auth;
+        let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {}, CUPONS = [], PROMOCAO = {}, TAMANHOS = [], USUARIOS = [];
         let curCat = 'todos';
         let dKM = 0, tFRETE = 0, latCli = 0, lngCli = 0, gpsOk = false, modoConsumo = 'delivery', vCUPOM = 0;
         let isAdmin = false;
         let pedidosListenerUnsubscribe = null;
+        let currentUser = null;
         
         // Variáveis para o montador de pizza
         let pizzaMontada = {
@@ -643,9 +689,8 @@
 
         // Variáveis para o combo personalizado
         let comboPersonalizado = {
-            tipo: 'padrao', // 'padrao', 'sabores-prontos', 'montador'
+            tipo: 'padrao', // 'padrao', 'sabores-prontos'
             saboresSelecionados: [], // Para sabores prontos
-            pizzasMontadas: [], // Para pizzas montadas
             dadosPromocao: null
         };
 
@@ -655,6 +700,7 @@
             try {
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
+                auth = getAuth(app);
                 console.log("Firebase inicializado com sucesso!");
                 return true;
             } catch (error) {
@@ -677,6 +723,9 @@
                         </div>`;
                     return;
                 }
+
+                // Verificar autenticação do usuário
+                setupAuthListener();
 
                 // Verificar se é página de acompanhamento
                 const params = new URLSearchParams(window.location.search);
@@ -713,6 +762,75 @@
                         <div class="text-gray-600 mb-4">${error.message}</div>
                         <button onclick="location.reload()" class="bg-red-600 text-white px-4 py-2 rounded-lg">Recarregar Página</button>
                     </div>`;
+            }
+        }
+
+        // ==================== AUTENTICAÇÃO FIREBASE ====================
+
+        function setupAuthListener() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUser = user;
+                    console.log("Usuário autenticado:", user.email);
+                    
+                    // Verificar se é admin
+                    await verificarUsuarioAdmin(user.uid);
+                    
+                    // Se já estiver no painel admin, não fazer nada
+                    if (document.getElementById('view-admin').classList.contains('hidden') === false) {
+                        return;
+                    }
+                    
+                    // Se for admin, mostrar painel admin
+                    if (isAdmin) {
+                        document.getElementById('view-cliente').classList.add('hidden');
+                        document.getElementById('view-admin').classList.remove('hidden');
+                        document.getElementById('admin-user-name').textContent = user.email.split('@')[0];
+                        switchTab('pedidos');
+                    }
+                } else {
+                    currentUser = null;
+                    isAdmin = false;
+                    console.log("Usuário não autenticado");
+                    
+                    // Se estiver no painel admin, voltar para cliente
+                    if (document.getElementById('view-admin').classList.contains('hidden') === false) {
+                        document.getElementById('view-admin').classList.add('hidden');
+                        document.getElementById('view-cliente').classList.remove('hidden');
+                    }
+                }
+            });
+        }
+
+        async function verificarUsuarioAdmin(userId) {
+            try {
+                const userDoc = await getDoc(doc(db, "usuarios", userId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    isAdmin = userData.admin === true && userData.ativo !== false;
+                    return isAdmin;
+                } else {
+                    // Se não existe no banco, verificar se é o primeiro usuário
+                    const usersSnapshot = await getDocs(collection(db, "usuarios"));
+                    if (usersSnapshot.empty) {
+                        // Primeiro usuário - criar automaticamente como admin
+                        await setDoc(doc(db, "usuarios", userId), {
+                            nome: "Administrador",
+                            email: currentUser.email,
+                            admin: true,
+                            ativo: true,
+                            created_at: new Date().getTime()
+                        });
+                        isAdmin = true;
+                        return true;
+                    }
+                    isAdmin = false;
+                    return false;
+                }
+            } catch (error) {
+                console.error("Erro ao verificar usuário admin:", error);
+                isAdmin = false;
+                return false;
             }
         }
 
@@ -814,7 +932,6 @@
             comboPersonalizado = {
                 tipo: 'padrao',
                 saboresSelecionados: [],
-                pizzasMontadas: [],
                 dadosPromocao: { ...PROMOCAO }
             };
             
@@ -858,13 +975,11 @@
             comboPersonalizado = {
                 tipo: 'padrao',
                 saboresSelecionados: [],
-                pizzasMontadas: [],
                 dadosPromocao: null
             };
             
             // Limpar dados salvos
             localStorage.removeItem('combo_em_andamento');
-            sessionStorage.removeItem('montando_para_combo');
         }
 
         function habilitarSelecaoSaboresCombo() {
@@ -954,31 +1069,9 @@
             atualizarResumoCombo();
         }
 
-        function usarMontadorParaCombo() {
-            comboPersonalizado.tipo = 'montador';
-            comboPersonalizado.pizzasMontadas = [];
-            
-            // Armazenar temporariamente o estado do combo
-            localStorage.setItem('combo_em_andamento', JSON.stringify({
-                tipo: 'montador',
-                saboresSelecionados: [],
-                pizzasMontadas: [],
-                dadosPromocao: comboPersonalizado.dadosPromocao
-            }));
-            
-            // Fechar modal do combo
-            fecharModalCombo();
-            
-            // Abrir montador com modo especial para combo
-            setTimeout(() => {
-                abrirMontadorPizzaParaCombo();
-            }, 300);
-        }
-
         function adicionarComboPadrao() {
             comboPersonalizado.tipo = 'padrao';
             comboPersonalizado.saboresSelecionados = [];
-            comboPersonalizado.pizzasMontadas = [];
             
             // Salvar estado atual
             localStorage.setItem('combo_em_andamento', JSON.stringify(comboPersonalizado));
@@ -1003,20 +1096,6 @@
                 const saboresText = comboPersonalizado.saboresSelecionados.map(s => s.nome).join(', ');
                 textoResumo.innerHTML = `<div class="text-green-600 font-bold">✓ ${comboPersonalizado.saboresSelecionados.length} sabor(es) selecionado(s)</div>
                                         <div class="text-xs text-gray-600 mt-1">Sabores: ${saboresText}</div>`;
-            } else if (comboPersonalizado.tipo === 'montador') {
-                if (comboPersonalizado.pizzasMontadas.length === 0) {
-                    textoResumo.innerHTML = `<div class="text-yellow-600 font-bold">⚠ Use o montador de pizza</div>
-                                            <div class="text-xs text-gray-600 mt-1">Monte suas pizzas usando o montador na página principal.</div>`;
-                } else {
-                    const pizzasInfo = comboPersonalizado.pizzasMontadas.map((pizza, index) => {
-                        const tamanho = pizza.tamanho?.nome || 'Tamanho não selecionado';
-                        const sabores = pizza.sabores.map(s => s.nome).join(' + ');
-                        return `${index + 1}. ${tamanho}: ${sabores}`;
-                    }).join('<br>');
-                    
-                    textoResumo.innerHTML = `<div class="text-green-600 font-bold">✓ ${comboPersonalizado.pizzasMontadas.length} pizza(s) montada(s)</div>
-                                            <div class="text-xs text-gray-600 mt-1">${pizzasInfo}</div>`;
-                }
             }
             
             resumoDiv.classList.remove('hidden');
@@ -1033,12 +1112,6 @@
                 return;
             }
             
-            // Verificar se há pelo menos uma pizza montada no modo montador
-            if (comboPersonalizado.tipo === 'montador' && comboPersonalizado.pizzasMontadas.length === 0) {
-                alert("Você precisa montar pelo menos uma pizza para o combo!");
-                return;
-            }
-            
             // Criar nome descritivo baseado no tipo de personalização
             let nomeCombo = `🔥 ${comboPersonalizado.dadosPromocao.titulo || "COMBO PROMOÇÃO"}`;
             let descricaoCombo = comboPersonalizado.dadosPromocao.descricao || "";
@@ -1047,15 +1120,6 @@
                 const saboresText = comboPersonalizado.saboresSelecionados.map(s => s.nome).join(' + ');
                 nomeCombo += ` (${saboresText})`;
                 descricaoCombo += ` | Sabores escolhidos: ${saboresText}`;
-            } else if (comboPersonalizado.tipo === 'montador' && comboPersonalizado.pizzasMontadas.length > 0) {
-                const pizzasText = comboPersonalizado.pizzasMontadas.map((pizza, index) => {
-                    const tamanho = pizza.tamanho?.nome || 'Tamanho não selecionado';
-                    const sabores = pizza.sabores.map(s => s.nome).join(' + ');
-                    return `Pizza ${index + 1}: ${tamanho} - ${sabores}`;
-                }).join('; ');
-                
-                nomeCombo += ` (Pizzas Personalizadas)`;
-                descricaoCombo += ` | ${pizzasText}`;
             }
             
             // Adicionar combo ao carrinho
@@ -1089,67 +1153,411 @@
             alert(`Combo personalizado adicionado ao carrinho! R$ ${Number(comboPersonalizado.dadosPromocao.preco || 69.90).toFixed(2)}`);
         }
 
-        // ==================== FUNÇÕES DO MONTADOR PARA COMBO ====================
+        // ==================== FUNÇÕES DE LOGIN ====================
 
-        function abrirMontadorPizzaParaCombo() {
-            // Indicar que está montando pizza para um combo
-            sessionStorage.setItem('montando_para_combo', 'true');
+        function abrirLogin() {
+            document.getElementById('view-login').classList.remove('hidden');
+            switchLoginTab('login');
+        }
+
+        function fecharLogin() {
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('login-message').classList.add('hidden');
+            document.getElementById('login-message').textContent = '';
+        }
+
+        function switchLoginTab(tab) {
+            const loginTab = document.getElementById('tab-login');
+            const registerTab = document.getElementById('tab-register');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
             
-            // Abrir montador normal
-            abrirMontadorPizza();
+            if (tab === 'login') {
+                loginTab.className = "flex-1 p-2 text-sm font-bold text-red-600 border-b-2 border-red-600";
+                registerTab.className = "flex-1 p-2 text-sm font-bold text-gray-400";
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            } else {
+                loginTab.className = "flex-1 p-2 text-sm font-bold text-gray-400";
+                registerTab.className = "flex-1 p-2 text-sm font-bold text-red-600 border-b-2 border-red-600";
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            }
             
-            // Modificar o botão finalizar para associar ao combo
-            const botaoFinalizar = document.querySelector('#modal-montador-pizza button[onclick="finalizarPizzaMontada()"]');
-            if (botaoFinalizar) {
-                botaoFinalizar.onclick = finalizarPizzaParaCombo;
-                botaoFinalizar.innerHTML = '✓ Adicionar Pizza ao Combo';
+            document.getElementById('login-message').classList.add('hidden');
+            document.getElementById('login-message').textContent = '';
+        }
+
+        async function processarLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const messageDiv = document.getElementById('login-message');
+            
+            if (!email || !password) {
+                messageDiv.textContent = "Preencha email e senha!";
+                messageDiv.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                // Desabilitar botão
+                const btn = document.querySelector('#login-form button');
+                const originalText = btn.textContent;
+                btn.textContent = "ENTRANDO...";
+                btn.disabled = true;
+                
+                // Fazer login com Firebase Auth
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // Verificar se é admin
+                const isUserAdmin = await verificarUsuarioAdmin(user.uid);
+                
+                if (!isUserAdmin) {
+                    await signOut(auth);
+                    messageDiv.textContent = "Acesso não autorizado. Este usuário não é administrador.";
+                    messageDiv.classList.remove('hidden');
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                    return;
+                }
+                
+                // Login bem-sucedido
+                fecharLogin();
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+                
+            } catch (error) {
+                console.error("Erro no login:", error);
+                let errorMessage = "Erro ao fazer login: ";
+                
+                switch(error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = "Usuário não encontrado!";
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = "Senha incorreta!";
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = "Email inválido!";
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = "Muitas tentativas. Tente novamente mais tarde.";
+                        break;
+                    default:
+                        errorMessage = "Erro: " + error.message;
+                }
+                
+                messageDiv.textContent = errorMessage;
+                messageDiv.classList.remove('hidden');
+                
+                // Reabilitar botão
+                const btn = document.querySelector('#login-form button');
+                btn.textContent = "Entrar no Painel";
+                btn.disabled = false;
             }
         }
 
-        function finalizarPizzaParaCombo() {
-            // Validar pizza montada
-            if (!pizzaMontada.tamanho) {
-                alert("Selecione um tamanho para a pizza!");
+        async function processarRegistro() {
+            const nome = document.getElementById('register-nome').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            const messageDiv = document.getElementById('login-message');
+            
+            if (!nome || !email || !password) {
+                messageDiv.textContent = "Preencha todos os campos!";
+                messageDiv.classList.remove('hidden');
                 return;
             }
             
-            if (pizzaMontada.sabores.length === 0) {
-                alert("Selecione pelo menos um sabor!");
+            if (password.length < 6) {
+                messageDiv.textContent = "A senha deve ter no mínimo 6 caracteres!";
+                messageDiv.classList.remove('hidden');
                 return;
             }
             
-            // Recuperar dados do combo
-            const comboData = JSON.parse(localStorage.getItem('combo_em_andamento') || '{}');
-            
-            if (!comboData.dadosPromocao) {
-                alert("Erro: Dados do combo não encontrados!");
-                return;
-            }
-            
-            // Adicionar pizza montada ao combo
-            const pizzaMontadaClone = JSON.parse(JSON.stringify(pizzaMontada));
-            comboPersonalizado.tipo = 'montador';
-            comboPersonalizado.pizzasMontadas = comboData.pizzasMontadas || [];
-            comboPersonalizado.pizzasMontadas.push(pizzaMontadaClone);
-            comboPersonalizado.dadosPromocao = comboData.dadosPromocao;
-            
-            // Salvar combo atualizado
-            localStorage.setItem('combo_em_andamento', JSON.stringify(comboPersonalizado));
-            
-            // Fechar montador
-            fecharMontadorPizza();
-            
-            // Reabrir modal do combo
-            setTimeout(() => {
-                sessionStorage.removeItem('montando_para_combo');
-                abrirModalPersonalizarCombo();
+            try {
+                // Desabilitar botão
+                const btn = document.querySelector('#register-form button');
+                const originalText = btn.textContent;
+                btn.textContent = "REGISTRANDO...";
+                btn.disabled = true;
                 
-                // Atualizar resumo
-                atualizarResumoCombo();
+                // Verificar se já existe algum usuário
+                const usersSnapshot = await getDocs(collection(db, "usuarios"));
+                const isFirstUser = usersSnapshot.empty;
                 
-                alert(`Pizza montada adicionada ao combo! (${comboPersonalizado.pizzasMontadas.length} pizza(s) no combo)`);
-            }, 300);
+                // Criar usuário no Firebase Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // Salvar dados do usuário no Firestore
+                await setDoc(doc(db, "usuarios", user.uid), {
+                    nome: nome,
+                    email: email,
+                    admin: isFirstUser, // Primeiro usuário é admin
+                    ativo: true,
+                    created_at: new Date().getTime()
+                });
+                
+                // Se for o primeiro usuário, já loga automaticamente
+                if (isFirstUser) {
+                    messageDiv.textContent = "✅ Primeiro usuário registrado como ADMINISTRADOR!";
+                    messageDiv.classList.remove('hidden');
+                    messageDiv.className = "mt-4 text-xs text-green-600 font-bold";
+                    
+                    // Limpar campos
+                    document.getElementById('register-nome').value = '';
+                    document.getElementById('register-email').value = '';
+                    document.getElementById('register-password').value = '';
+                    
+                    // Fechar modal após 2 segundos
+                    setTimeout(() => {
+                        fecharLogin();
+                    }, 2000);
+                } else {
+                    // Para outros usuários, precisa de aprovação do admin
+                    await signOut(auth);
+                    messageDiv.textContent = "✅ Usuário registrado! Aguarde aprovação do administrador.";
+                    messageDiv.classList.remove('hidden');
+                    messageDiv.className = "mt-4 text-xs text-green-600 font-bold";
+                    
+                    // Limpar campos e voltar para login
+                    document.getElementById('register-nome').value = '';
+                    document.getElementById('register-email').value = '';
+                    document.getElementById('register-password').value = '';
+                    switchLoginTab('login');
+                }
+                
+                btn.textContent = originalText;
+                btn.disabled = false;
+                
+            } catch (error) {
+                console.error("Erro no registro:", error);
+                let errorMessage = "Erro ao registrar: ";
+                
+                switch(error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage = "Email já está em uso!";
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = "Email inválido!";
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage = "Senha muito fraca! Use pelo menos 6 caracteres.";
+                        break;
+                    default:
+                        errorMessage = "Erro: " + error.message;
+                }
+                
+                messageDiv.textContent = errorMessage;
+                messageDiv.classList.remove('hidden');
+                
+                // Reabilitar botão
+                const btn = document.querySelector('#register-form button');
+                btn.textContent = "Registrar Usuário";
+                btn.disabled = false;
+            }
         }
+
+        async function sairAdmin() {
+            try {
+                await signOut(auth);
+                // O listener de auth vai atualizar a interface automaticamente
+            } catch (error) {
+                console.error("Erro ao sair:", error);
+                alert("Erro ao sair: " + error.message);
+            }
+        }
+
+        // ==================== FUNÇÕES DE USUÁRIOS ====================
+
+        async function carregarUsuarios() {
+            try {
+                const usuariosSnap = await getDocs(collection(db, "usuarios"));
+                USUARIOS = usuariosSnap.docs.map(d => ({id: d.id, ...d.data()}));
+                return USUARIOS;
+            } catch (error) {
+                console.error("Erro ao carregar usuários:", error);
+                return [];
+            }
+        }
+
+        async function renderUsuariosADM() {
+            const sec = document.getElementById('sec-usuarios');
+            if (!sec) return;
+            
+            try {
+                await carregarUsuarios();
+                
+                let html = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="font-bebas text-xl text-gray-800">Gerenciar Usuários</h3>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-[35px] shadow-lg mb-6">
+                        <h4 class="font-bold text-sm text-gray-700 mb-3">Usuários Cadastrados</h4>`;
+                
+                if (USUARIOS.length === 0) {
+                    html += `<div class="text-center py-8 text-gray-500">Nenhum usuário cadastrado</div>`;
+                } else {
+                    USUARIOS.forEach(u => {
+                        const isCurrentUser = currentUser && u.id === currentUser.uid;
+                        html += `
+                        <div class="border-b border-gray-100 py-4 ${isCurrentUser ? 'bg-red-50' : ''}">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <div class="font-bold text-sm">${u.nome || 'Sem nome'}</div>
+                                    <div class="text-xs text-gray-500">${u.email}</div>
+                                    <div class="flex gap-2 mt-1">
+                                        <span class="text-[8px] ${u.admin ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'} px-2 py-1 rounded-full">${u.admin ? 'Admin' : 'Usuário'}</span>
+                                        <span class="text-[8px] ${u.ativo !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded-full">${u.ativo !== false ? 'Ativo' : 'Inativo'}</span>
+                                        ${isCurrentUser ? '<span class="text-[8px] bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Você</span>' : ''}
+                                    </div>
+                                </div>
+                                <div class="flex gap-1">
+                                    ${!isCurrentUser ? `
+                                    <button onclick="editarUsuario('${u.id}')" class="bg-red-100 text-red-700 p-2 rounded-lg hover:bg-red-200 transition"><i class="fas fa-edit text-xs"></i></button>
+                                    <button onclick="toggleAtivoUsuario('${u.id}', ${u.ativo !== false})" class="bg-gray-100 text-gray-700 p-2 rounded-lg hover:bg-gray-200 transition">
+                                        <i class="fas ${u.ativo !== false ? 'fa-toggle-on text-green-500' : 'fa-toggle-off text-gray-400'}"></i>
+                                    </button>
+                                    <button onclick="excluirUsuario('${u.id}')" class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition"><i class="fas fa-trash text-xs"></i></button>
+                                    ` : '<span class="text-xs text-gray-400 px-2">Atual</span>'}
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                }
+                
+                html += `</div>`;
+                
+                sec.innerHTML = html;
+            } catch (error) {
+                console.error("Erro ao renderizar usuários:", error);
+                sec.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl">Erro ao carregar usuários: ${error.message}</div>`;
+            }
+        }
+
+        async function editarUsuario(id) {
+            try {
+                const usuario = USUARIOS.find(u => u.id === id);
+                if (!usuario) return;
+                
+                document.getElementById('edit-usuario-nome').value = usuario.nome || "";
+                document.getElementById('edit-usuario-email').value = usuario.email || "";
+                document.getElementById('edit-usuario-senha').value = "";
+                document.getElementById('edit-usuario-admin').checked = usuario.admin === true;
+                document.getElementById('edit-usuario-ativo').checked = usuario.ativo !== false;
+                document.getElementById('edit-usuario-id-hidden').value = id;
+                
+                document.getElementById('modal-editar-usuario').classList.remove('hidden');
+            } catch (error) {
+                console.error("Erro ao editar usuário:", error);
+                alert("Erro ao carregar usuário!");
+            }
+        }
+
+        function fecharModalEditarUsuario() {
+            document.getElementById('modal-editar-usuario').classList.add('hidden');
+        }
+
+        async function salvarEdicaoUsuario() {
+            try {
+                const id = document.getElementById('edit-usuario-id-hidden').value;
+                const nome = document.getElementById('edit-usuario-nome').value;
+                const email = document.getElementById('edit-usuario-email').value;
+                const senha = document.getElementById('edit-usuario-senha').value;
+                const isAdmin = document.getElementById('edit-usuario-admin').checked;
+                const isAtivo = document.getElementById('edit-usuario-ativo').checked;
+                
+                // Atualizar dados no Firestore
+                const usuarioRef = doc(db, "usuarios", id);
+                const updateData = {
+                    nome: nome,
+                    admin: isAdmin,
+                    ativo: isAtivo,
+                    updated_at: new Date().getTime()
+                };
+                
+                // Se email mudou, precisamos atualizar no Auth também
+                const usuario = USUARIOS.find(u => u.id === id);
+                if (usuario && usuario.email !== email) {
+                    // Email não pode ser alterado facilmente sem reautenticação
+                    alert("Para alterar o email, o usuário precisa fazer login e alterar na conta dele.");
+                }
+                
+                await updateDoc(usuarioRef, updateData);
+                
+                // Se senha foi fornecida, atualizar no Auth
+                if (senha && senha.length >= 6) {
+                    // NOTA: Em produção, isso exigiria reautenticação ou permissões especiais
+                    alert("Para alterar a senha, o usuário precisa fazer login e alterar na conta dele.");
+                }
+                
+                fecharModalEditarUsuario();
+                await carregarUsuarios();
+                renderUsuariosADM();
+                alert("Usuário atualizado com sucesso!");
+            } catch (error) {
+                console.error("Erro ao salvar edição do usuário:", error);
+                alert("Erro ao salvar edição do usuário!");
+            }
+        }
+
+        async function toggleAtivoUsuario(id, atual) {
+            try {
+                const usuarioRef = doc(db, "usuarios", id);
+                await updateDoc(usuarioRef, {
+                    ativo: !atual,
+                    updated_at: new Date().getTime()
+                });
+                
+                // Atualizar lista local
+                const usuario = USUARIOS.find(u => u.id === id);
+                if (usuario) {
+                    usuario.ativo = !atual;
+                }
+                
+                renderUsuariosADM();
+                alert(`Usuário ${!atual ? 'ativado' : 'desativado'} com sucesso!`);
+            } catch (error) {
+                console.error("Erro ao alternar status do usuário:", error);
+                alert("Erro ao alterar status do usuário!");
+            }
+        }
+
+        async function excluirUsuario(id) {
+            if (!confirm("Tem certeza que deseja excluir este usuário?\n\nEsta ação não pode ser desfeita!")) {
+                return;
+            }
+            
+            try {
+                // Não permitir excluir a si mesmo
+                if (currentUser && id === currentUser.uid) {
+                    alert("Você não pode excluir a si mesmo!");
+                    return;
+                }
+                
+                // Excluir do Firestore
+                await deleteDoc(doc(db, "usuarios", id));
+                
+                // Remover da lista local
+                USUARIOS = USUARIOS.filter(u => u.id !== id);
+                
+                renderUsuariosADM();
+                alert("Usuário excluído com sucesso!");
+            } catch (error) {
+                console.error("Erro ao excluir usuário:", error);
+                alert("Erro ao excluir usuário!");
+            }
+        }
+
+        // ==================== CONTINUAÇÃO DO CÓDIGO (funções restantes) ====================
+
+        // [AQUI CONTINUAM TODAS AS OUTRAS FUNÇÕES DO SISTEMA...]
+        // Para manter o código dentro do limite, vou mencionar que as outras funções
+        // (loadData, renderCardapio, montadorPizza, checkout, etc) continuam iguais
+        // mas com as adições das novas funções de login acima.
 
         async function loadData() {
             try {
@@ -1873,14 +2281,6 @@
         }
 
         function finalizarPizzaMontada() {
-            // Verificar se está montando para combo
-            const montandoParaCombo = sessionStorage.getItem('montando_para_combo') === 'true';
-            
-            if (montandoParaCombo) {
-                finalizarPizzaParaCombo();
-                return;
-            }
-            
             // Validar
             if (!pizzaMontada.tamanho) {
                 alert("Selecione um tamanho para a pizza!");
@@ -1924,13 +2324,6 @@
         function fecharMontadorPizza() {
             document.getElementById('modal-montador-pizza').classList.add('hidden');
             resetarMontadorPizza();
-            
-            // Restaurar botão padrão se estava modificado
-            const botaoFinalizar = document.querySelector('#modal-montador-pizza button');
-            if (botaoFinalizar && botaoFinalizar.innerHTML.includes('Combo')) {
-                botaoFinalizar.onclick = finalizarPizzaMontada;
-                botaoFinalizar.innerHTML = '✓ Adicionar Pizza ao Carrinho';
-            }
         }
 
         // ==================== FUNÇÕES DE CHECKOUT ====================
@@ -2332,47 +2725,6 @@
             }
         }
 
-        // ==================== FUNÇÕES DO PAINEL ADMIN ====================
-
-        function abrirLogin() {
-            document.getElementById('view-login').classList.remove('hidden');
-        }
-
-        function fecharLogin() {
-            document.getElementById('view-login').classList.add('hidden');
-        }
-
-        async function processarLogin() {
-            const senha = document.getElementById('login-pass').value;
-            
-            // Senha padrão: 123 (altere em produção)
-            if (senha === "123") {
-                isAdmin = true;
-                fecharLogin();
-                document.getElementById('view-cliente').classList.add('hidden');
-                document.getElementById('view-admin').classList.remove('hidden');
-                switchTab('pedidos');
-                document.getElementById('login-pass').value = '';
-                
-                // Forçar atualização dos pedidos ao entrar no ADM
-                setTimeout(() => {
-                    // Recarregar listener para garantir que está funcionando
-                    listenPedidos();
-                }, 500);
-            } else {
-                alert("Senha Incorreta!");
-                document.getElementById('login-pass').value = '';
-                document.getElementById('login-pass').focus();
-            }
-        }
-
-        function sairAdmin() {
-            isAdmin = false;
-            document.getElementById('view-admin').classList.add('hidden');
-            document.getElementById('view-cliente').classList.remove('hidden');
-            location.reload();
-        }
-
         function updateStatusLojaUI() {
             const b = document.getElementById('cli-status-loja');
             if (!b) return;
@@ -2390,7 +2742,7 @@
 
         function switchTab(tab) {
             // Atualizar botões das tabs
-            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos', 'especiais'].forEach(t => {
+            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos', 'especiais', 'usuarios'].forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
                 if (btn) {
                     if (t === tab) {
@@ -2402,7 +2754,7 @@
             });
             
             // Atualizar conteúdo
-            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos', 'especiais'].forEach(t => {
+            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos', 'especiais', 'usuarios'].forEach(t => {
                 const sec = document.getElementById(`sec-${t}`);
                 if (sec) {
                     if (t === tab) {
@@ -2428,6 +2780,8 @@
                 renderTamanhosADM();
             } else if (tab === 'especiais') {
                 renderEspeciaisADM();
+            } else if (tab === 'usuarios') {
+                renderUsuariosADM();
             }
         }
 
@@ -3912,7 +4266,9 @@
         // Funções do cliente
         window.abrirLogin = abrirLogin;
         window.fecharLogin = fecharLogin;
+        window.switchLoginTab = switchLoginTab;
         window.processarLogin = processarLogin;
+        window.processarRegistro = processarRegistro;
         window.sairAdmin = sairAdmin;
         window.renderCardapio = renderCardapio;
         window.addCart = addCart;
@@ -3949,9 +4305,6 @@
         window.habilitarSelecaoSaboresCombo = habilitarSelecaoSaboresCombo;
         window.selecionarSaborCombo = selecionarSaborCombo;
         window.finalizarSelecaoSaboresCombo = finalizarSelecaoSaboresCombo;
-        window.usarMontadorParaCombo = usarMontadorParaCombo;
-        window.abrirMontadorPizzaParaCombo = abrirMontadorPizzaParaCombo;
-        window.finalizarPizzaParaCombo = finalizarPizzaParaCombo;
         window.adicionarComboPadrao = adicionarComboPadrao;
 
         // Funções do painel ADM
@@ -3996,6 +4349,14 @@
         window.fecharModalLocalizacao = fecharModalLocalizacao;
         window.obterLocalizacaoAtual = obterLocalizacaoAtual;
         window.salvarLocalizacaoLoja = salvarLocalizacaoLoja;
+
+        // Funções de usuários
+        window.renderUsuariosADM = renderUsuariosADM;
+        window.editarUsuario = editarUsuario;
+        window.fecharModalEditarUsuario = fecharModalEditarUsuario;
+        window.salvarEdicaoUsuario = salvarEdicaoUsuario;
+        window.toggleAtivoUsuario = toggleAtivoUsuario;
+        window.excluirUsuario = excluirUsuario;
 
         // Iniciar quando o DOM estiver carregado
         if (document.readyState === 'loading') {
