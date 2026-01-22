@@ -149,31 +149,13 @@
     <!-- [MODAL LOGIN ADM] -->
     <div id="view-login" class="hidden fixed inset-0 bg-black/95 z-[150] flex items-center justify-center p-6 backdrop-blur-sm">
         <div class="bg-white w-full max-w-sm p-8 rounded-[40px] text-center shadow-2xl">
-            <h2 class="text-2xl font-bebas uppercase mb-6 text-red-600">Login Master</h2>
-            
-            <div id="login-tabs" class="flex mb-6 border-b border-gray-200">
-                <button onclick="switchLoginTab('login')" id="tab-login" class="flex-1 p-2 text-sm font-bold text-red-600 border-b-2 border-red-600">Entrar</button>
-                <button onclick="switchLoginTab('register')" id="tab-register" class="flex-1 p-2 text-sm font-bold text-gray-400">Registrar</button>
-            </div>
-            
-            <!-- Formulário de Login -->
-            <div id="login-form" class="space-y-4">
-                <input id="login-email" type="email" placeholder="Email" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-2 text-sm">
-                <input id="login-password" type="password" placeholder="Senha" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-4 text-sm">
-                <button onclick="processarLogin()" class="w-full bg-red-600 text-white p-4 rounded-2xl font-black uppercase shadow-lg hover:bg-red-700 transition">Entrar no Painel</button>
-            </div>
-            
-            <!-- Formulário de Registro -->
-            <div id="register-form" class="hidden space-y-4">
-                <input id="register-nome" type="text" placeholder="Nome Completo" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-2 text-sm">
-                <input id="register-email" type="email" placeholder="Email" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-2 text-sm">
-                <input id="register-password" type="password" placeholder="Senha (mínimo 6 caracteres)" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-4 text-sm">
-                <button onclick="processarRegistro()" class="w-full bg-green-600 text-white p-4 rounded-2xl font-black uppercase shadow-lg hover:bg-green-700 transition">Registrar Usuário</button>
-            </div>
-            
-            <div id="login-message" class="mt-4 text-xs text-red-600 font-bold hidden"></div>
-            
-            <button onclick="fecharLogin()" class="mt-6 text-gray-400 text-xs font-bold uppercase underline">Voltar para a Loja</button>
+            <h2 class="text-2xl font-bebas uppercase mb-6 text-red-600">Login Administrativo</h2>
+            <input id="login-email" type="email" placeholder="Email ADM" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-3 text-sm">
+            <input id="login-pass" type="password" placeholder="Senha ADM" class="w-full p-4 bg-red-50 rounded-2xl border-none outline-none mb-4 text-sm">
+            <button onclick="processarLogin()" class="w-full bg-red-600 text-white p-4 rounded-2xl font-black uppercase shadow-lg hover:bg-red-700 transition">Entrar no Painel</button>
+            <button onclick="fecharLogin()" class="mt-4 text-gray-400 text-xs font-bold uppercase underline">Voltar</button>
+            <div id="login-error" class="mt-3 text-red-500 text-xs hidden"></div>
+            <!-- REMOVIDA A MENSAGEM DE PRIMEIRO ACESSO -->
         </div>
     </div>
 
@@ -282,8 +264,8 @@
     <div id="view-admin" class="hidden w-full max-w-4xl mx-auto min-h-screen pb-20 bg-red-50">
         <header class="bg-gray-900 text-red-400 p-4 flex justify-between items-center sticky top-0 z-50">
             <h1 class="font-bebas text-red-400 uppercase tracking-tighter text-xl">PAINEL MASTER PIZZA</h1>
-            <div class="flex items-center gap-4">
-                <span id="admin-user-name" class="text-xs text-red-300"></span>
+            <div class="flex items-center gap-3">
+                <span id="admin-user" class="text-[10px] text-red-300"></span>
                 <button onclick="sairAdmin()" class="text-[9px] font-bold border border-red-400 text-red-400 px-3 py-1 rounded-full uppercase hover:bg-red-400 hover:text-gray-900 transition">Sair</button>
             </div>
         </header>
@@ -296,7 +278,6 @@
             <button onclick="switchTab('promocoes')" id="tab-promocoes" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">🔥 Promoções</button>
             <button onclick="switchTab('tamanhos')" id="tab-tamanhos" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">📏 Tamanhos</button>
             <button onclick="switchTab('especiais')" id="tab-especiais" class="flex-1 p-4 font-bold text-[9px] uppercase whitespace-nowrap tracking-tighter text-gray-400">🔧 Especiais</button>
-            <button onclick="switchTab('usuarios')" id="tab-usuarios" class="flex-1 p-4 font-bold text-[9px] uppercase text-gray-400">👥 Usuários</button>
         </div>
         <div id="adm-content" class="p-4 space-y-4">
             <div id="sec-pedidos" class="space-y-4 text-black">
@@ -311,7 +292,6 @@
             <div id="sec-promocoes" class="hidden space-y-4 text-black"></div>
             <div id="sec-tamanhos" class="hidden space-y-4 text-black"></div>
             <div id="sec-especiais" class="hidden space-y-4 text-black"></div>
-            <div id="sec-usuarios" class="hidden space-y-4 text-black"></div>
         </div>
     </div>
 
@@ -345,6 +325,16 @@
                 <input id="promocao-preco" type="number" step="0.01" placeholder="Preço com desconto" class="flex-1 p-3 border rounded-xl text-sm font-black">
                 <input id="promocao-preco-original" type="number" step="0.01" placeholder="Preço original" class="flex-1 p-3 border rounded-xl text-sm font-black">
             </div>
+            
+            <!-- Nova seção: Seleção de sabores -->
+            <div class="border-t pt-4">
+                <h3 class="font-bold text-sm mb-3">Sabores Inclusos (opcional)</h3>
+                <div id="promocao-sabores-container" class="space-y-2 max-h-40 overflow-y-auto">
+                    <!-- Sabores serão carregados aqui -->
+                </div>
+                <div class="text-xs text-gray-500 mt-2">Selecione até 2 sabores para esta promoção</div>
+            </div>
+            
             <input id="promocao-imagem" type="text" placeholder="URL da Imagem" class="w-full p-3 border rounded-xl text-sm">
             <div class="flex justify-between items-center p-3 bg-red-50 rounded-xl border text-[10px] font-black uppercase">
                 <span>Promoção Ativa?</span>
@@ -409,95 +399,6 @@
         </div>
     </div>
 
-    <!-- [MODAL PERSONALIZAR COMBO PROMOÇÃO] -->
-    <div id="modal-personalizar-combo" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end justify-center text-black">
-        <div class="bg-white w-full max-w-md rounded-t-[40px] p-6 space-y-4 max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div class="flex justify-between items-center font-bebas uppercase tracking-tighter text-red-600">
-                <h2 class="text-xl">PERSONALIZAR COMBO</h2>
-                <button onclick="fecharModalCombo()" class="text-2xl">✕</button>
-            </div>
-            
-            <!-- Imagem do Combo -->
-            <div class="mb-4">
-                <img id="combo-imagem" src="" class="w-full h-48 object-cover rounded-2xl" 
-                     onerror="this.src='https://cdn-icons-png.flaticon.com/512/3075/3075977.png'">
-            </div>
-            
-            <!-- Informações do Combo -->
-            <div class="bg-red-50 p-4 rounded-2xl mb-4">
-                <div class="font-bebas text-lg text-red-800" id="combo-titulo"></div>
-                <div class="text-sm text-gray-600 mt-1" id="combo-descricao"></div>
-                <div class="flex justify-between items-center mt-3">
-                    <div>
-                        <div class="text-xs text-gray-500">Preço Original</div>
-                        <div class="text-sm line-through text-gray-400" id="combo-preco-original"></div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-xs text-gray-500">Preço Promocional</div>
-                        <div class="text-2xl font-black text-green-600" id="combo-preco-promo"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Seleção de Sabores (para pizzas do combo) -->
-            <div id="selecao-sabores-combo" class="hidden">
-                <h3 class="font-black text-sm uppercase text-gray-800 mb-3">Escolha os Sabores</h3>
-                <div id="lista-sabores-combo" class="space-y-2">
-                    <!-- Sabores serão carregados aqui dinamicamente -->
-                </div>
-                <div class="text-xs text-gray-500 mt-2">
-                    <i class="fas fa-info-circle"></i> Selecione um sabor para cada pizza do combo
-                </div>
-                <div class="mt-4 text-center">
-                    <button onclick="finalizarSelecaoSaboresCombo()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold">
-                        ✓ Confirmar Sabores
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Opções de Personalização - SIMPLIFICADO -->
-            <div class="bg-yellow-50 p-4 rounded-2xl border border-yellow-200 mb-4">
-                <h3 class="font-black text-sm uppercase text-yellow-800 mb-2">Opções de Personalização</h3>
-                
-                <div class="space-y-3">
-                    <!-- Opção 1: Selecionar sabores prontos -->
-                    <div class="flex items-center justify-between p-3 bg-white rounded-xl border">
-                        <div>
-                            <div class="font-bold text-sm">Selecionar Sabores Prontos</div>
-                            <div class="text-xs text-gray-500">Escolha entre nossos sabores tradicionais</div>
-                        </div>
-                        <button onclick="habilitarSelecaoSaboresCombo()" class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-700 transition">
-                            Selecionar
-                        </button>
-                    </div>
-                    
-                    <!-- Opção 2: Combo padrão (sem personalização) -->
-                    <div class="flex items-center justify-between p-3 bg-white rounded-xl border">
-                        <div>
-                            <div class="font-bold text-sm">Combo Padrão</div>
-                            <div class="text-xs text-gray-500">Adicionar o combo como está na promoção</div>
-                        </div>
-                        <button onclick="adicionarComboPadrao()" class="bg-gray-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-gray-700 transition">
-                            Padrão
-                        </button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Resumo da Seleção -->
-            <div id="resumo-selecao-combo" class="bg-green-50 p-4 rounded-2xl border border-green-200 hidden">
-                <h4 class="font-black text-sm uppercase text-green-800 mb-2">Sua Seleção</h4>
-                <div id="texto-selecao-combo" class="text-sm text-gray-700"></div>
-            </div>
-            
-            <!-- Botão Finalizar -->
-            <button onclick="adicionarComboPersonalizadoAoCarrinho()" id="btn-finalizar-combo" 
-                    class="w-full bg-green-600 text-white py-4 rounded-[25px] font-black uppercase text-sm mt-4 hover:bg-green-700 transition">
-                ✓ Adicionar Combo ao Carrinho
-            </button>
-        </div>
-    </div>
-
     <!-- [MODAL GERENCIAR CARRINHO] -->
     <div id="modal-carrinho" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end justify-center">
         <div class="bg-white w-full max-w-md rounded-t-[45px] p-7 space-y-4 max-h-[94vh] overflow-y-auto shadow-2xl text-black">
@@ -549,81 +450,30 @@
         </div>
     </div>
 
-    <!-- MODAL PARA OBTER LOCALIZAÇÃO DA LOJA -->
-    <div id="modal-localizacao-loja" class="fixed inset-0 bg-black/80 z-[120] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-md p-6 rounded-[40px] shadow-2xl space-y-4 text-black">
-            <div class="flex justify-between items-center font-bebas uppercase text-sm text-red-600">
-                <h2>📍 Configurar Localização da Loja</h2>
-                <button onclick="fecharModalLocalizacao()">✕</button>
+    <!-- NOVO MODAL PARA SELECIONAR SABORES NA PROMOÇÃO -->
+    <div id="modal-sabores-promocao" class="fixed inset-0 bg-black/80 z-[120] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md p-6 rounded-[40px] shadow-2xl space-y-4 text-black max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center font-bebas uppercase text-xl text-red-600">
+                <h2>Escolha os Sabores</h2>
+                <button onclick="fecharModalSaboresPromocao()" class="text-2xl">✕</button>
             </div>
             
             <div class="text-sm text-gray-600 mb-4">
-                Para calcular distâncias de entrega, precisamos da localização da sua pizzaria.
+                Selecione os sabores para sua promoção (máximo 2):
             </div>
             
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-xs font-bold mb-1">Endereço da Pizzaria</label>
-                    <input type="text" id="input-endereco-loja" placeholder="Digite o endereço completo" class="w-full p-3 border rounded-xl text-sm">
-                </div>
-                
-                <div class="text-center text-sm text-gray-500">OU</div>
-                
-                <button onclick="obterLocalizacaoAtual()" class="w-full bg-blue-600 text-white p-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2">
-                    <i class="fas fa-location-crosshairs"></i>
-                    USAR MINHA LOCALIZAÇÃO ATUAL
-                </button>
-                
-                <div class="text-xs text-gray-500 italic">
-                    Permita o acesso à localização no navegador quando solicitado.
-                </div>
-                
-                <div id="coordenadas-container" class="hidden space-y-2">
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Latitude</label>
-                            <input type="text" id="input-lat" readonly class="w-full p-3 bg-gray-100 rounded-xl text-sm font-mono">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold mb-1">Longitude</label>
-                            <input type="text" id="input-lng" readonly class="w-full p-3 bg-gray-100 rounded-xl text-sm font-mono">
-                        </div>
-                    </div>
-                    
-                    <div class="text-xs text-green-600 font-bold text-center">
-                        ✅ Localização obtida com sucesso!
-                    </div>
-                </div>
+            <div id="lista-sabores-promocao" class="space-y-2">
+                <!-- Sabores serão carregados aqui -->
             </div>
             
-            <div class="flex gap-2 pt-4">
-                <button onclick="fecharModalLocalizacao()" class="flex-1 bg-gray-200 text-gray-800 p-3 rounded-xl font-bold text-sm">
-                    Cancelar
-                </button>
-                <button onclick="salvarLocalizacaoLoja()" class="flex-1 bg-green-600 text-white p-3 rounded-xl font-bold text-sm">
-                    Salvar Localização
-                </button>
+            <div id="resumo-sabores-selecionados" class="bg-red-50 p-4 rounded-xl mt-4">
+                <div class="text-sm font-bold mb-2">Sabores selecionados:</div>
+                <div id="sabores-selecionados-lista" class="text-sm">Nenhum sabor selecionado</div>
             </div>
-        </div>
-    </div>
-
-    <!-- MODAL EDIÇÃO USUÁRIO -->
-    <div id="modal-editar-usuario" class="fixed inset-0 bg-black/80 z-[110] hidden flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-md p-6 rounded-[40px] shadow-2xl space-y-4 text-black">
-            <div class="flex justify-between items-center font-bebas uppercase text-sm text-red-600"><h2>Editar Usuário</h2><button onclick="fecharModalEditarUsuario()">✕</button></div>
-            <input id="edit-usuario-nome" type="text" placeholder="Nome Completo" class="w-full p-3 border rounded-xl text-sm font-bold">
-            <input id="edit-usuario-email" type="email" placeholder="Email" class="w-full p-3 border rounded-xl text-sm">
-            <input id="edit-usuario-senha" type="password" placeholder="Nova Senha (deixe em branco para não alterar)" class="w-full p-3 border rounded-xl text-sm">
-            <div class="flex justify-between items-center p-3 bg-red-50 rounded-xl border text-[10px] font-black uppercase">
-                <span>Administrador?</span>
-                <label class="switch"><input type="checkbox" id="edit-usuario-admin"><span class="slider"></span></label>
-            </div>
-            <div class="flex justify-between items-center p-3 bg-red-50 rounded-xl border text-[10px] font-black uppercase">
-                <span>Ativo?</span>
-                <label class="switch"><input type="checkbox" id="edit-usuario-ativo"><span class="slider"></span></label>
-            </div>
-            <input id="edit-usuario-id-hidden" type="hidden">
-            <button onclick="salvarEdicaoUsuario()" class="w-full bg-red-600 text-white p-4 rounded-2xl font-black uppercase text-xs shadow-lg hover:bg-red-700 transition">Salvar Usuário</button>
+            
+            <button onclick="adicionarPromocaoComSabores()" class="w-full bg-green-600 text-white py-4 rounded-[25px] font-black uppercase text-sm mt-4 hover:bg-green-700 transition">
+                Adicionar Promoção ao Carrinho
+            </button>
         </div>
     </div>
 
@@ -654,23 +504,18 @@
             query, 
             orderBy, 
             limit, 
-            deleteDoc,
-            where 
+            deleteDoc 
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        
-        // Importações do Firebase Authentication
         import { 
             getAuth, 
-            createUserWithEmailAndPassword, 
             signInWithEmailAndPassword, 
-            signOut,
-            onAuthStateChanged,
-            updatePassword
+            signOut, 
+            createUserWithEmailAndPassword 
         } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         // Variáveis globais
         let app, db, auth;
-        let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {}, CUPONS = [], PROMOCAO = {}, TAMANHOS = [], USUARIOS = [];
+        let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {}, CUPONS = [], PROMOCAO = {}, TAMANHOS = [];
         let curCat = 'todos';
         let dKM = 0, tFRETE = 0, latCli = 0, lngCli = 0, gpsOk = false, modoConsumo = 'delivery', vCUPOM = 0;
         let isAdmin = false;
@@ -687,12 +532,8 @@
             precoTotal: 0
         };
 
-        // Variáveis para o combo personalizado
-        let comboPersonalizado = {
-            tipo: 'padrao', // 'padrao', 'sabores-prontos'
-            saboresSelecionados: [], // Para sabores prontos
-            dadosPromocao: null
-        };
+        // Variáveis para sabores selecionados na promoção
+        let saboresSelecionadosPromocao = [];
 
         // ==================== FUNÇÕES DO SISTEMA ====================
 
@@ -702,6 +543,23 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
                 console.log("Firebase inicializado com sucesso!");
+                
+                // Verificar se usuário já está logado
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        currentUser = user;
+                        console.log("Usuário logado:", user.email);
+                        
+                        // Se já está no admin, manter
+                        if (document.getElementById('view-admin').classList.contains('hidden') === false) {
+                            document.getElementById('admin-user').innerText = user.email;
+                        }
+                    } else {
+                        currentUser = null;
+                        isAdmin = false;
+                    }
+                });
+                
                 return true;
             } catch (error) {
                 console.error("Erro ao inicializar Firebase:", error);
@@ -723,9 +581,6 @@
                         </div>`;
                     return;
                 }
-
-                // Verificar autenticação do usuário
-                setupAuthListener();
 
                 // Verificar se é página de acompanhamento
                 const params = new URLSearchParams(window.location.search);
@@ -765,75 +620,6 @@
             }
         }
 
-        // ==================== AUTENTICAÇÃO FIREBASE ====================
-
-        function setupAuthListener() {
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUser = user;
-                    console.log("Usuário autenticado:", user.email);
-                    
-                    // Verificar se é admin
-                    await verificarUsuarioAdmin(user.uid);
-                    
-                    // Se já estiver no painel admin, não fazer nada
-                    if (document.getElementById('view-admin').classList.contains('hidden') === false) {
-                        return;
-                    }
-                    
-                    // Se for admin, mostrar painel admin
-                    if (isAdmin) {
-                        document.getElementById('view-cliente').classList.add('hidden');
-                        document.getElementById('view-admin').classList.remove('hidden');
-                        document.getElementById('admin-user-name').textContent = user.email.split('@')[0];
-                        switchTab('pedidos');
-                    }
-                } else {
-                    currentUser = null;
-                    isAdmin = false;
-                    console.log("Usuário não autenticado");
-                    
-                    // Se estiver no painel admin, voltar para cliente
-                    if (document.getElementById('view-admin').classList.contains('hidden') === false) {
-                        document.getElementById('view-admin').classList.add('hidden');
-                        document.getElementById('view-cliente').classList.remove('hidden');
-                    }
-                }
-            });
-        }
-
-        async function verificarUsuarioAdmin(userId) {
-            try {
-                const userDoc = await getDoc(doc(db, "usuarios", userId));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    isAdmin = userData.admin === true && userData.ativo !== false;
-                    return isAdmin;
-                } else {
-                    // Se não existe no banco, verificar se é o primeiro usuário
-                    const usersSnapshot = await getDocs(collection(db, "usuarios"));
-                    if (usersSnapshot.empty) {
-                        // Primeiro usuário - criar automaticamente como admin
-                        await setDoc(doc(db, "usuarios", userId), {
-                            nome: "Administrador",
-                            email: currentUser.email,
-                            admin: true,
-                            ativo: true,
-                            created_at: new Date().getTime()
-                        });
-                        isAdmin = true;
-                        return true;
-                    }
-                    isAdmin = false;
-                    return false;
-                }
-            } catch (error) {
-                console.error("Erro ao verificar usuário admin:", error);
-                isAdmin = false;
-                return false;
-            }
-        }
-
         async function carregarConfiguracao() {
             try {
                 const docRef = doc(db, "configuracoes", "loja");
@@ -854,15 +640,43 @@
                         preco_km: 2.5,
                         whatsapp: "5599999999999",
                         pedido_minimo: 35,
-                        lat_pizzaria: null,
-                        lng_pizzaria: null,
-                        endereco_pizzaria: ""
+                        // Criar usuário admin padrão se não existir
+                        admin_email: "admin@pizza.com",
+                        admin_senha: "admin123"
                     };
                     // Criar configuração padrão se não existir
                     await setDoc(doc(db, "configuracoes", "loja"), CONFIG);
+                    
+                    // Criar usuário admin
+                    await criarUsuarioAdminPadrao();
                 }
             } catch (error) {
                 console.error("Erro ao carregar configuração:", error);
+            }
+        }
+
+        async function criarUsuarioAdminPadrao() {
+            try {
+                // Verificar se já existe um admin
+                const adminRef = doc(db, "usuarios", "admin");
+                const adminSnap = await getDoc(adminRef);
+                
+                if (!adminSnap.exists()) {
+                    // Criar usuário admin no Firebase Auth
+                    await createUserWithEmailAndPassword(auth, "admin@pizza.com", "admin123");
+                    
+                    // Salvar no Firestore
+                    await setDoc(adminRef, {
+                        email: "admin@pizza.com",
+                        nome: "Administrador",
+                        tipo: "admin",
+                        created_at: new Date().getTime()
+                    });
+                    
+                    console.log("Usuário admin criado com sucesso");
+                }
+            } catch (error) {
+                console.error("Erro ao criar usuário admin:", error);
             }
         }
 
@@ -881,7 +695,8 @@
                         preco_original: 89.90,
                         imagem_url: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=800&auto=format&fit=crop&q=80",
                         ativa: true,
-                        produto_id: null
+                        produto_id: null,
+                        sabores_inclusos: [] // Nova propriedade para sabores
                     };
                     // Criar promoção padrão se não existir
                     await setDoc(doc(db, "promocoes", "dia"), PROMOCAO);
@@ -897,13 +712,30 @@
             if (!container) return;
             
             if (PROMOCAO.ativa !== false) {
+                let saboresText = '';
+                if (PROMOCAO.sabores_inclusos && PROMOCAO.sabores_inclusos.length > 0) {
+                    // Buscar nomes dos sabores
+                    const catPizzas = CATS.find(c => c.nome === "Pizzas");
+                    if (catPizzas) {
+                        const saboresNomes = PROMOCAO.sabores_inclusos.map(saborId => {
+                            const sabor = PRODS.find(p => p.id === saborId);
+                            return sabor ? sabor.nome : '';
+                        }).filter(nome => nome !== '');
+                        
+                        if (saboresNomes.length > 0) {
+                            saboresText = `<div class="text-[9px] mt-1 text-red-200">Sabores: ${saboresNomes.join(', ')}</div>`;
+                        }
+                    }
+                }
+                
                 container.innerHTML = `
-                    <div onclick="adicionarPromocaoAoCarrinho()" class="bg-gradient-to-r from-red-500 to-red-700 text-white p-4 rounded-2xl shadow-lg clickable active:scale-95 transition">
+                    <div onclick="abrirSelecaoSaboresPromocao()" class="bg-gradient-to-r from-red-500 to-red-700 text-white p-4 rounded-2xl shadow-lg clickable active:scale-95 transition">
                         <div class="flex items-center justify-between">
                             <div>
                                 <div class="text-[10px] font-black uppercase tracking-widest">🔥 PROMOÇÃO DO DIA</div>
                                 <div class="font-bebas text-lg">${PROMOCAO.titulo || "PIZZA + REFRI"}</div>
                                 <div class="text-xs opacity-90">${PROMOCAO.descricao || "2 Pizzas M + 2 Refris 2L"}</div>
+                                ${saboresText}
                             </div>
                             <div class="text-right">
                                 <div class="text-2xl font-black">R$ ${Number(PROMOCAO.preco || 69.90).toFixed(2)}</div>
@@ -916,7 +748,7 @@
             }
         }
 
-        async function adicionarPromocaoAoCarrinho() {
+        function abrirSelecaoSaboresPromocao() {
             if(CONFIG.loja_aberta === false) {
                 alert("A pizzaria está fechada no momento. Volte mais tarde!");
                 return;
@@ -928,85 +760,28 @@
                 return;
             }
             
-            // Configurar dados do combo personalizado
-            comboPersonalizado = {
-                tipo: 'padrao',
-                saboresSelecionados: [],
-                dadosPromocao: { ...PROMOCAO }
-            };
-            
-            // Abrir modal de personalização
-            abrirModalPersonalizarCombo();
-        }
-
-        // ==================== FUNÇÕES DO COMBO PERSONALIZADO ====================
-
-        function abrirModalPersonalizarCombo() {
-            document.getElementById('modal-personalizar-combo').classList.remove('hidden');
-            
-            // Tentar recuperar dados salvos do combo
-            const comboSalvo = localStorage.getItem('combo_em_andamento');
-            if (comboSalvo) {
-                const dadosSalvos = JSON.parse(comboSalvo);
-                comboPersonalizado = { ...comboPersonalizado, ...dadosSalvos };
-            }
-            
-            // Preencher informações do combo
-            document.getElementById('combo-imagem').src = PROMOCAO.imagem_url || 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=800&auto=format&fit=crop&q=80';
-            document.getElementById('combo-titulo').innerText = PROMOCAO.titulo || "PROMOÇÃO DO DIA";
-            document.getElementById('combo-descricao').innerText = PROMOCAO.descricao || "";
-            document.getElementById('combo-preco-original').innerText = `R$ ${Number(PROMOCAO.preco_original || 89.90).toFixed(2)}`;
-            document.getElementById('combo-preco-promo').innerText = `R$ ${Number(PROMOCAO.preco || 69.90).toFixed(2)}`;
-            
-            // Esconder seções inicialmente
-            document.getElementById('selecao-sabores-combo').classList.add('hidden');
-            document.getElementById('resumo-selecao-combo').classList.add('hidden');
-            document.getElementById('btn-finalizar-combo').disabled = false;
-            document.getElementById('btn-finalizar-combo').innerText = "✓ Adicionar Combo ao Carrinho";
-            
-            // Atualizar resumo se houver dados salvos
-            if (comboSalvo) {
-                atualizarResumoCombo();
-            }
-        }
-
-        function fecharModalCombo() {
-            document.getElementById('modal-personalizar-combo').classList.add('hidden');
-            comboPersonalizado = {
-                tipo: 'padrao',
-                saboresSelecionados: [],
-                dadosPromocao: null
-            };
-            
-            // Limpar dados salvos
-            localStorage.removeItem('combo_em_andamento');
-        }
-
-        function habilitarSelecaoSaboresCombo() {
-            comboPersonalizado.tipo = 'sabores-prontos';
-            comboPersonalizado.saboresSelecionados = [];
-            
-            // Salvar estado atual
-            localStorage.setItem('combo_em_andamento', JSON.stringify(comboPersonalizado));
-            
-            // Mostrar seção de seleção de sabores
-            document.getElementById('selecao-sabores-combo').classList.remove('hidden');
+            // Resetar sabores selecionados
+            saboresSelecionadosPromocao = [];
             
             // Carregar sabores disponíveis
-            carregarSaboresParaCombo();
+            carregarSaboresParaSelecaoPromocao();
+            
+            // Abrir modal de seleção
+            document.getElementById('modal-sabores-promocao').classList.remove('hidden');
         }
 
-        function carregarSaboresParaCombo() {
-            // Buscar categoria de Pizzas
-            const catPizzas = CATS.find(c => c.nome === "Pizzas" || c.nome.toLowerCase().includes("pizza"));
+        function carregarSaboresParaSelecaoPromocao() {
+            const lista = document.getElementById('lista-sabores-promocao');
+            if (!lista) return;
             
-            const lista = document.getElementById('lista-sabores-combo');
-            if (!lista || !catPizzas) {
-                lista.innerHTML = '<div class="text-center text-gray-500 text-sm p-4">Sabores não disponíveis no momento</div>';
+            // Buscar categoria de Pizzas
+            const catPizzas = CATS.find(c => c.nome === "Pizzas");
+            if (!catPizzas) {
+                lista.innerHTML = '<div class="text-center text-gray-500 text-sm p-4">Nenhum sabor disponível</div>';
                 return;
             }
             
-            // Buscar produtos da categoria Pizzas (sabores)
+            // Buscar sabores disponíveis
             const sabores = PRODS.filter(p => {
                 return p.categoria_id === catPizzas.id && p.disponivel !== false;
             });
@@ -1017,126 +792,77 @@
             }
             
             let html = '';
-            sabores.forEach((p, index) => {
-                const jaSelecionado = comboPersonalizado.saboresSelecionados.some(s => s.id === p.id);
+            sabores.forEach(sabor => {
+                const jaSelecionado = saboresSelecionadosPromocao.some(s => s.id === sabor.id);
                 html += `
-                <div onclick="selecionarSaborCombo('${p.id}','${p.nome.replace(/'/g, "\\'")}',this)" 
+                <div onclick="toggleSaborPromocao('${sabor.id}', '${sabor.nome.replace(/'/g, "\\'")}', this)" 
                      class="bg-red-50 p-3 rounded-xl border ${jaSelecionado ? 'border-red-500 bg-red-100' : 'border-red-200'} flex justify-between font-bold text-xs uppercase mb-1 shadow-sm hover:bg-red-100 transition cursor-pointer">
-                    <span>${p.nome} ${jaSelecionado ? '✓' : ''}</span>
-                    <span class="text-[10px] text-gray-500">${p.descricao || ''}</span>
+                    <span>${sabor.nome} ${jaSelecionado ? '✓' : ''}</span>
+                    <span class="text-[10px] text-gray-500">${sabor.descricao || ''}</span>
                 </div>`;
             });
             
             lista.innerHTML = html;
+            atualizarResumoSaboresSelecionados();
         }
 
-        function selecionarSaborCombo(id, nome, el) {
-            const index = comboPersonalizado.saboresSelecionados.findIndex(s => s.id === id);
+        function toggleSaborPromocao(id, nome, elemento) {
+            const index = saboresSelecionadosPromocao.findIndex(s => s.id === id);
             
             if (index === -1) {
-                // Adicionar
-                comboPersonalizado.saboresSelecionados.push({ id, nome });
-                el.classList.add('border-red-500', 'bg-red-100');
-                el.querySelector('span:first-child').innerHTML = `${nome} ✓`;
-            } else {
-                // Remover
-                comboPersonalizado.saboresSelecionados.splice(index, 1);
-                el.classList.remove('border-red-500', 'bg-red-100');
-                el.classList.add('border-red-200');
-                el.querySelector('span:first-child').innerHTML = nome;
-            }
-            
-            // Salvar estado atual
-            localStorage.setItem('combo_em_andamento', JSON.stringify(comboPersonalizado));
-            
-            // Atualizar resumo
-            atualizarResumoCombo();
-        }
-
-        function finalizarSelecaoSaboresCombo() {
-            if (comboPersonalizado.saboresSelecionados.length === 0) {
-                alert("Selecione pelo menos um sabor!");
-                return;
-            }
-            
-            // Esconder seção de seleção
-            document.getElementById('selecao-sabores-combo').classList.add('hidden');
-            
-            // Salvar estado atual
-            localStorage.setItem('combo_em_andamento', JSON.stringify(comboPersonalizado));
-            
-            // Mostrar resumo
-            atualizarResumoCombo();
-        }
-
-        function adicionarComboPadrao() {
-            comboPersonalizado.tipo = 'padrao';
-            comboPersonalizado.saboresSelecionados = [];
-            
-            // Salvar estado atual
-            localStorage.setItem('combo_em_andamento', JSON.stringify(comboPersonalizado));
-            
-            // Mostrar resumo
-            atualizarResumoCombo();
-        }
-
-        function atualizarResumoCombo() {
-            const resumoDiv = document.getElementById('resumo-selecao-combo');
-            const textoResumo = document.getElementById('texto-selecao-combo');
-            
-            if (comboPersonalizado.tipo === 'padrao') {
-                textoResumo.innerHTML = `<div class="text-green-600 font-bold">✓ Combo padrão selecionado</div>
-                                        <div class="text-xs text-gray-600 mt-1">O combo será adicionado como está na promoção.</div>`;
-            } else if (comboPersonalizado.tipo === 'sabores-prontos') {
-                if (comboPersonalizado.saboresSelecionados.length === 0) {
-                    resumoDiv.classList.add('hidden');
+                // Verificar limite de sabores (máximo 2)
+                if (saboresSelecionadosPromocao.length >= 2) {
+                    alert("Máximo de 2 sabores por promoção!");
                     return;
                 }
-                
-                const saboresText = comboPersonalizado.saboresSelecionados.map(s => s.nome).join(', ');
-                textoResumo.innerHTML = `<div class="text-green-600 font-bold">✓ ${comboPersonalizado.saboresSelecionados.length} sabor(es) selecionado(s)</div>
-                                        <div class="text-xs text-gray-600 mt-1">Sabores: ${saboresText}</div>`;
+                // Adicionar
+                saboresSelecionadosPromocao.push({ id, nome });
+                elemento.classList.add('border-red-500', 'bg-red-100');
+                elemento.querySelector('span:first-child').innerHTML = `${nome} ✓`;
+            } else {
+                // Remover
+                saboresSelecionadosPromocao.splice(index, 1);
+                elemento.classList.remove('border-red-500', 'bg-red-100');
+                elemento.classList.add('border-red-200');
+                elemento.querySelector('span:first-child').innerHTML = nome;
             }
             
-            resumoDiv.classList.remove('hidden');
+            atualizarResumoSaboresSelecionados();
         }
 
-        function adicionarComboPersonalizadoAoCarrinho() {
-            if(CONFIG.loja_aberta === false) {
-                alert("A pizzaria está fechada no momento. Volte mais tarde!");
-                return;
+        function atualizarResumoSaboresSelecionados() {
+            const lista = document.getElementById('sabores-selecionados-lista');
+            if (!lista) return;
+            
+            if (saboresSelecionadosPromocao.length === 0) {
+                lista.innerHTML = "Nenhum sabor selecionado";
+            } else {
+                lista.innerHTML = saboresSelecionadosPromocao.map(s => s.nome).join(', ');
+            }
+        }
+
+        function adicionarPromocaoComSabores() {
+            // Verificar se há sabores selecionados (opcional)
+            let descricao = PROMOCAO.descricao || "";
+            
+            if (saboresSelecionadosPromocao.length > 0) {
+                const saboresNomes = saboresSelecionadosPromocao.map(s => s.nome);
+                descricao += ` (Sabores: ${saboresNomes.join(', ')})`;
             }
             
-            if (!comboPersonalizado.dadosPromocao) {
-                alert("Erro: Dados da promoção não encontrados!");
-                return;
-            }
-            
-            // Criar nome descritivo baseado no tipo de personalização
-            let nomeCombo = `🔥 ${comboPersonalizado.dadosPromocao.titulo || "COMBO PROMOÇÃO"}`;
-            let descricaoCombo = comboPersonalizado.dadosPromocao.descricao || "";
-            
-            if (comboPersonalizado.tipo === 'sabores-prontos' && comboPersonalizado.saboresSelecionados.length > 0) {
-                const saboresText = comboPersonalizado.saboresSelecionados.map(s => s.nome).join(' + ');
-                nomeCombo += ` (${saboresText})`;
-                descricaoCombo += ` | Sabores escolhidos: ${saboresText}`;
-            }
-            
-            // Adicionar combo ao carrinho
             CARRINHO.push({
-                id: `combo-promocao-${Date.now()}`,
-                nome: nomeCombo,
-                descricao: descricaoCombo,
-                preco: comboPersonalizado.dadosPromocao.preco || 69.90,
-                tipo: 'combo-promocao',
-                personalizacao: { ...comboPersonalizado }
+                id: `promocao-dia-${Date.now()}`,
+                nome: `🔥 ${PROMOCAO.titulo || "PROMOÇÃO DO DIA"}`,
+                descricao: descricao,
+                preco: PROMOCAO.preco || 69.90,
+                tipo: 'promocao',
+                imagem_url: PROMOCAO.imagem_url || "",
+                sabores_inclusos: saboresSelecionadosPromocao.map(s => s.id),
+                sabores_nomes: saboresSelecionadosPromocao.map(s => s.nome)
             });
             
             updateCartFooter();
-            fecharModalCombo();
-            
-            // Limpar dados salvos
-            localStorage.removeItem('combo_em_andamento');
+            fecharModalSaboresPromocao();
             
             // Feedback visual
             const promocaoDiv = document.querySelector('#promocao-container div');
@@ -1150,414 +876,12 @@
                 }, 1000);
             }
             
-            alert(`Combo personalizado adicionado ao carrinho! R$ ${Number(comboPersonalizado.dadosPromocao.preco || 69.90).toFixed(2)}`);
+            alert(`Promoção adicionada ao carrinho! R$ ${Number(PROMOCAO.preco || 69.90).toFixed(2)}`);
         }
 
-        // ==================== FUNÇÕES DE LOGIN ====================
-
-        function abrirLogin() {
-            document.getElementById('view-login').classList.remove('hidden');
-            switchLoginTab('login');
+        function fecharModalSaboresPromocao() {
+            document.getElementById('modal-sabores-promocao').classList.add('hidden');
         }
-
-        function fecharLogin() {
-            document.getElementById('view-login').classList.add('hidden');
-            document.getElementById('login-message').classList.add('hidden');
-            document.getElementById('login-message').textContent = '';
-        }
-
-        function switchLoginTab(tab) {
-            const loginTab = document.getElementById('tab-login');
-            const registerTab = document.getElementById('tab-register');
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            
-            if (tab === 'login') {
-                loginTab.className = "flex-1 p-2 text-sm font-bold text-red-600 border-b-2 border-red-600";
-                registerTab.className = "flex-1 p-2 text-sm font-bold text-gray-400";
-                loginForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-            } else {
-                loginTab.className = "flex-1 p-2 text-sm font-bold text-gray-400";
-                registerTab.className = "flex-1 p-2 text-sm font-bold text-red-600 border-b-2 border-red-600";
-                loginForm.classList.add('hidden');
-                registerForm.classList.remove('hidden');
-            }
-            
-            document.getElementById('login-message').classList.add('hidden');
-            document.getElementById('login-message').textContent = '';
-        }
-
-        async function processarLogin() {
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value;
-            const messageDiv = document.getElementById('login-message');
-            
-            if (!email || !password) {
-                messageDiv.textContent = "Preencha email e senha!";
-                messageDiv.classList.remove('hidden');
-                return;
-            }
-            
-            try {
-                // Desabilitar botão
-                const btn = document.querySelector('#login-form button');
-                const originalText = btn.textContent;
-                btn.textContent = "ENTRANDO...";
-                btn.disabled = true;
-                
-                // Fazer login com Firebase Auth
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                
-                // Verificar se é admin
-                const isUserAdmin = await verificarUsuarioAdmin(user.uid);
-                
-                if (!isUserAdmin) {
-                    await signOut(auth);
-                    messageDiv.textContent = "Acesso não autorizado. Este usuário não é administrador.";
-                    messageDiv.classList.remove('hidden');
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                    return;
-                }
-                
-                // Login bem-sucedido
-                fecharLogin();
-                document.getElementById('login-email').value = '';
-                document.getElementById('login-password').value = '';
-                
-            } catch (error) {
-                console.error("Erro no login:", error);
-                let errorMessage = "Erro ao fazer login: ";
-                
-                switch(error.code) {
-                    case 'auth/user-not-found':
-                        errorMessage = "Usuário não encontrado!";
-                        break;
-                    case 'auth/wrong-password':
-                        errorMessage = "Senha incorreta!";
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = "Email inválido!";
-                        break;
-                    case 'auth/too-many-requests':
-                        errorMessage = "Muitas tentativas. Tente novamente mais tarde.";
-                        break;
-                    default:
-                        errorMessage = "Erro: " + error.message;
-                }
-                
-                messageDiv.textContent = errorMessage;
-                messageDiv.classList.remove('hidden');
-                
-                // Reabilitar botão
-                const btn = document.querySelector('#login-form button');
-                btn.textContent = "Entrar no Painel";
-                btn.disabled = false;
-            }
-        }
-
-        async function processarRegistro() {
-            const nome = document.getElementById('register-nome').value.trim();
-            const email = document.getElementById('register-email').value.trim();
-            const password = document.getElementById('register-password').value;
-            const messageDiv = document.getElementById('login-message');
-            
-            if (!nome || !email || !password) {
-                messageDiv.textContent = "Preencha todos os campos!";
-                messageDiv.classList.remove('hidden');
-                return;
-            }
-            
-            if (password.length < 6) {
-                messageDiv.textContent = "A senha deve ter no mínimo 6 caracteres!";
-                messageDiv.classList.remove('hidden');
-                return;
-            }
-            
-            try {
-                // Desabilitar botão
-                const btn = document.querySelector('#register-form button');
-                const originalText = btn.textContent;
-                btn.textContent = "REGISTRANDO...";
-                btn.disabled = true;
-                
-                // Verificar se já existe algum usuário
-                const usersSnapshot = await getDocs(collection(db, "usuarios"));
-                const isFirstUser = usersSnapshot.empty;
-                
-                // Criar usuário no Firebase Auth
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                
-                // Salvar dados do usuário no Firestore
-                await setDoc(doc(db, "usuarios", user.uid), {
-                    nome: nome,
-                    email: email,
-                    admin: isFirstUser, // Primeiro usuário é admin
-                    ativo: true,
-                    created_at: new Date().getTime()
-                });
-                
-                // Se for o primeiro usuário, já loga automaticamente
-                if (isFirstUser) {
-                    messageDiv.textContent = "✅ Primeiro usuário registrado como ADMINISTRADOR!";
-                    messageDiv.classList.remove('hidden');
-                    messageDiv.className = "mt-4 text-xs text-green-600 font-bold";
-                    
-                    // Limpar campos
-                    document.getElementById('register-nome').value = '';
-                    document.getElementById('register-email').value = '';
-                    document.getElementById('register-password').value = '';
-                    
-                    // Fechar modal após 2 segundos
-                    setTimeout(() => {
-                        fecharLogin();
-                    }, 2000);
-                } else {
-                    // Para outros usuários, precisa de aprovação do admin
-                    await signOut(auth);
-                    messageDiv.textContent = "✅ Usuário registrado! Aguarde aprovação do administrador.";
-                    messageDiv.classList.remove('hidden');
-                    messageDiv.className = "mt-4 text-xs text-green-600 font-bold";
-                    
-                    // Limpar campos e voltar para login
-                    document.getElementById('register-nome').value = '';
-                    document.getElementById('register-email').value = '';
-                    document.getElementById('register-password').value = '';
-                    switchLoginTab('login');
-                }
-                
-                btn.textContent = originalText;
-                btn.disabled = false;
-                
-            } catch (error) {
-                console.error("Erro no registro:", error);
-                let errorMessage = "Erro ao registrar: ";
-                
-                switch(error.code) {
-                    case 'auth/email-already-in-use':
-                        errorMessage = "Email já está em uso!";
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = "Email inválido!";
-                        break;
-                    case 'auth/weak-password':
-                        errorMessage = "Senha muito fraca! Use pelo menos 6 caracteres.";
-                        break;
-                    default:
-                        errorMessage = "Erro: " + error.message;
-                }
-                
-                messageDiv.textContent = errorMessage;
-                messageDiv.classList.remove('hidden');
-                
-                // Reabilitar botão
-                const btn = document.querySelector('#register-form button');
-                btn.textContent = "Registrar Usuário";
-                btn.disabled = false;
-            }
-        }
-
-        async function sairAdmin() {
-            try {
-                await signOut(auth);
-                // O listener de auth vai atualizar a interface automaticamente
-            } catch (error) {
-                console.error("Erro ao sair:", error);
-                alert("Erro ao sair: " + error.message);
-            }
-        }
-
-        // ==================== FUNÇÕES DE USUÁRIOS ====================
-
-        async function carregarUsuarios() {
-            try {
-                const usuariosSnap = await getDocs(collection(db, "usuarios"));
-                USUARIOS = usuariosSnap.docs.map(d => ({id: d.id, ...d.data()}));
-                return USUARIOS;
-            } catch (error) {
-                console.error("Erro ao carregar usuários:", error);
-                return [];
-            }
-        }
-
-        async function renderUsuariosADM() {
-            const sec = document.getElementById('sec-usuarios');
-            if (!sec) return;
-            
-            try {
-                await carregarUsuarios();
-                
-                let html = `
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bebas text-xl text-gray-800">Gerenciar Usuários</h3>
-                    </div>
-                    
-                    <div class="bg-white p-6 rounded-[35px] shadow-lg mb-6">
-                        <h4 class="font-bold text-sm text-gray-700 mb-3">Usuários Cadastrados</h4>`;
-                
-                if (USUARIOS.length === 0) {
-                    html += `<div class="text-center py-8 text-gray-500">Nenhum usuário cadastrado</div>`;
-                } else {
-                    USUARIOS.forEach(u => {
-                        const isCurrentUser = currentUser && u.id === currentUser.uid;
-                        html += `
-                        <div class="border-b border-gray-100 py-4 ${isCurrentUser ? 'bg-red-50' : ''}">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <div class="font-bold text-sm">${u.nome || 'Sem nome'}</div>
-                                    <div class="text-xs text-gray-500">${u.email}</div>
-                                    <div class="flex gap-2 mt-1">
-                                        <span class="text-[8px] ${u.admin ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'} px-2 py-1 rounded-full">${u.admin ? 'Admin' : 'Usuário'}</span>
-                                        <span class="text-[8px] ${u.ativo !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded-full">${u.ativo !== false ? 'Ativo' : 'Inativo'}</span>
-                                        ${isCurrentUser ? '<span class="text-[8px] bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Você</span>' : ''}
-                                    </div>
-                                </div>
-                                <div class="flex gap-1">
-                                    ${!isCurrentUser ? `
-                                    <button onclick="editarUsuario('${u.id}')" class="bg-red-100 text-red-700 p-2 rounded-lg hover:bg-red-200 transition"><i class="fas fa-edit text-xs"></i></button>
-                                    <button onclick="toggleAtivoUsuario('${u.id}', ${u.ativo !== false})" class="bg-gray-100 text-gray-700 p-2 rounded-lg hover:bg-gray-200 transition">
-                                        <i class="fas ${u.ativo !== false ? 'fa-toggle-on text-green-500' : 'fa-toggle-off text-gray-400'}"></i>
-                                    </button>
-                                    <button onclick="excluirUsuario('${u.id}')" class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition"><i class="fas fa-trash text-xs"></i></button>
-                                    ` : '<span class="text-xs text-gray-400 px-2">Atual</span>'}
-                                </div>
-                            </div>
-                        </div>`;
-                    });
-                }
-                
-                html += `</div>`;
-                
-                sec.innerHTML = html;
-            } catch (error) {
-                console.error("Erro ao renderizar usuários:", error);
-                sec.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl">Erro ao carregar usuários: ${error.message}</div>`;
-            }
-        }
-
-        async function editarUsuario(id) {
-            try {
-                const usuario = USUARIOS.find(u => u.id === id);
-                if (!usuario) return;
-                
-                document.getElementById('edit-usuario-nome').value = usuario.nome || "";
-                document.getElementById('edit-usuario-email').value = usuario.email || "";
-                document.getElementById('edit-usuario-senha').value = "";
-                document.getElementById('edit-usuario-admin').checked = usuario.admin === true;
-                document.getElementById('edit-usuario-ativo').checked = usuario.ativo !== false;
-                document.getElementById('edit-usuario-id-hidden').value = id;
-                
-                document.getElementById('modal-editar-usuario').classList.remove('hidden');
-            } catch (error) {
-                console.error("Erro ao editar usuário:", error);
-                alert("Erro ao carregar usuário!");
-            }
-        }
-
-        function fecharModalEditarUsuario() {
-            document.getElementById('modal-editar-usuario').classList.add('hidden');
-        }
-
-        async function salvarEdicaoUsuario() {
-            try {
-                const id = document.getElementById('edit-usuario-id-hidden').value;
-                const nome = document.getElementById('edit-usuario-nome').value;
-                const email = document.getElementById('edit-usuario-email').value;
-                const senha = document.getElementById('edit-usuario-senha').value;
-                const isAdmin = document.getElementById('edit-usuario-admin').checked;
-                const isAtivo = document.getElementById('edit-usuario-ativo').checked;
-                
-                // Atualizar dados no Firestore
-                const usuarioRef = doc(db, "usuarios", id);
-                const updateData = {
-                    nome: nome,
-                    admin: isAdmin,
-                    ativo: isAtivo,
-                    updated_at: new Date().getTime()
-                };
-                
-                // Se email mudou, precisamos atualizar no Auth também
-                const usuario = USUARIOS.find(u => u.id === id);
-                if (usuario && usuario.email !== email) {
-                    // Email não pode ser alterado facilmente sem reautenticação
-                    alert("Para alterar o email, o usuário precisa fazer login e alterar na conta dele.");
-                }
-                
-                await updateDoc(usuarioRef, updateData);
-                
-                // Se senha foi fornecida, atualizar no Auth
-                if (senha && senha.length >= 6) {
-                    // NOTA: Em produção, isso exigiria reautenticação ou permissões especiais
-                    alert("Para alterar a senha, o usuário precisa fazer login e alterar na conta dele.");
-                }
-                
-                fecharModalEditarUsuario();
-                await carregarUsuarios();
-                renderUsuariosADM();
-                alert("Usuário atualizado com sucesso!");
-            } catch (error) {
-                console.error("Erro ao salvar edição do usuário:", error);
-                alert("Erro ao salvar edição do usuário!");
-            }
-        }
-
-        async function toggleAtivoUsuario(id, atual) {
-            try {
-                const usuarioRef = doc(db, "usuarios", id);
-                await updateDoc(usuarioRef, {
-                    ativo: !atual,
-                    updated_at: new Date().getTime()
-                });
-                
-                // Atualizar lista local
-                const usuario = USUARIOS.find(u => u.id === id);
-                if (usuario) {
-                    usuario.ativo = !atual;
-                }
-                
-                renderUsuariosADM();
-                alert(`Usuário ${!atual ? 'ativado' : 'desativado'} com sucesso!`);
-            } catch (error) {
-                console.error("Erro ao alternar status do usuário:", error);
-                alert("Erro ao alterar status do usuário!");
-            }
-        }
-
-        async function excluirUsuario(id) {
-            if (!confirm("Tem certeza que deseja excluir este usuário?\n\nEsta ação não pode ser desfeita!")) {
-                return;
-            }
-            
-            try {
-                // Não permitir excluir a si mesmo
-                if (currentUser && id === currentUser.uid) {
-                    alert("Você não pode excluir a si mesmo!");
-                    return;
-                }
-                
-                // Excluir do Firestore
-                await deleteDoc(doc(db, "usuarios", id));
-                
-                // Remover da lista local
-                USUARIOS = USUARIOS.filter(u => u.id !== id);
-                
-                renderUsuariosADM();
-                alert("Usuário excluído com sucesso!");
-            } catch (error) {
-                console.error("Erro ao excluir usuário:", error);
-                alert("Erro ao excluir usuário!");
-            }
-        }
-
-        // ==================== CONTINUAÇÃO DO CÓDIGO (funções restantes) ====================
-
-        // [AQUI CONTINUAM TODAS AS OUTRAS FUNÇÕES DO SISTEMA...]
-        // Para manter o código dentro do limite, vou mencionar que as outras funções
-        // (loadData, renderCardapio, montadorPizza, checkout, etc) continuam iguais
-        // mas com as adições das novas funções de login acima.
 
         async function loadData() {
             try {
@@ -2373,11 +1697,18 @@
             let html = '';
             
             CARRINHO.forEach((item, index) => {
+                // Mostrar sabores se for uma promoção com sabores
+                let saboresInfo = '';
+                if (item.tipo === 'promocao' && item.sabores_nomes && item.sabores_nomes.length > 0) {
+                    saboresInfo = `<div class="text-[9px] text-red-600">Sabores: ${item.sabores_nomes.join(', ')}</div>`;
+                }
+                
                 html += `
                 <div class="flex justify-between border-b border-red-100 pb-2 items-center">
                     <div>
                         <span class="font-black">${item.nome}</span>
                         ${item.descricao ? `<div class="text-[9px] text-gray-500">${item.descricao}</div>` : ''}
+                        ${saboresInfo}
                         ${item.tipo === 'pizza-montada' ? `<div class="text-[8px] text-red-600">Pizza Montada</div>` : ''}
                     </div>
                     <div class="flex items-center gap-2">
@@ -2725,6 +2056,101 @@
             }
         }
 
+        // ==================== FUNÇÕES DO PAINEL ADMIN ====================
+
+        function abrirLogin() {
+            document.getElementById('view-login').classList.remove('hidden');
+        }
+
+        function fecharLogin() {
+            document.getElementById('view-login').classList.add('hidden');
+        }
+
+        async function processarLogin() {
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-pass').value;
+            const errorDiv = document.getElementById('login-error');
+            
+            errorDiv.classList.add('hidden');
+            
+            if (!email || !senha) {
+                errorDiv.textContent = "Preencha email e senha!";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                const btn = document.querySelector('#view-login button');
+                const originalText = btn.textContent;
+                btn.textContent = "ENTRANDO...";
+                btn.disabled = true;
+                
+                const userCredential = await signInWithEmailAndPassword(auth, email, senha);
+                currentUser = userCredential.user;
+                
+                // Verificar se é admin (pode adicionar lógica mais complexa aqui)
+                isAdmin = true;
+                
+                fecharLogin();
+                document.getElementById('view-cliente').classList.add('hidden');
+                document.getElementById('view-admin').classList.remove('hidden');
+                document.getElementById('admin-user').innerText = currentUser.email;
+                
+                switchTab('pedidos');
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-pass').value = '';
+                
+                // Forçar atualização dos pedidos ao entrar no ADM
+                setTimeout(() => {
+                    listenPedidos();
+                }, 500);
+                
+            } catch (error) {
+                console.error("Erro no login:", error);
+                
+                let mensagem = "Erro ao fazer login!";
+                switch(error.code) {
+                    case 'auth/invalid-email':
+                        mensagem = "Email inválido!";
+                        break;
+                    case 'auth/user-disabled':
+                        mensagem = "Usuário desativado!";
+                        break;
+                    case 'auth/user-not-found':
+                        mensagem = "Usuário não encontrado!";
+                        break;
+                    case 'auth/wrong-password':
+                        mensagem = "Senha incorreta!";
+                        break;
+                    case 'auth/too-many-requests':
+                        mensagem = "Muitas tentativas. Tente mais tarde!";
+                        break;
+                }
+                
+                errorDiv.textContent = mensagem;
+                errorDiv.classList.remove('hidden');
+                
+                // Reabilitar botão
+                const btn = document.querySelector('#view-login button');
+                btn.textContent = "Entrar no Painel";
+                btn.disabled = false;
+            }
+        }
+
+        async function sairAdmin() {
+            try {
+                await signOut(auth);
+                isAdmin = false;
+                currentUser = null;
+                document.getElementById('view-admin').classList.add('hidden');
+                document.getElementById('view-cliente').classList.remove('hidden');
+                location.reload();
+            } catch (error) {
+                console.error("Erro ao sair:", error);
+                alert("Erro ao fazer logout!");
+            }
+        }
+
         function updateStatusLojaUI() {
             const b = document.getElementById('cli-status-loja');
             if (!b) return;
@@ -2742,7 +2168,7 @@
 
         function switchTab(tab) {
             // Atualizar botões das tabs
-            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos', 'especiais', 'usuarios'].forEach(t => {
+            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos', 'especiais'].forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
                 if (btn) {
                     if (t === tab) {
@@ -2754,7 +2180,7 @@
             });
             
             // Atualizar conteúdo
-            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos', 'especiais', 'usuarios'].forEach(t => {
+            ['pedidos', 'produtos', 'categorias', 'cupons', 'config', 'promocoes', 'tamanhos', 'especiais'].forEach(t => {
                 const sec = document.getElementById(`sec-${t}`);
                 if (sec) {
                     if (t === tab) {
@@ -2780,8 +2206,6 @@
                 renderTamanhosADM();
             } else if (tab === 'especiais') {
                 renderEspeciaisADM();
-            } else if (tab === 'usuarios') {
-                renderUsuariosADM();
             }
         }
 
@@ -3576,8 +3000,6 @@
             }
         }
 
-        // ==================== CONFIGURAÇÕES COM LOCALIZAÇÃO ====================
-
         async function renderConfigADM() {
             const sec = document.getElementById('sec-config');
             if (!sec) return;
@@ -3631,31 +3053,33 @@
                                 <div class="space-y-3">
                                     <div class="text-[9px] text-gray-500 mb-2">Para calcular distâncias de entrega, defina as coordenadas da sua pizzaria.</div>
                                     
-                                    <div class="mb-4">
-                                        <button onclick="abrirModalLocalizacao()" class="w-full bg-blue-600 text-white p-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
-                                            <i class="fas fa-location-crosshairs"></i>
-                                            CONFIGURAR LOCALIZAÇÃO DA LOJA
+                                    <!-- NOVO BOTÃO PARA LOCALIZAR -->
+                                    <div class="mb-3">
+                                        <button onclick="obterLocalizacaoLoja()" class="w-full bg-blue-600 text-white p-3 rounded-xl text-[10px] font-black uppercase hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            📍 LOCALIZAR MINHA PIZZARIA AGORA
                                         </button>
+                                        <div class="text-[8px] text-gray-500 mt-1 text-center">Clique para usar sua localização atual como endereço da pizzaria</div>
                                     </div>
                                     
                                     <div class="grid grid-cols-2 gap-2">
                                         <div>
                                             <label class="text-[9px] font-bold text-gray-500">Latitude</label>
-                                            <input type="number" step="any" value="${CONFIG.lat_pizzaria || ''}" class="w-full p-3 bg-gray-100 rounded-xl border text-sm" placeholder="-3.765432" readonly>
+                                            <input id="cfg-lat" type="number" step="any" value="${CONFIG.lat_pizzaria || ''}" class="w-full p-3 bg-gray-50 rounded-xl border text-sm" placeholder="-3.765432">
                                         </div>
                                         <div>
                                             <label class="text-[9px] font-bold text-gray-500">Longitude</label>
-                                            <input type="number" step="any" value="${CONFIG.lng_pizzaria || ''}" class="w-full p-3 bg-gray-100 rounded-xl border text-sm" placeholder="-38.123456" readonly>
+                                            <input id="cfg-lng" type="number" step="any" value="${CONFIG.lng_pizzaria || ''}" class="w-full p-3 bg-gray-50 rounded-xl border text-sm" placeholder="-38.123456">
                                         </div>
                                     </div>
                                     
-                                    <div class="text-[9px] text-gray-500">
-                                        <strong>Endereço:</strong> ${CONFIG.endereco_pizzaria || 'Não configurado'}
+                                    <!-- NOVO: Exibir endereço aproximado -->
+                                    <div id="endereco-loja" class="hidden bg-blue-50 p-3 rounded-xl border border-blue-200">
+                                        <div class="text-[9px] font-bold text-blue-800">Endereço aproximado:</div>
+                                        <div id="endereco-texto" class="text-[8px] text-blue-600"></div>
                                     </div>
                                     
-                                    <div class="text-[8px] text-red-600 italic">
-                                        Clique no botão acima para configurar usando seu navegador ou digite manualmente.
-                                    </div>
+                                    <div class="text-[8px] text-red-600 italic">Use Google Maps para obter as coordenadas da sua pizzaria</div>
                                 </div>
                             </div>
                             
@@ -3677,37 +3101,27 @@
                     </div>`;
                 
                 sec.innerHTML = html;
+                
+                // Se já tiver coordenadas, tentar obter endereço
+                if (CONFIG.lat_pizzaria && CONFIG.lng_pizzaria) {
+                    obterEnderecoDasCoordenadas(CONFIG.lat_pizzaria, CONFIG.lng_pizzaria);
+                }
             } catch (error) {
                 console.error("Erro ao renderizar configurações:", error);
                 sec.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl">Erro ao carregar configurações: ${error.message}</div>`;
             }
         }
 
-        // Funções para modal de localização
-        function abrirModalLocalizacao() {
-            document.getElementById('modal-localizacao-loja').classList.remove('hidden');
-            document.getElementById('input-endereco-loja').value = CONFIG.endereco_pizzaria || '';
-            document.getElementById('input-lat').value = CONFIG.lat_pizzaria || '';
-            document.getElementById('input-lng').value = CONFIG.lng_pizzaria || '';
-            
-            if (CONFIG.lat_pizzaria && CONFIG.lng_pizzaria) {
-                document.getElementById('coordenadas-container').classList.remove('hidden');
-            }
-        }
-
-        function fecharModalLocalizacao() {
-            document.getElementById('modal-localizacao-loja').classList.add('hidden');
-        }
-
-        async function obterLocalizacaoAtual() {
+        // NOVA FUNÇÃO: Obter localização da loja
+        async function obterLocalizacaoLoja() {
             if (!navigator.geolocation) {
                 alert("Seu navegador não suporta geolocalização.");
                 return;
             }
             
-            const btn = document.querySelector('#modal-localizacao-loja button[onclick="obterLocalizacaoAtual()"]');
+            const btn = event.target;
             const textoOriginal = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OBTENDO LOCALIZAÇÃO...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> LOCALIZANDO...';
             btn.disabled = true;
             
             navigator.geolocation.getCurrentPosition(
@@ -3715,42 +3129,32 @@
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
                     
-                    // Preencher campos
-                    document.getElementById('input-lat').value = lat.toFixed(6);
-                    document.getElementById('input-lng').value = lng.toFixed(6);
-                    document.getElementById('coordenadas-container').classList.remove('hidden');
+                    // Atualizar campos
+                    document.getElementById('cfg-lat').value = lat;
+                    document.getElementById('cfg-lng').value = lng;
                     
-                    // Tentar obter endereço pelo Google Maps API
-                    try {
-                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
-                        const data = await response.json();
-                        
-                        if (data.address) {
-                            const endereco = `${data.address.road || ''} ${data.address.house_number || ''}, ${data.address.suburb || data.address.neighbourhood || ''}, ${data.address.city || ''} - ${data.address.state || ''}`;
-                            document.getElementById('input-endereco-loja').value = endereco.trim();
-                        }
-                    } catch (error) {
-                        console.error("Erro ao obter endereço:", error);
-                        document.getElementById('input-endereco-loja').value = `Localização obtida: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                    }
+                    // Obter endereço das coordenadas
+                    await obterEnderecoDasCoordenadas(lat, lng);
                     
                     btn.innerHTML = textoOriginal;
                     btn.disabled = false;
+                    
+                    alert(`Localização da pizzaria definida!\nLat: ${lat.toFixed(6)}\nLng: ${lng.toFixed(6)}`);
                 },
                 (error) => {
                     let mensagem = "Erro ao obter localização: ";
                     switch(error.code) {
                         case error.PERMISSION_DENIED:
-                            mensagem = "Permissão de localização negada. Configure manualmente.";
+                            mensagem = "Permissão negada. Por favor, permita o acesso à localização.";
                             break;
                         case error.POSITION_UNAVAILABLE:
-                            mensagem = "Localização indisponível. Configure manualmente.";
+                            mensagem = "Localização indisponível.";
                             break;
                         case error.TIMEOUT:
-                            mensagem = "Tempo esgotado. Configure manualmente.";
+                            mensagem = "Tempo esgotado.";
                             break;
                         default:
-                            mensagem = "Erro desconhecido. Configure manualmente.";
+                            mensagem = "Erro desconhecido.";
                     }
                     alert(mensagem);
                     btn.innerHTML = textoOriginal;
@@ -3760,35 +3164,39 @@
             );
         }
 
-        async function salvarLocalizacaoLoja() {
-            const lat = parseFloat(document.getElementById('input-lat').value);
-            const lng = parseFloat(document.getElementById('input-lng').value);
-            const endereco = document.getElementById('input-endereco-loja').value.trim();
-            
-            if (!lat || !lng) {
-                alert("É necessário obter as coordenadas de localização!");
-                return;
-            }
-            
+        // NOVA FUNÇÃO: Obter endereço das coordenadas
+        async function obterEnderecoDasCoordenadas(lat, lng) {
             try {
-                // Salvar no Firebase
-                const configRef = doc(db, "configuracoes", "loja");
-                await updateDoc(configRef, {
-                    lat_pizzaria: lat,
-                    lng_pizzaria: lng,
-                    endereco_pizzaria: endereco
-                });
+                const enderecoDiv = document.getElementById('endereco-loja');
+                const enderecoTexto = document.getElementById('endereco-texto');
                 
-                CONFIG.lat_pizzaria = lat;
-                CONFIG.lng_pizzaria = lng;
-                CONFIG.endereco_pizzaria = endereco;
+                enderecoDiv.classList.remove('hidden');
+                enderecoTexto.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando endereço...';
                 
-                fecharModalLocalizacao();
-                alert("✅ Localização da loja salva com sucesso!\nAgora você pode calcular fretes por GPS.");
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+                const data = await response.json();
                 
+                if (data && data.address) {
+                    const address = data.address;
+                    let endereco = '';
+                    
+                    if (address.road) endereco += address.road;
+                    if (address.house_number) endereco += `, ${address.house_number}`;
+                    if (address.neighbourhood) endereco += ` - ${address.neighbourhood}`;
+                    if (address.suburb && !address.neighbourhood) endereco += ` - ${address.suburb}`;
+                    if (address.city) endereco += `, ${address.city}`;
+                    if (address.state) endereco += ` - ${address.state}`;
+                    
+                    enderecoTexto.innerHTML = endereco || "Endereço não encontrado";
+                } else {
+                    enderecoTexto.innerHTML = "Endereço não encontrado para estas coordenadas";
+                }
             } catch (error) {
-                console.error("Erro ao salvar localização:", error);
-                alert("Erro ao salvar localização!");
+                console.error("Erro ao buscar endereço:", error);
+                const enderecoDiv = document.getElementById('endereco-loja');
+                const enderecoTexto = document.getElementById('endereco-texto');
+                enderecoDiv.classList.remove('hidden');
+                enderecoTexto.innerHTML = "Não foi possível obter o endereço";
             }
         }
 
@@ -3801,9 +3209,8 @@
                     pedido_minimo: parseFloat(document.getElementById('cfg-minimo').value) || 35,
                     taxa_base: parseFloat(document.getElementById('cfg-taxa').value) || 6,
                     preco_km: parseFloat(document.getElementById('cfg-preco-km').value) || 2.5,
-                    lat_pizzaria: CONFIG.lat_pizzaria || null,
-                    lng_pizzaria: CONFIG.lng_pizzaria || null,
-                    endereco_pizzaria: CONFIG.endereco_pizzaria || '',
+                    lat_pizzaria: parseFloat(document.getElementById('cfg-lat').value) || null,
+                    lng_pizzaria: parseFloat(document.getElementById('cfg-lng').value) || null,
                     loja_aberta: document.getElementById('cfg-aberta').checked
                 };
                 
@@ -3845,6 +3252,10 @@
                                 <div class="text-[10px] font-black uppercase tracking-widest text-red-500">PROMOÇÃO DO DIA</div>
                                 <div class="font-bebas text-2xl text-gray-800">${PROMOCAO.titulo || "PIZZA + REFRI"}</div>
                                 <div class="text-sm text-gray-600 mt-1">${PROMOCAO.descricao || "2 Pizzas M + 2 Refris 2L"}</div>
+                                ${PROMOCAO.sabores_inclusos && PROMOCAO.sabores_inclusos.length > 0 ? 
+                                    `<div class="text-xs text-red-600 mt-1">Sabores inclusos: ${PROMOCAO.sabores_inclusos.length}</div>` : 
+                                    '<div class="text-xs text-gray-500 mt-1">Sem sabores específicos</div>'
+                                }
                             </div>
                             <div class="text-right">
                                 <div class="text-3xl font-black text-green-600">R$ ${Number(PROMOCAO.preco || 69.90).toFixed(2)}</div>
@@ -3887,7 +3298,7 @@
             }
         }
 
-        function abrirEditarPromocao() {
+        async function abrirEditarPromocao() {
             document.getElementById('promocao-titulo').value = PROMOCAO.titulo || "";
             document.getElementById('promocao-descricao').value = PROMOCAO.descricao || "";
             document.getElementById('promocao-preco').value = PROMOCAO.preco || 69.90;
@@ -3895,7 +3306,48 @@
             document.getElementById('promocao-imagem').value = PROMOCAO.imagem_url || "";
             document.getElementById('promocao-ativa').checked = PROMOCAO.ativa !== false;
             
+            // Carregar sabores disponíveis
+            await carregarSaboresParaPromocao();
+            
             document.getElementById('modal-editar-promocao').classList.remove('hidden');
+        }
+
+        async function carregarSaboresParaPromocao() {
+            const container = document.getElementById('promocao-sabores-container');
+            if (!container) return;
+            
+            // Buscar categoria de Pizzas
+            const catPizzas = CATS.find(c => c.nome === "Pizzas" || c.nome.toLowerCase().includes("pizza"));
+            if (!catPizzas) {
+                container.innerHTML = '<div class="text-gray-500 text-sm">Categoria de Pizzas não encontrada</div>';
+                return;
+            }
+            
+            // Buscar sabores disponíveis
+            const sabores = PRODS.filter(p => {
+                return p.categoria_id === catPizzas.id && p.disponivel !== false;
+            });
+            
+            if (sabores.length === 0) {
+                container.innerHTML = '<div class="text-gray-500 text-sm">Nenhum sabor disponível</div>';
+                return;
+            }
+            
+            let html = '';
+            sabores.forEach(sabor => {
+                const jaSelecionado = PROMOCAO.sabores_inclusos && PROMOCAO.sabores_inclusos.includes(sabor.id);
+                html += `
+                <div class="flex items-center justify-between p-2 bg-red-50 rounded-lg">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="sabor-${sabor.id}" ${jaSelecionado ? 'checked' : ''} 
+                               class="mr-2" value="${sabor.id}">
+                        <label for="sabor-${sabor.id}" class="text-sm">${sabor.nome}</label>
+                    </div>
+                    <span class="text-xs text-gray-500">${sabor.descricao || ''}</span>
+                </div>`;
+            });
+            
+            container.innerHTML = html;
         }
 
         function fecharModalPromocao() {
@@ -3904,6 +3356,13 @@
 
         async function salvarPromocao() {
             try {
+                // Coletar sabores selecionados
+                const saboresSelecionados = [];
+                const checkboxes = document.querySelectorAll('#promocao-sabores-container input[type="checkbox"]:checked');
+                checkboxes.forEach(cb => {
+                    saboresSelecionados.push(cb.value);
+                });
+                
                 const promocaoAtualizada = {
                     titulo: document.getElementById('promocao-titulo').value,
                     descricao: document.getElementById('promocao-descricao').value,
@@ -3911,6 +3370,7 @@
                     preco_original: parseFloat(document.getElementById('promocao-preco-original').value) || 89.90,
                     imagem_url: document.getElementById('promocao-imagem').value,
                     ativa: document.getElementById('promocao-ativa').checked,
+                    sabores_inclusos: saboresSelecionados,
                     updated_at: new Date().getTime()
                 };
                 
@@ -4264,11 +3724,10 @@
         // ==================== EXPORTA FUNÇÕES PARA O ESCOPO GLOBAL ====================
 
         // Funções do cliente
+        window.abrirSelecaoSaboresPromocao = abrirSelecaoSaboresPromocao;
         window.abrirLogin = abrirLogin;
         window.fecharLogin = fecharLogin;
-        window.switchLoginTab = switchLoginTab;
         window.processarLogin = processarLogin;
-        window.processarRegistro = processarRegistro;
         window.sairAdmin = sairAdmin;
         window.renderCardapio = renderCardapio;
         window.addCart = addCart;
@@ -4287,10 +3746,12 @@
         window.updateStatusLojaUI = updateStatusLojaUI;
         window.aplicarCupom = aplicarCupom;
         window.renderCheckoutTotal = renderCheckoutTotal;
-        window.adicionarPromocaoAoCarrinho = adicionarPromocaoAoCarrinho;
+        window.adicionarPromocaoComSabores = adicionarPromocaoComSabores;
         window.abrirDetalhesProduto = abrirDetalhesProduto;
         window.fecharDetalhesProduto = fecharDetalhesProduto;
         window.removeCartCheckout = removeCartCheckout;
+        window.toggleSaborPromocao = toggleSaborPromocao;
+        window.fecharModalSaboresPromocao = fecharModalSaboresPromocao;
 
         // Funções do montador de pizza
         window.selecionarTamanho = selecionarTamanho;
@@ -4298,14 +3759,6 @@
         window.selecionarBorda = selecionarBorda;
         window.toggleAdicionalPizza = toggleAdicionalPizza;
         window.finalizarPizzaMontada = finalizarPizzaMontada;
-
-        // Funções do combo personalizado
-        window.adicionarComboPersonalizadoAoCarrinho = adicionarComboPersonalizadoAoCarrinho;
-        window.fecharModalCombo = fecharModalCombo;
-        window.habilitarSelecaoSaboresCombo = habilitarSelecaoSaboresCombo;
-        window.selecionarSaborCombo = selecionarSaborCombo;
-        window.finalizarSelecaoSaboresCombo = finalizarSelecaoSaboresCombo;
-        window.adicionarComboPadrao = adicionarComboPadrao;
 
         // Funções do painel ADM
         window.switchTab = switchTab;
@@ -4330,6 +3783,8 @@
         window.fecharModalPromocao = fecharModalPromocao;
         window.salvarPromocao = salvarPromocao;
         window.toggleStatusPromocao = toggleStatusPromocao;
+        window.obterLocalizacaoLoja = obterLocalizacaoLoja;
+        window.obterEnderecoDasCoordenadas = obterEnderecoDasCoordenadas;
 
         // Funções de tamanhos
         window.novoTamanho = novoTamanho;
@@ -4343,20 +3798,6 @@
         window.novoProdutoEspecial = novoProdutoEspecial;
         window.renderProdutosADM = renderProdutosADM;
         window.renderEspeciaisADM = renderEspeciaisADM;
-
-        // Funções de localização
-        window.abrirModalLocalizacao = abrirModalLocalizacao;
-        window.fecharModalLocalizacao = fecharModalLocalizacao;
-        window.obterLocalizacaoAtual = obterLocalizacaoAtual;
-        window.salvarLocalizacaoLoja = salvarLocalizacaoLoja;
-
-        // Funções de usuários
-        window.renderUsuariosADM = renderUsuariosADM;
-        window.editarUsuario = editarUsuario;
-        window.fecharModalEditarUsuario = fecharModalEditarUsuario;
-        window.salvarEdicaoUsuario = salvarEdicaoUsuario;
-        window.toggleAtivoUsuario = toggleAtivoUsuario;
-        window.excluirUsuario = excluirUsuario;
 
         // Iniciar quando o DOM estiver carregado
         if (document.readyState === 'loading') {
