@@ -14,6 +14,64 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Bebas+Neue&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Firebase SDKs (VERSÃO MODULAR CORRETA) -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+      import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyAFguAugN53y4D_YCUu5R1nTE0yG-HDqCY",
+        authDomain: "pizza-3b7f3.firebaseapp.com",
+        projectId: "pizza-3b7f3",
+        storageBucket: "pizza-3b7f3.firebasestorage.app",
+        messagingSenderId: "122787498715",
+        appId: "1:122787498715:web:121001f2924da28376dafe",
+        measurementId: "G-F3SPKCFK9X"
+      };
+
+      // Inicializar Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      // Tornar disponível globalmente
+      window.firebaseApp = app;
+      window.firebaseDb = db;
+      window.firebaseAuth = auth;
+      window.firebaseModules = {
+        firestore: {
+          getFirestore,
+          collection,
+          addDoc,
+          getDocs,
+          doc,
+          getDoc,
+          setDoc,
+          updateDoc,
+          deleteDoc,
+          onSnapshot,
+          query,
+          orderBy,
+          limit
+        },
+        auth: {
+          getAuth,
+          createUserWithEmailAndPassword,
+          signInWithEmailAndPassword,
+          signOut,
+          onAuthStateChanged
+        }
+      };
+
+      console.log("✅ Firebase inicializado com sucesso!");
+      
+      // Iniciar a aplicação
+      if (window.initApp) {
+        window.initApp();
+      }
+    </script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fef2f2; -webkit-tap-highlight-color: transparent; overflow-x: hidden; font-size: 14px; }
@@ -494,45 +552,11 @@
         </div>
     </div>
 
-    <script type="module">
-        // Configuração do Firebase para Pizzaria
-        const firebaseConfig = {
-            apiKey: "AIzaSyAFguAugN53y4D_YCUu5R1nTE0yG-HDqCY",
-            authDomain: "pizza-3b7f3.firebaseapp.com",
-            projectId: "pizza-3b7f3",
-            storageBucket: "pizza-3b7f3.firebasestorage.app",
-            messagingSenderId: "122787498715",
-            appId: "1:122787498715:web:121001f2924da28376dafe",
-            measurementId: "G-F3SPKCFK9X"
-        };
-
-        // Importações do Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { 
-            getFirestore, 
-            doc, 
-            getDoc, 
-            setDoc, 
-            getDocs, 
-            collection, 
-            addDoc, 
-            updateDoc, 
-            onSnapshot, 
-            query, 
-            orderBy, 
-            limit, 
-            deleteDoc,
-            where 
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword, 
-            signOut, 
-            createUserWithEmailAndPassword 
-        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    <script>
+        // ==================== CONFIGURAÇÃO DO FIREBASE (JÁ INICIALIZADA NO HEAD) ====================
+        // As variáveis já estão disponíveis via window.firebaseApp, window.firebaseDb, window.firebaseAuth
 
         // Variáveis globais
-        let app, db, auth;
         let PRODS = [], CATS = [], CARRINHO = [], CONFIG = {}, CUPONS = [], PROMOCAO = {}, TAMANHOS = [];
         let curCat = 'todos';
         let dKM = 0, tFRETE = 0, latCli = 0, lngCli = 0, gpsOk = false, modoConsumo = 'delivery', vCUPOM = 0;
@@ -555,75 +579,36 @@
 
         // ==================== FUNÇÕES DO SISTEMA ====================
 
-        async function initializeFirebase() {
-            try {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                console.log("Firebase inicializado com sucesso!");
-                
-                // Verificar se usuário já está logado
-                auth.onAuthStateChanged((user) => {
-                    if (user) {
-                        currentUser = user;
-                        console.log("Usuário logado:", user.email);
-                        
-                        // Se já está no admin, manter
-                        if (document.getElementById('view-admin').classList.contains('hidden') === false) {
-                            document.getElementById('admin-user').innerText = user.email;
-                        }
-                    } else {
-                        currentUser = null;
-                        isAdmin = false;
-                    }
-                });
-                
-                return true;
-            } catch (error) {
-                console.error("Erro ao inicializar Firebase:", error);
-                return false;
+        // FUNÇÃO PARA OBTER REFERÊNCIAS DO FIREBASE
+        function getFirebaseRefs() {
+            if (!window.firebaseDb || !window.firebaseAuth || !window.firebaseModules) {
+                throw new Error("Firebase não inicializado. Aguarde alguns segundos e recarregue a página.");
             }
+            return {
+                db: window.firebaseDb,
+                auth: window.firebaseAuth,
+                firestore: window.firebaseModules.firestore,
+                authModules: window.firebaseModules.auth
+            };
         }
 
-        async function inicializarAcompanhamento() {
-            const params = new URLSearchParams(window.location.search);
-            if(params.has('pedido')) {
-                // Garantir que o Firebase está inicializado e pronto
-                if (!app) {
-                    await initializeFirebase();
-                }
-                // Esperar que o Firebase seja completamente inicializado
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Carregar configuração
-                await carregarConfiguracao();
-                // Carregar acompanhamento
-                await carregarAcompanhamento(params.get('pedido'));
-                return true;
-            }
-            return false;
-        }
-
+        // FUNÇÃO INIT MELHORADA
         async function init() {
             try {
-                // Inicializar Firebase
-                const firebaseReady = await initializeFirebase();
-                if (!firebaseReady) {
-                    document.getElementById('initial-loading').innerHTML = `
-                        <div class="text-center">
-                            <div class="text-4xl mb-4">❌</div>
-                            <h2 class="text-xl font-bebas text-red-600 mb-2">Erro de Conexão</h2>
-                            <div class="text-gray-600 mb-4">Não foi possível conectar ao banco de dados.</div>
-                            <button onclick="location.reload()" class="bg-red-600 text-white px-4 py-2 rounded-lg">Tentar Novamente</button>
-                        </div>`;
+                console.log("Iniciando aplicação...");
+                
+                // Verificar se é página de acompanhamento
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('pedido')) {
+                    console.log("Modo acompanhamento detectado");
+                    await carregarAcompanhamento(params.get('pedido'));
                     return;
                 }
-
-                // Verificar se é página de acompanhamento
-                if (await inicializarAcompanhamento()) {
-                    return; // Já carregou o acompanhamento, não precisa carregar o resto
-                }
-
+                
+                // Verificar se Firebase está pronto
+                const firebaseRefs = getFirebaseRefs();
+                console.log("Firebase pronto:", firebaseRefs.db ? "Sim" : "Não");
+                
                 // Carregar configuração da loja
                 await carregarConfiguracao();
 
@@ -633,7 +618,7 @@
                 // Carregar dados
                 await loadData();
 
-                // Configurar listeners - CORREÇÃO: Agora chama listenPedidos corretamente
+                // Configurar listeners
                 listenPedidos();
 
                 // Carregar dados locais
@@ -642,23 +627,32 @@
                 // Esconder loading e mostrar cliente
                 document.getElementById('initial-loading').style.display = 'none';
                 document.getElementById('view-cliente').classList.remove('hidden');
+                
+                console.log("Aplicação inicializada com sucesso!");
 
             } catch (error) {
                 console.error("Erro na inicialização:", error);
-                document.getElementById('initial-loading').innerHTML = `
-                    <div class="text-center">
-                        <div class="text-4xl mb-4">⚠️</div>
-                        <h2 class="text-xl font-bebas text-red-600 mb-2">Erro ao Carregar</h2>
-                        <div class="text-gray-600 mb-4">${error.message}</div>
-                        <button onclick="location.reload()" class="bg-red-600 text-white px-4 py-2 rounded-lg">Recarregar Página</button>
-                    </div>`;
+                mostrarErroInicializacao(error.message);
             }
+        }
+
+        // FUNÇÃO PARA MOSTRAR ERRO DE INICIALIZAÇÃO
+        function mostrarErroInicializacao(mensagem) {
+            document.getElementById('initial-loading').innerHTML = `
+                <div class="text-center">
+                    <div class="text-4xl mb-4">⚠️</div>
+                    <h2 class="text-xl font-bebas text-red-600 mb-2">Erro ao Carregar</h2>
+                    <div class="text-gray-600 mb-4">${mensagem}</div>
+                    <button onclick="location.reload()" class="bg-red-600 text-white px-4 py-2 rounded-lg">Recarregar Página</button>
+                    <button onclick="location.href=location.pathname" class="mt-2 bg-gray-600 text-white px-4 py-2 rounded-lg">Voltar ao Início</button>
+                </div>`;
         }
 
         async function carregarConfiguracao() {
             try {
-                const docRef = doc(db, "configuracoes", "loja");
-                const snap = await getDoc(docRef);
+                const { db, firestore } = getFirebaseRefs();
+                const docRef = firestore.doc(db, "configuracoes", "loja");
+                const snap = await firestore.getDoc(docRef);
                 if(snap.exists()) {
                     CONFIG = snap.data();
                     document.getElementById('cli-nome').innerText = CONFIG.nome_pizzaria || "MASTER PIZZA";
@@ -675,12 +669,11 @@
                         preco_km: 2.5,
                         whatsapp: "5599999999999",
                         pedido_minimo: 35,
-                        // Criar usuário admin padrão se não existir
                         admin_email: "admin@pizza.com",
                         admin_senha: "admin123"
                     };
                     // Criar configuração padrão se não existir
-                    await setDoc(doc(db, "configuracoes", "loja"), CONFIG);
+                    await firestore.setDoc(firestore.doc(db, "configuracoes", "loja"), CONFIG);
                     
                     // Criar usuário admin
                     await criarUsuarioAdminPadrao();
@@ -692,16 +685,18 @@
 
         async function criarUsuarioAdminPadrao() {
             try {
+                const { auth, authModules, db, firestore } = getFirebaseRefs();
+                
                 // Verificar se já existe um admin
-                const adminRef = doc(db, "usuarios", "admin");
-                const adminSnap = await getDoc(adminRef);
+                const adminRef = firestore.doc(db, "usuarios", "admin");
+                const adminSnap = await firestore.getDoc(adminRef);
                 
                 if (!adminSnap.exists()) {
                     // Criar usuário admin no Firebase Auth
-                    await createUserWithEmailAndPassword(auth, "admin@pizza.com", "admin123");
+                    await authModules.createUserWithEmailAndPassword(auth, "admin@pizza.com", "admin123");
                     
                     // Salvar no Firestore
-                    await setDoc(adminRef, {
+                    await firestore.setDoc(adminRef, {
                         email: "admin@pizza.com",
                         nome: "Administrador",
                         tipo: "admin",
@@ -717,8 +712,9 @@
 
         async function carregarPromocao() {
             try {
-                const docRef = doc(db, "promocoes", "dia");
-                const snap = await getDoc(docRef);
+                const { db, firestore } = getFirebaseRefs();
+                const docRef = firestore.doc(db, "promocoes", "dia");
+                const snap = await firestore.getDoc(docRef);
                 if(snap.exists()) {
                     PROMOCAO = snap.data();
                 } else {
@@ -731,10 +727,10 @@
                         imagem_url: "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=800&auto=format&fit=crop&q=80",
                         ativa: true,
                         produto_id: null,
-                        sabores_inclusos: [] // Nova propriedade para sabores
+                        sabores_inclusos: []
                     };
                     // Criar promoção padrão se não existir
-                    await setDoc(doc(db, "promocoes", "dia"), PROMOCAO);
+                    await firestore.setDoc(firestore.doc(db, "promocoes", "dia"), PROMOCAO);
                 }
                 renderPromocaoCliente();
             } catch (error) {
@@ -920,12 +916,14 @@
 
         async function loadData() {
             try {
+                const { db, firestore } = getFirebaseRefs();
+                
                 // Carregar categorias
-                const catsSnap = await getDocs(collection(db, "categorias"));
+                const catsSnap = await firestore.getDocs(firestore.collection(db, "categorias"));
                 CATS = catsSnap.docs.map(d => ({id: d.id, ...d.data()}));
                 
                 // Carregar produtos
-                const prodsSnap = await getDocs(collection(db, "produtos"));
+                const prodsSnap = await firestore.getDocs(firestore.collection(db, "produtos"));
                 PRODS = prodsSnap.docs.map(d => ({id: d.id, ...d.data()}));
                 
                 // Se não houver produtos, criar alguns padrão
@@ -956,16 +954,16 @@
                     ];
                     
                     for (const prod of produtosPadrao) {
-                        await addDoc(collection(db, "produtos"), prod);
+                        await firestore.addDoc(firestore.collection(db, "produtos"), prod);
                     }
                     
                     // Recarregar produtos
-                    const prodsSnap2 = await getDocs(collection(db, "produtos"));
+                    const prodsSnap2 = await firestore.getDocs(firestore.collection(db, "produtos"));
                     PRODS = prodsSnap2.docs.map(d => ({id: d.id, ...d.data()}));
                 }
                 
                 // Carregar cupons
-                const cuponsSnap = await getDocs(collection(db, "cupons"));
+                const cuponsSnap = await firestore.getDocs(firestore.collection(db, "cupons"));
                 CUPONS = cuponsSnap.docs.map(d => ({id: d.id, ...d.data()}));
                 
                 // Carregar tamanhos
@@ -985,7 +983,8 @@
 
         async function carregarTamanhos() {
             try {
-                const tamanhosSnap = await getDocs(collection(db, "tamanhos_pizza"));
+                const { db, firestore } = getFirebaseRefs();
+                const tamanhosSnap = await firestore.getDocs(firestore.collection(db, "tamanhos_pizza"));
                 TAMANHOS = tamanhosSnap.docs.map(d => ({id: d.id, ...d.data()}));
                 
                 // Se não houver tamanhos, criar padrão
@@ -998,11 +997,11 @@
                     ];
                     
                     for (const tamanho of tamanhosPadrao) {
-                        await addDoc(collection(db, "tamanhos_pizza"), tamanho);
+                        await firestore.addDoc(firestore.collection(db, "tamanhos_pizza"), tamanho);
                     }
                     
                     // Recarregar tamanhos
-                    const tamanhosSnap2 = await getDocs(collection(db, "tamanhos_pizza"));
+                    const tamanhosSnap2 = await firestore.getDocs(firestore.collection(db, "tamanhos_pizza"));
                     TAMANHOS = tamanhosSnap2.docs.map(d => ({id: d.id, ...d.data()}));
                 }
                 
@@ -1017,15 +1016,21 @@
         // CORREÇÃO: Função listenPedidos melhorada
         function listenPedidos() {
             try {
+                const { db, firestore } = getFirebaseRefs();
+                
                 // Se já existe um listener, cancela ele primeiro
                 if (pedidosListenerUnsubscribe) {
                     pedidosListenerUnsubscribe();
                     pedidosListenerUnsubscribe = null;
                 }
                 
-                const q = query(collection(db, "pedidos"), orderBy("created_at", "desc"), limit(100));
+                const q = firestore.query(
+                    firestore.collection(db, "pedidos"), 
+                    firestore.orderBy("created_at", "desc"), 
+                    firestore.limit(100)
+                );
                 
-                pedidosListenerUnsubscribe = onSnapshot(q, (snapshot) => {
+                pedidosListenerUnsubscribe = firestore.onSnapshot(q, (snapshot) => {
                     const pedidos = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
                     console.log("Pedidos recebidos:", pedidos.length);
                     
@@ -1059,6 +1064,128 @@
                 console.log("Listener de pedidos iniciado com sucesso");
             } catch (error) {
                 console.error("Erro na função listenPedidos:", error);
+            }
+        }
+
+        // FUNÇÃO DE ACOMPANHAMENTO MELHORADA
+        async function carregarAcompanhamento(id) {
+            console.log("Carregando acompanhamento para ID:", id);
+            
+            // Mostrar view de acompanhamento
+            document.getElementById('initial-loading').style.display = 'none';
+            document.getElementById('view-cliente').classList.add('hidden');
+            document.getElementById('view-admin').classList.add('hidden');
+            document.getElementById('view-acompanhar').classList.remove('hidden');
+            
+            if (!id) {
+                document.getElementById('rastreio-status').innerText = "PEDIDO NÃO ENCONTRADO";
+                return;
+            }
+            
+            try {
+                const { db, firestore } = getFirebaseRefs();
+                
+                // Atualizar título com ID do pedido
+                const titulo = document.querySelector('#view-acompanhar h2');
+                if (titulo) {
+                    titulo.innerHTML = `Acompanhar Pedido <span class="text-xs">#${id.slice(-6)}</span>`;
+                }
+                
+                // Escutar o pedido específico
+                const pedidoRef = firestore.doc(db, "pedidos", id);
+                
+                const unsub = firestore.onSnapshot(pedidoRef, 
+                    // Sucesso
+                    (snap) => {
+                        if (!snap.exists()) {
+                            document.getElementById('rastreio-status').innerText = "PEDIDO NÃO ENCONTRADO";
+                            document.getElementById('box-status-cliente').className = `py-16 px-4 rounded-[40px] border-4 border-double mb-8 transition-all duration-500 shadow-inner bg-gray-100`;
+                            document.getElementById('rastreio-tempo').innerText = "Este pedido não existe ou foi removido";
+                            return;
+                        }
+                        
+                        const dados = snap.data();
+                        const status = dados.status || 'Novo';
+                        
+                        // Atualizar status
+                        document.getElementById('rastreio-status').innerText = status.toUpperCase();
+                        
+                        // Definir cor baseada no status
+                        let statusClass = "status-Novo";
+                        switch(status) {
+                            case 'Novo': statusClass = "status-Novo"; break;
+                            case 'Preparando': statusClass = "status-Preparando"; break;
+                            case 'Assando': statusClass = "status-Assando"; break;
+                            case 'Pronto': statusClass = "status-Pronto"; break;
+                            case 'Saiu': statusClass = "status-Saiu"; break;
+                            case 'Finalizado': statusClass = "status-Finalizado"; break;
+                            case 'Cancelado': statusClass = "status-Cancelado"; break;
+                            default: statusClass = "status-Novo";
+                        }
+                        
+                        document.getElementById('box-status-cliente').className = `py-16 px-4 rounded-[40px] border-4 border-double mb-8 transition-all duration-500 shadow-inner ${statusClass}`;
+                        
+                        // Atualizar tempo estimado
+                        let tempoEstimado = "40-50 min";
+                        switch(status) {
+                            case 'Novo': tempoEstimado = "40-50 min"; break;
+                            case 'Preparando': tempoEstimado = "30-40 min"; break;
+                            case 'Assando': tempoEstimado = "20-30 min"; break;
+                            case 'Pronto': tempoEstimado = "10-20 min"; break;
+                            case 'Saiu': tempoEstimado = "A caminho!"; break;
+                            case 'Finalizado': tempoEstimado = "Entregue ✓"; break;
+                            case 'Cancelado': tempoEstimado = "Pedido cancelado"; break;
+                        }
+                        document.getElementById('rastreio-tempo').innerText = `Tempo estimado: ${tempoEstimado}`;
+                        
+                        // Remover botão de tentar novamente se existir
+                        const btnErro = document.getElementById('btn-tentar-novamente');
+                        if (btnErro) {
+                            btnErro.remove();
+                        }
+                    },
+                    // Erro
+                    (error) => {
+                        console.error("Erro ao escutar pedido:", error);
+                        document.getElementById('rastreio-status').innerText = "ERRO DE CONEXÃO";
+                        document.getElementById('rastreio-tempo').innerText = "Não foi possível conectar ao servidor";
+                        document.getElementById('box-status-cliente').className = "py-16 px-4 rounded-[40px] border-4 border-double mb-8 transition-all duration-500 shadow-inner bg-gray-100";
+                        
+                        // Adicionar botão para tentar novamente
+                        const viewAcompanhar = document.getElementById('view-acompanhar');
+                        const existeBotaoErro = viewAcompanhar.querySelector('#btn-tentar-novamente');
+                        if (!existeBotaoErro) {
+                            const btnErro = document.createElement('button');
+                            btnErro.id = 'btn-tentar-novamente';
+                            btnErro.className = 'mt-4 bg-red-600 text-white p-3 rounded-xl text-sm font-bold hover:bg-red-700 transition';
+                            btnErro.innerHTML = '🔄 Tentar Novamente';
+                            btnErro.onclick = () => location.reload();
+                            viewAcompanhar.querySelector('.py-10').appendChild(btnErro);
+                        }
+                    }
+                );
+                
+                // Guardar unsubscribe para limpar quando sair da página
+                window.addEventListener('beforeunload', () => {
+                    if (unsub) {
+                        console.log("Removendo listener de acompanhamento");
+                        unsub();
+                    }
+                });
+                
+            } catch (error) {
+                console.error("Erro ao carregar acompanhamento:", error);
+                document.getElementById('rastreio-status').innerText = "ERRO AO CARREGAR";
+                document.getElementById('rastreio-tempo').innerText = `Erro: ${error.message}`;
+                document.getElementById('box-status-cliente').className = "py-16 px-4 rounded-[40px] border-4 border-double mb-8 transition-all duration-500 shadow-inner bg-gray-100";
+                
+                // Mostrar botão para recarregar
+                const btnErro = document.createElement('button');
+                btnErro.id = 'btn-tentar-novamente';
+                btnErro.className = 'mt-4 bg-red-600 text-white p-3 rounded-xl text-sm font-bold hover:bg-red-700 transition';
+                btnErro.innerHTML = '🔄 Tentar Novamente';
+                btnErro.onclick = () => location.reload();
+                document.querySelector('#view-acompanhar .py-10').appendChild(btnErro);
             }
         }
 
@@ -1995,6 +2122,8 @@
             };
             
             try {
+                const { db, firestore } = getFirebaseRefs();
+                
                 // Desabilitar botão
                 const btn = document.getElementById('btn-final-zap');
                 const textoOriginal = btn.innerHTML;
@@ -2002,7 +2131,7 @@
                 btn.disabled = true;
                 
                 // Salvar no Firebase
-                const docRef = await addDoc(collection(db, "pedidos"), pedido);
+                const docRef = await firestore.addDoc(firestore.collection(db, "pedidos"), pedido);
                 
                 // Criar mensagem WhatsApp
                 let itensTxt = "";
@@ -2062,104 +2191,6 @@
             }
         }
 
-        // ==================== FUNÇÕES DE ACOMPANHAMENTO ====================
-
-        async function carregarAcompanhamento(id) {
-            document.getElementById('initial-loading').style.display = 'none';
-            document.getElementById('view-cliente').classList.add('hidden');
-            document.getElementById('view-acompanhar').classList.remove('hidden');
-            
-            if (!id) {
-                document.getElementById('rastreio-status').innerText = "PEDIDO NÃO ENCONTRADO";
-                return;
-            }
-            
-            try {
-                // Verificar se o Firebase está inicializado
-                if (!app || !db) {
-                    console.warn("Firebase não inicializado. Tentando inicializar...");
-                    await initializeFirebase();
-                    
-                    // Aguardar inicialização completa
-                    await new Promise(resolve => setTimeout(resolve, 800));
-                }
-                
-                // Verificar se ainda não foi inicializado
-                if (!app || !db) {
-                    throw new Error("Não foi possível inicializar o banco de dados");
-                }
-                
-                await carregarConfiguracao();
-                
-                // Escutar pedido
-                const unsub = onSnapshot(doc(db, "pedidos", id), (snap) => {
-                    if (!snap.exists()) {
-                        document.getElementById('rastreio-status').innerText = "PEDIDO NÃO ENCONTRADO";
-                        document.getElementById('box-status-cliente').className = `py-16 px-4 rounded-[40px] border-4 border-double mb-8 transition-all duration-500 shadow-inner bg-gray-100`;
-                        return;
-                    }
-                    
-                    const dados = snap.data();
-                    const status = dados.status || 'Novo';
-                    
-                    document.getElementById('rastreio-status').innerText = status.toUpperCase();
-                    
-                    // Definir classes CSS baseadas no status
-                    let statusClass = "status-Novo";
-                    switch(status) {
-                        case 'Novo': statusClass = "status-Novo"; break;
-                        case 'Preparando': statusClass = "status-Preparando"; break;
-                        case 'Assando': statusClass = "status-Assando"; break;
-                        case 'Pronto': statusClass = "status-Pronto"; break;
-                        case 'Saiu': statusClass = "status-Saiu"; break;
-                        case 'Finalizado': statusClass = "status-Finalizado"; break;
-                        case 'Cancelado': statusClass = "status-Cancelado"; break;
-                        default: statusClass = "status-Novo";
-                    }
-                    
-                    document.getElementById('box-status-cliente').className = `py-16 px-4 rounded-[40px] border-4 border-double mb-8 transition-all duration-500 shadow-inner ${statusClass}`;
-                    
-                    // Atualizar título se necessário
-                    const titulo = document.querySelector('#view-acompanhar h2');
-                    if (titulo && !titulo.innerHTML.includes('#')) {
-                        titulo.innerHTML = `Acompanhar Pedido <span class="text-xs">#${id.slice(-6)}</span>`;
-                    }
-                }, (error) => {
-                    console.error("Erro ao acompanhar pedido:", error);
-                    document.getElementById('rastreio-status').innerText = "ERRO DE CONEXÃO";
-                    document.getElementById('box-status-cliente').className = "py-16 px-4 rounded-[40px] border-4 border-double mb-8 transition-all duration-500 shadow-inner bg-gray-100";
-                    
-                    // Mostrar botão para tentar novamente
-                    const viewAcompanhar = document.getElementById('view-acompanhar');
-                    const existeBotaoErro = viewAcompanhar.querySelector('#btn-tentar-novamente');
-                    if (!existeBotaoErro) {
-                        const btnErro = document.createElement('button');
-                        btnErro.id = 'btn-tentar-novamente';
-                        btnErro.className = 'mt-4 bg-red-600 text-white p-3 rounded-xl text-sm font-bold hover:bg-red-700 transition';
-                        btnErro.innerHTML = '🔄 Tentar Novamente';
-                        btnErro.onclick = () => location.reload();
-                        viewAcompanhar.querySelector('.py-10').appendChild(btnErro);
-                    }
-                });
-                
-                // Guardar unsubscribe para limpar quando sair da página
-                window.addEventListener('beforeunload', () => {
-                    if (unsub) unsub();
-                });
-                
-            } catch (error) {
-                console.error("Erro ao carregar acompanhamento:", error);
-                document.getElementById('rastreio-status').innerText = "ERRO AO CARREGAR";
-                document.getElementById('box-status-cliente').className = "py-16 px-4 rounded-[40px] border-4 border-double mb-8 transition-all duration-500 shadow-inner bg-gray-100";
-                
-                // Mostrar mensagem de erro mais detalhada
-                const tempoElement = document.getElementById('rastreio-tempo');
-                if (tempoElement) {
-                    tempoElement.innerHTML = `<span class="text-red-500">Erro: ${error.message}</span>`;
-                }
-            }
-        }
-
         // ==================== FUNÇÕES DO PAINEL ADMIN ====================
 
         function abrirLogin() {
@@ -2184,15 +2215,17 @@
             }
             
             try {
+                const { auth, authModules } = getFirebaseRefs();
+                
                 const btn = document.querySelector('#view-login button');
                 const originalText = btn.textContent;
                 btn.textContent = "ENTRANDO...";
                 btn.disabled = true;
                 
-                const userCredential = await signInWithEmailAndPassword(auth, email, senha);
+                const userCredential = await authModules.signInWithEmailAndPassword(auth, email, senha);
                 currentUser = userCredential.user;
                 
-                // Verificar se é admin (pode adicionar lógica mais complexa aqui)
+                // Verificar se é admin
                 isAdmin = true;
                 
                 fecharLogin();
@@ -2243,7 +2276,8 @@
 
         async function sairAdmin() {
             try {
-                await signOut(auth);
+                const { auth, authModules } = getFirebaseRefs();
+                await authModules.signOut(auth);
                 isAdmin = false;
                 currentUser = null;
                 document.getElementById('view-admin').classList.add('hidden');
@@ -2476,8 +2510,9 @@
 
         async function imprimirPedido(id) {
             try {
-                const docRef = doc(db, "pedidos", id);
-                const snap = await getDoc(docRef);
+                const { db, firestore } = getFirebaseRefs();
+                const docRef = firestore.doc(db, "pedidos", id);
+                const snap = await firestore.getDoc(docRef);
                 
                 if (!snap.exists()) {
                     alert("Pedido não encontrado!");
@@ -2569,8 +2604,9 @@
 
         async function notificarCliente(id) {
             try {
-                const docRef = doc(db, "pedidos", id);
-                const snap = await getDoc(docRef);
+                const { db, firestore } = getFirebaseRefs();
+                const docRef = firestore.doc(db, "pedidos", id);
+                const snap = await firestore.getDoc(docRef);
                 
                 if (!snap.exists()) {
                     alert("Pedido não encontrado!");
@@ -2601,8 +2637,9 @@
             if (!novoStatus) return;
             
             try {
-                const docRef = doc(db, "pedidos", id);
-                await updateDoc(docRef, {
+                const { db, firestore } = getFirebaseRefs();
+                const docRef = firestore.doc(db, "pedidos", id);
+                await firestore.updateDoc(docRef, {
                     status: novoStatus,
                     updated_at: new Date().getTime()
                 });
@@ -2661,7 +2698,8 @@
             }
             
             try {
-                await deleteDoc(doc(db, "pedidos", id));
+                const { db, firestore } = getFirebaseRefs();
+                await firestore.deleteDoc(firestore.doc(db, "pedidos", id));
                 console.log(`Pedido ${id} apagado com sucesso`);
                 
                 // Remover da UI imediatamente
@@ -2783,6 +2821,7 @@
 
         async function novoProdutoEspecial(categoriaId) {
             try {
+                const { db, firestore } = getFirebaseRefs();
                 const categoria = CATS.find(c => c.id === categoriaId);
                 if (!categoria) return;
                 
@@ -2802,7 +2841,7 @@
                     disponivel: true
                 };
                 
-                const docRef = await addDoc(collection(db, "produtos"), novoProd);
+                const docRef = await firestore.addDoc(firestore.collection(db, "produtos"), novoProd);
                 alert(`${categoria.nome} criada com sucesso! R$ ${preco.toFixed(2).replace('.',',')}`);
                 renderProdutosADM();
             } catch (error) {
@@ -2813,6 +2852,7 @@
 
         async function novoProduto() {
             try {
+                const { db, firestore } = getFirebaseRefs();
                 const novoProd = {
                     nome: "Novo Produto",
                     descricao: "Descrição do produto",
@@ -2822,7 +2862,7 @@
                     disponivel: true
                 };
                 
-                const docRef = await addDoc(collection(db, "produtos"), novoProd);
+                const docRef = await firestore.addDoc(firestore.collection(db, "produtos"), novoProd);
                 alert("Produto criado! Edite as informações.");
                 renderProdutosADM();
             } catch (error) {
@@ -2865,10 +2905,11 @@
 
         async function salvarEdicaoFinal() {
             try {
+                const { db, firestore } = getFirebaseRefs();
                 const id = document.getElementById('edit-id-hidden').value;
-                const produtoRef = doc(db, "produtos", id);
+                const produtoRef = firestore.doc(db, "produtos", id);
                 
-                await updateDoc(produtoRef, {
+                await firestore.updateDoc(produtoRef, {
                     nome: document.getElementById('edit-n').value,
                     descricao: document.getElementById('edit-d').value,
                     preco: parseFloat(document.getElementById('edit-p').value) || 0,
@@ -2892,8 +2933,9 @@
 
         async function toggleDisponibilidade(id, atual) {
             try {
-                const produtoRef = doc(db, "produtos", id);
-                await updateDoc(produtoRef, {
+                const { db, firestore } = getFirebaseRefs();
+                const produtoRef = firestore.doc(db, "produtos", id);
+                await firestore.updateDoc(produtoRef, {
                     disponivel: !atual
                 });
                 
@@ -2928,7 +2970,8 @@
             }
             
             try {
-                await deleteDoc(doc(db, "produtos", id));
+                const { db, firestore } = getFirebaseRefs();
+                await firestore.deleteDoc(firestore.doc(db, "produtos", id));
                 
                 // Remover da lista local
                 PRODS = PRODS.filter(p => p.id !== id);
@@ -2981,6 +3024,7 @@
 
         async function novaCategoria() {
             try {
+                const { db, firestore } = getFirebaseRefs();
                 const nome = prompt("Nome da nova categoria:");
                 if (!nome) return;
                 
@@ -3002,7 +3046,7 @@
                     ordem: CATS.length + 1
                 };
                 
-                await addDoc(collection(db, "categorias"), novaCat);
+                await firestore.addDoc(firestore.collection(db, "categorias"), novaCat);
                 alert("Categoria criada!");
                 await loadData();
                 renderCategoriasADM();
@@ -3014,6 +3058,7 @@
 
         async function editarCategoria(id) {
             try {
+                const { db, firestore } = getFirebaseRefs();
                 const cat = CATS.find(c => c.id === id);
                 if (!cat) return;
                 
@@ -3022,8 +3067,8 @@
                 
                 const novaOrdem = parseInt(prompt("Nova ordem (número menor aparece primeiro):", cat.ordem || 999));
                 
-                const catRef = doc(db, "categorias", id);
-                await updateDoc(catRef, {
+                const catRef = firestore.doc(db, "categorias", id);
+                await firestore.updateDoc(catRef, {
                     nome: novoNome,
                     ordem: novaOrdem || 999
                 });
@@ -3043,6 +3088,8 @@
             }
             
             try {
+                const { db, firestore } = getFirebaseRefs();
+                
                 // Verificar se há produtos nesta categoria
                 const produtosNaCategoria = PRODS.filter(p => p.categoria_id === id);
                 
@@ -3051,15 +3098,15 @@
                     const primeiraOutraCat = CATS.find(c => c.id !== id && c.tipo === 'categoria');
                     
                     for (const produto of produtosNaCategoria) {
-                        const prodRef = doc(db, "produtos", produto.id);
-                        await updateDoc(prodRef, {
+                        const prodRef = firestore.doc(db, "produtos", produto.id);
+                        await firestore.updateDoc(prodRef, {
                             categoria_id: primeiraOutraCat ? primeiraOutraCat.id : ""
                         });
                     }
                 }
                 
                 // Excluir categoria
-                await deleteDoc(doc(db, "categorias", id));
+                await firestore.deleteDoc(firestore.doc(db, "categorias", id));
                 
                 alert("Categoria excluída!");
                 await loadData();
@@ -3114,6 +3161,7 @@
 
         async function novoCupom() {
             try {
+                const { db, firestore } = getFirebaseRefs();
                 const codigo = prompt("Código do cupom (ex: PIZZA10):");
                 if (!codigo) return;
                 
@@ -3132,11 +3180,11 @@
                     created_at: new Date().getTime()
                 };
                 
-                await addDoc(collection(db, "cupons"), novoCupom);
+                await firestore.addDoc(firestore.collection(db, "cupons"), novoCupom);
                 alert("Cupom criado!");
                 
                 // Recarregar cupons
-                const cuponsSnap = await getDocs(collection(db, "cupons"));
+                const cuponsSnap = await firestore.getDocs(firestore.collection(db, "cupons"));
                 CUPONS = cuponsSnap.docs.map(d => ({id: d.id, ...d.data()}));
                 
                 renderCuponsADM();
@@ -3148,8 +3196,9 @@
 
         async function toggleCupom(id, atual) {
             try {
-                const cupomRef = doc(db, "cupons", id);
-                await updateDoc(cupomRef, {
+                const { db, firestore } = getFirebaseRefs();
+                const cupomRef = firestore.doc(db, "cupons", id);
+                await firestore.updateDoc(cupomRef, {
                     ativo: !atual
                 });
                 
@@ -3172,7 +3221,8 @@
             }
             
             try {
-                await deleteDoc(doc(db, "cupons", id));
+                const { db, firestore } = getFirebaseRefs();
+                await firestore.deleteDoc(firestore.doc(db, "cupons", id));
                 
                 // Remover da lista local
                 CUPONS = CUPONS.filter(c => c.id !== id);
@@ -3387,6 +3437,7 @@
 
         async function salvarConfig() {
             try {
+                const { db, firestore } = getFirebaseRefs();
                 const configAtualizada = {
                     nome_pizzaria: document.getElementById('cfg-nome').value,
                     whatsapp: document.getElementById('cfg-whatsapp').value,
@@ -3399,8 +3450,8 @@
                     loja_aberta: document.getElementById('cfg-aberta').checked
                 };
                 
-                const configRef = doc(db, "configuracoes", "loja");
-                await setDoc(configRef, configAtualizada);
+                const configRef = firestore.doc(db, "configuracoes", "loja");
+                await firestore.setDoc(configRef, configAtualizada);
                 
                 CONFIG = configAtualizada;
                 
@@ -3541,6 +3592,8 @@
 
         async function salvarPromocao() {
             try {
+                const { db, firestore } = getFirebaseRefs();
+                
                 // Coletar sabores selecionados
                 const saboresSelecionados = [];
                 const checkboxes = document.querySelectorAll('#promocao-sabores-container input[type="checkbox"]:checked');
@@ -3559,8 +3612,8 @@
                     updated_at: new Date().getTime()
                 };
                 
-                const promocaoRef = doc(db, "promocoes", "dia");
-                await setDoc(promocaoRef, promocaoAtualizada);
+                const promocaoRef = firestore.doc(db, "promocoes", "dia");
+                await firestore.setDoc(promocaoRef, promocaoAtualizada);
                 
                 PROMOCAO = promocaoAtualizada;
                 
@@ -3580,8 +3633,9 @@
 
         async function toggleStatusPromocao(novoStatus) {
             try {
-                const promocaoRef = doc(db, "promocoes", "dia");
-                await updateDoc(promocaoRef, {
+                const { db, firestore } = getFirebaseRefs();
+                const promocaoRef = firestore.doc(db, "promocoes", "dia");
+                await firestore.updateDoc(promocaoRef, {
                     ativa: novoStatus,
                     updated_at: new Date().getTime()
                 });
@@ -3657,6 +3711,7 @@
 
         async function novoTamanho() {
             try {
+                const { db, firestore } = getFirebaseRefs();
                 const novoTam = {
                     nome: "N",
                     descricao: "N fatias",
@@ -3665,7 +3720,7 @@
                     disponivel: true
                 };
                 
-                const docRef = await addDoc(collection(db, "tamanhos_pizza"), novoTam);
+                const docRef = await firestore.addDoc(firestore.collection(db, "tamanhos_pizza"), novoTam);
                 alert("Tamanho criado! Edite as informações.");
                 renderTamanhosADM();
             } catch (error) {
@@ -3695,10 +3750,11 @@
 
         async function salvarEdicaoTamanho() {
             try {
+                const { db, firestore } = getFirebaseRefs();
                 const id = document.getElementById('edit-tamanho-id-hidden').value;
-                const tamanhoRef = doc(db, "tamanhos_pizza", id);
+                const tamanhoRef = firestore.doc(db, "tamanhos_pizza", id);
                 
-                await updateDoc(tamanhoRef, {
+                await firestore.updateDoc(tamanhoRef, {
                     nome: document.getElementById('edit-tamanho-nome').value,
                     descricao: document.getElementById('edit-tamanho-descricao').value,
                     preco: parseFloat(document.getElementById('edit-tamanho-preco').value) || 0,
@@ -3722,8 +3778,9 @@
 
         async function toggleDisponibilidadeTamanho(id, atual) {
             try {
-                const tamanhoRef = doc(db, "tamanhos_pizza", id);
-                await updateDoc(tamanhoRef, {
+                const { db, firestore } = getFirebaseRefs();
+                const tamanhoRef = firestore.doc(db, "tamanhos_pizza", id);
+                await firestore.updateDoc(tamanhoRef, {
                     disponivel: !atual
                 });
                 
@@ -3758,7 +3815,8 @@
             }
             
             try {
-                await deleteDoc(doc(db, "tamanhos_pizza", id));
+                const { db, firestore } = getFirebaseRefs();
+                await firestore.deleteDoc(firestore.doc(db, "tamanhos_pizza", id));
                 
                 // Remover da lista local
                 TAMANHOS = TAMANHOS.filter(t => t.id !== id);
@@ -3785,8 +3843,10 @@
                 
                 // Criar categorias se não existirem
                 if (!catBordas || !catAdicionais) {
+                    const { db, firestore } = getFirebaseRefs();
+                    
                     if (!catBordas) {
-                        await addDoc(collection(db, "categorias"), {
+                        await firestore.addDoc(firestore.collection(db, "categorias"), {
                             nome: "Bordas",
                             tipo: "montador",
                             subtipo: "borda",
@@ -3795,7 +3855,7 @@
                     }
                     
                     if (!catAdicionais) {
-                        await addDoc(collection(db, "categorias"), {
+                        await firestore.addDoc(firestore.collection(db, "categorias"), {
                             nome: "Adicionais",
                             tipo: "montador",
                             subtipo: "adicional",
@@ -3850,7 +3910,7 @@
                                 </div>
                                 
                                 ${adicionais.length === 0 ? 
-                                    '<div class="text-center py-8 text-gray-400 text-sm">Nenhum adicional cadastrado</div>' : 
+                                    '<div class="text-center py-8 text-gray-400 text-sm">Nenhum adicional cadastrada</div>' : 
                                     adicionais.map(a => `
                                         <div class="flex justify-between items-center p-3 border-b border-gray-100">
                                             <div>
@@ -3984,11 +4044,18 @@
         window.renderProdutosADM = renderProdutosADM;
         window.renderEspeciaisADM = renderEspeciaisADM;
 
+        // Expor a função init para ser chamada pelo Firebase
+        window.initApp = init;
+
         // Iniciar quando o DOM estiver carregado
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
+            document.addEventListener('DOMContentLoaded', function() {
+                // Aguardar um pouco para garantir que o Firebase foi carregado
+                setTimeout(init, 500);
+            });
         } else {
-            init();
+            // Aguardar um pouco para garantir que o Firebase foi carregado
+            setTimeout(init, 500);
         }
 
     </script>
