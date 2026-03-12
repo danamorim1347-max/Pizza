@@ -15,6 +15,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Bebas+Neue&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- SweetAlert2 - ADICIONADO -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
     <!-- Firebase SDKs (VERSÃO MODULAR CORRETA) -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -22,14 +25,14 @@
       import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
       const firebaseConfig = {
-        apiKey: "AIzaSyAFguAugN53y4D_YCUu5R1nTE0yG-HDqCY",
-        authDomain: "pizza-3b7f3.firebaseapp.com",
-        projectId: "pizza-3b7f3",
-        storageBucket: "pizza-3b7f3.firebasestorage.app",
-        messagingSenderId: "122787498715",
-        appId: "1:122787498715:web:121001f2924da28376dafe",
-        measurementId: "G-F3SPKCFK9X"
-      };
+    apiKey: "AIzaSyBVaLBuEHarAxQWxJhMLYg_D0UiSuulK-k",
+    authDomain: "applamen.firebaseapp.com",
+    projectId: "applamen",
+    storageBucket: "applamen.firebasestorage.app",
+    messagingSenderId: "555867502790",
+    appId: "1:555867502790:web:8024006ff183910fc6bfc7",
+    measurementId: "G-YW6L6N7KJZ"
+};
 
       // Inicializar Firebase
       const app = initializeApp(firebaseConfig);
@@ -338,7 +341,7 @@
     <!-- [PAINEL ADM] -->
     <div id="view-admin" class="hidden w-full max-w-4xl mx-auto min-h-screen pb-20 bg-red-50">
         <header class="bg-gray-900 text-red-400 p-4 flex justify-between items-center sticky top-0 z-50">
-            <h1 class="font-bebas text-red-400 uppercase tracking-tighter text-xl">PAINEL MASTER PIZZA</h1>
+            <h1 class="font-bebas text-red-400 uppercase tracking-tighter text-xl">PAINEL ADMINISTRADOR</h1>
             <div class="flex items-center gap-3">
                 <span id="admin-user" class="text-[10px] text-red-300"></span>
                 <button onclick="sairAdmin()" class="text-[9px] font-bold border border-red-400 text-red-400 px-3 py-1 rounded-full uppercase hover:bg-red-400 hover:text-gray-900 transition">Sair</button>
@@ -669,8 +672,6 @@
                         preco_km: 2.5,
                         whatsapp: "5599999999999",
                         pedido_minimo: 35,
-                        admin_email: "admin@pizza.com",
-                        admin_senha: "admin123"
                     };
                     // Criar configuração padrão se não existir
                     await firestore.setDoc(firestore.doc(db, "configuracoes", "loja"), CONFIG);
@@ -781,13 +782,24 @@
 
         function abrirSelecaoSaboresPromocao() {
             if(CONFIG.loja_aberta === false) {
-                alert("A pizzaria está fechada no momento. Volte mais tarde!");
+                Swal.fire({
+                    title: 'Loja Fechada',
+                    text: 'A pizzaria está fechada no momento. Volte mais tarde!',
+                    icon: 'warning',
+                    confirmButtonColor: '#dc2626',
+                    background: '#ffffff'
+                });
                 return;
             }
             
             // Verificar se a promoção está ativa
             if (PROMOCAO.ativa === false) {
-                alert("Esta promoção não está mais disponível!");
+                Swal.fire({
+                    title: 'Promoção Indisponível',
+                    text: 'Esta promoção não está mais disponível!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
                 return;
             }
             
@@ -843,7 +855,16 @@
             if (index === -1) {
                 // Verificar limite de sabores (máximo 2)
                 if (saboresSelecionadosPromocao.length >= 2) {
-                    alert("Máximo de 2 sabores por promoção!");
+                    Swal.fire({
+                        title: 'Limite Atingido',
+                        text: 'Máximo de 2 sabores por promoção!',
+                        icon: 'warning',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
                     return;
                 }
                 // Adicionar
@@ -907,7 +928,15 @@
                 }, 1000);
             }
             
-            alert(`Promoção adicionada ao carrinho! R$ ${Number(PROMOCAO.preco || 69.90).toFixed(2).replace('.',',')}`);
+            Swal.fire({
+                title: 'Adicionado!',
+                html: `Promoção adicionada ao carrinho!<br><strong>R$ ${Number(PROMOCAO.preco || 69.90).toFixed(2).replace('.',',')}</strong>`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
         }
 
         function fecharModalSaboresPromocao() {
@@ -1318,18 +1347,35 @@
 
         function addCart(id) {
             if(CONFIG.loja_aberta === false) {
-                alert("A pizzaria está fechada no momento. Volte mais tarde!");
+                Swal.fire({
+                    title: 'Loja Fechada',
+                    text: 'A pizzaria está fechada no momento. Volte mais tarde!',
+                    icon: 'warning',
+                    confirmButtonColor: '#dc2626'
+                });
                 return;
             }
             
             const produto = PRODS.find(i => i.id === id);
             if (!produto) {
-                alert("Produto não encontrado!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Produto não encontrado!',
+                    icon: 'error',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
                 return;
             }
             
             if (produto.disponivel === false) {
-                alert("Este produto não está disponível no momento!");
+                Swal.fire({
+                    title: 'Indisponível',
+                    text: 'Este produto não está disponível no momento!',
+                    icon: 'info',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
                 return;
             }
             
@@ -1600,7 +1646,15 @@
             if (index === -1) {
                 // Verificar limite de sabores (máximo 2)
                 if (pizzaMontada.sabores.length >= 2) {
-                    alert("Máximo de 2 sabores por pizza!");
+                    Swal.fire({
+                        title: 'Limite de Sabores',
+                        text: 'Máximo de 2 sabores por pizza!',
+                        icon: 'info',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 2000
+                    });
                     return;
                 }
                 // Adicionar
@@ -1736,9 +1790,9 @@
                 html += `
                 <div onclick="toggleAdicionalPizza('${p.id}','${p.nome.replace(/'/g, "\\'")}',${p.preco || 0},this)" 
                      class="bg-red-50 p-3 rounded-xl border ${jaSelecionado ? 'border-red-500 bg-red-100' : 'border-red-200'} flex justify-between font-bold text-xs uppercase mb-1 shadow-sm hover:bg-red-100 transition cursor-pointer">
-                    <span>${p.nome} ${jaSelecionado ? '✓' : ''}</span>
-                    <span>+R$ ${Number(p.preco || 0).toFixed(2).replace('.',',')}</span>
-                </div>`;
+                        <span>${p.nome} ${jaSelecionado ? '✓' : ''}</span>
+                        <span>+R$ ${Number(p.preco || 0).toFixed(2).replace('.',',')}</span>
+                    </div>`;
             });
             
             lista.innerHTML = html;
@@ -1786,12 +1840,28 @@
         function finalizarPizzaMontada() {
             // Validar
             if (!pizzaMontada.tamanho) {
-                alert("Selecione um tamanho para a pizza!");
+                Swal.fire({
+                    title: 'Atenção!',
+                    text: 'Selecione um tamanho para a pizza!',
+                    icon: 'warning',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                 return;
             }
             
             if (pizzaMontada.sabores.length === 0) {
-                alert("Selecione pelo menos um sabor!");
+                Swal.fire({
+                    title: 'Atenção!',
+                    text: 'Selecione pelo menos um sabor!',
+                    icon: 'warning',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
                 return;
             }
             
@@ -1821,7 +1891,13 @@
             updateCartFooter();
             fecharMontadorPizza();
             
-            alert(`Pizza montada adicionada ao carrinho! R$ ${pizzaMontada.precoTotal.toFixed(2).replace('.',',')}`);
+            Swal.fire({
+                title: 'Pizza Adicionada!',
+                html: `Sua pizza foi adicionada ao carrinho!<br><strong>R$ ${pizzaMontada.precoTotal.toFixed(2).replace('.',',')}</strong>`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
         }
 
         function fecharMontadorPizza() {
@@ -1833,7 +1909,12 @@
 
         function abrirCheckout() {
             if (CARRINHO.length === 0) {
-                alert("Seu carrinho está vazio!");
+                Swal.fire({
+                    title: 'Carrinho Vazio',
+                    text: 'Adicione itens ao carrinho antes de finalizar!',
+                    icon: 'warning',
+                    confirmButtonColor: '#dc2626'
+                });
                 return;
             }
             
@@ -1842,7 +1923,12 @@
             const pedidoMinimo = CONFIG.pedido_minimo || 35;
             
             if (total < pedidoMinimo) {
-                alert(`Pedido mínimo: R$ ${pedidoMinimo.toFixed(2).replace('.',',')}\nFaltam: R$ ${(pedidoMinimo - total).toFixed(2).replace('.',',')}`);
+                Swal.fire({
+                    title: 'Pedido Mínimo',
+                    html: `Pedido mínimo: <strong>R$ ${pedidoMinimo.toFixed(2).replace('.',',')}</strong><br>Faltam: <strong>R$ ${(pedidoMinimo - total).toFixed(2).replace('.',',')}</strong>`,
+                    icon: 'info',
+                    confirmButtonColor: '#dc2626'
+                });
                 return;
             }
             
@@ -1977,7 +2063,12 @@
 
         function obterGPSCliente() {
             if (!navigator.geolocation) {
-                alert("Seu navegador não suporta geolocalização.");
+                Swal.fire({
+                    title: 'Erro de Localização',
+                    text: 'Seu navegador não suporta geolocalização.',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
                 return;
             }
             
@@ -1992,7 +2083,12 @@
                     lngCli = pos.coords.longitude;
                     
                     if (!CONFIG.lat_pizzaria || !CONFIG.lng_pizzaria) {
-                        alert("A pizzaria ainda não configurou sua localização. Entre em contato diretamente.");
+                        Swal.fire({
+                            title: 'Configuração Pendente',
+                            text: 'A pizzaria ainda não configurou sua localização. Entre em contato diretamente.',
+                            icon: 'info',
+                            confirmButtonColor: '#dc2626'
+                        });
                         btn.innerText = textoOriginal;
                         btn.disabled = false;
                         return;
@@ -2021,12 +2117,20 @@
                     gpsOk = true;
                     renderCheckoutTotal();
                     btn.disabled = false;
+                    
+                    Swal.fire({
+                        title: 'Localização Obtida!',
+                        html: `Distância: <strong>${dKM.toFixed(1)} km</strong><br>Frete: <strong>R$ ${tFRETE.toFixed(2).replace('.',',')}</strong>`,
+                        icon: 'success',
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
                 },
                 error => {
                     let mensagem = "Erro ao obter localização: ";
                     switch(error.code) {
                         case error.PERMISSION_DENIED:
-                            mensagem += "Permissão negada.";
+                            mensagem += "Permissão negada. Ative o GPS para calcular o frete!";
                             break;
                         case error.POSITION_UNAVAILABLE:
                             mensagem += "Localização indisponível.";
@@ -2037,7 +2141,12 @@
                         default:
                             mensagem += "Erro desconhecido.";
                     }
-                    alert(mensagem);
+                    Swal.fire({
+                        title: 'Erro de Localização',
+                        text: mensagem,
+                        icon: 'error',
+                        confirmButtonColor: '#dc2626'
+                    });
                     btn.innerText = textoOriginal;
                     btn.disabled = false;
                 },
@@ -2053,19 +2162,34 @@
             
             // Validações
             if (modoConsumo === 'delivery' && !gpsOk) {
-                alert("📍 É necessário calcular o frete pelo GPS para delivery!");
+                Swal.fire({
+                    title: 'Frete não calculado',
+                    text: '📍 É necessário calcular o frete pelo GPS para delivery!',
+                    icon: 'warning',
+                    confirmButtonColor: '#dc2626'
+                });
                 return;
             }
             
             if (!nome) {
-                alert("Por favor, preencha seu nome!");
+                Swal.fire({
+                    title: 'Nome obrigatório',
+                    text: 'Por favor, preencha seu nome!',
+                    icon: 'warning',
+                    confirmButtonColor: '#dc2626'
+                });
                 document.getElementById('f-nome').focus();
                 return;
             }
             
             const whatsapp = document.getElementById('f-whatsapp').value.replace(/\D/g, '');
             if (whatsapp.length < 10) {
-                alert("Por favor, informe um WhatsApp válido!");
+                Swal.fire({
+                    title: 'WhatsApp inválido',
+                    text: 'Por favor, informe um WhatsApp válido!',
+                    icon: 'warning',
+                    confirmButtonColor: '#dc2626'
+                });
                 document.getElementById('f-whatsapp').focus();
                 return;
             }
@@ -2076,7 +2200,12 @@
                 const bairro = document.getElementById('f-bairro').value.trim();
                 
                 if (!rua || !bairro) {
-                    alert("Para delivery, preencha o endereço completo!");
+                    Swal.fire({
+                        title: 'Endereço incompleto',
+                        text: 'Para delivery, preencha o endereço completo!',
+                        icon: 'warning',
+                        confirmButtonColor: '#dc2626'
+                    });
                     return;
                 }
             }
@@ -2085,7 +2214,12 @@
             const total = CARRINHO.reduce((a, b) => a + Number(b.preco || 0), 0);
             const pedidoMinimo = CONFIG.pedido_minimo || 35;
             if (total < pedidoMinimo) {
-                alert(`Pedido mínimo: R$ ${pedidoMinimo.toFixed(2).replace('.',',')}\nFaltam: R$ ${(pedidoMinimo - total).toFixed(2).replace('.',',')}`);
+                Swal.fire({
+                    title: 'Pedido Mínimo',
+                    html: `Pedido mínimo: <strong>R$ ${pedidoMinimo.toFixed(2).replace('.',',')}</strong><br>Faltam: <strong>R$ ${(pedidoMinimo - total).toFixed(2).replace('.',',')}</strong>`,
+                    icon: 'info',
+                    confirmButtonColor: '#dc2626'
+                });
                 return;
             }
             
@@ -2182,7 +2316,12 @@
                 
             } catch (error) {
                 console.error("Erro ao enviar pedido:", error);
-                alert("Erro ao enviar pedido. Tente novamente.");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao enviar pedido. Tente novamente.',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
                 
                 // Reabilitar botão
                 const btn = document.getElementById('btn-final-zap');
@@ -2285,7 +2424,12 @@
                 location.reload();
             } catch (error) {
                 console.error("Erro ao sair:", error);
-                alert("Erro ao fazer logout!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao fazer logout!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -2515,7 +2659,12 @@
                 const snap = await firestore.getDoc(docRef);
                 
                 if (!snap.exists()) {
-                    alert("Pedido não encontrado!");
+                    Swal.fire({
+                        title: 'Erro',
+                        text: 'Pedido não encontrado!',
+                        icon: 'error',
+                        confirmButtonColor: '#dc2626'
+                    });
                     return;
                 }
                 
@@ -2598,7 +2747,12 @@
                 
             } catch (error) {
                 console.error("Erro ao imprimir pedido:", error);
-                alert("Erro ao imprimir pedido!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao imprimir pedido!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -2609,7 +2763,12 @@
                 const snap = await firestore.getDoc(docRef);
                 
                 if (!snap.exists()) {
-                    alert("Pedido não encontrado!");
+                    Swal.fire({
+                        title: 'Erro',
+                        text: 'Pedido não encontrado!',
+                        icon: 'error',
+                        confirmButtonColor: '#dc2626'
+                    });
                     return;
                 }
                 
@@ -2617,7 +2776,12 @@
                 const whatsapp = pedido.cliente_whatsapp;
                 
                 if (!whatsapp) {
-                    alert("Cliente não tem WhatsApp cadastrado!");
+                    Swal.fire({
+                        title: 'WhatsApp não encontrado',
+                        text: 'Cliente não tem WhatsApp cadastrado!',
+                        icon: 'warning',
+                        confirmButtonColor: '#dc2626'
+                    });
                     return;
                 }
                 
@@ -2628,7 +2792,12 @@
                 
             } catch (error) {
                 console.error("Erro ao notificar cliente:", error);
-                alert("Erro ao notificar cliente!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao notificar cliente!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -2681,7 +2850,12 @@
                 
             } catch (error) {
                 console.error("Erro ao atualizar status:", error);
-                alert("Erro ao atualizar status!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao atualizar status!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
                 
                 // Reverter UI em caso de erro
                 const elemento = event?.target;
@@ -2693,7 +2867,18 @@
 
         // CORREÇÃO: Função apagarPedido melhorada
         async function apagarPedido(id) {
-            if (!confirm("Tem certeza que deseja apagar este pedido?")) {
+            const result = await Swal.fire({
+                title: 'Tem certeza?',
+                text: 'Esta ação não poderá ser desfeita!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sim, excluir!',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
             
@@ -2733,91 +2918,99 @@
                     mensagem = `Erro: ${error.message}`;
                 }
                 
-                alert(mensagem);
+                Swal.fire({
+                    title: 'Erro',
+                    text: mensagem,
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
         async function renderProdutosADM() {
-            const sec = document.getElementById('sec-produtos');
-            if (!sec) return;
-            
-            try {
-                await loadData(); // Recarregar produtos
-                
-                // Filtrar categorias especiais (Bordas e Adicionais)
-                const catBordas = CATS.find(c => c.nome === "Bordas");
-                const catAdicionais = CATS.find(c => c.nome === "Adicionais");
-                
-                let html = `
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bebas text-xl text-gray-800">Produtos do Cardápio</h3>
-                        <button onclick="novoProduto()" class="bg-green-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-green-700 transition">+ Novo Produto</button>
+const sec = document.getElementById('sec-produtos');
+if (!sec) return;
+
+try {
+await loadData(); // Recarregar produtos
+
+// Filtrar categorias especiais (Bordas e Adicionais)
+const catBordas = CATS.find(c => c.nome === "Bordas");
+const catAdicionais = CATS.find(c => c.nome === "Adicionais");
+
+let html = `
+<div class="flex justify-between items-center mb-4">
+    <h3 class="font-bebas text-xl text-gray-800">Produtos do Cardápio</h3>
+    <button onclick="novoProduto()" class="bg-green-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-green-700 transition">+ Novo Produto</button>
+</div>
+
+<div class="mb-6">
+    <h4 class="font-bold text-sm text-gray-700 mb-3">Categorias Especiais</h4>
+    <div class="grid grid-cols-2 gap-3">
+        <div class="bg-red-50 p-4 rounded-xl">
+            <div class="font-black text-[10px] uppercase text-red-600 mb-1">BORDAS</div>
+            ${catBordas ? `<div class="text-xs">${PRODS.filter(p => p.categoria_id === catBordas.id).length} itens</div>` : '<div class="text-xs text-gray-500">Categoria não criada</div>'}
+            ${catBordas ? `<button onclick="novoProdutoEspecial('${catBordas.id}')" class="mt-2 text-[10px] bg-red-100 text-red-700 px-3 py-1 rounded-lg font-bold hover:bg-red-200 transition">+ Nova Borda</button>` : ''}
+        </div>
+        <div class="bg-blue-50 p-4 rounded-xl">
+            <div class="font-black text-[10px] uppercase text-blue-600 mb-1">ADICIONAIS</div>
+            ${catAdicionais ? `<div class="text-xs">${PRODS.filter(p => p.categoria_id === catAdicionais.id).length} itens</div>` : '<div class="text-xs text-gray-500">Categoria não criada</div>'}
+            ${catAdicionais ? `<button onclick="novoProdutoEspecial('${catAdicionais.id}')" class="mt-2 text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-lg font-bold hover:bg-blue-200 transition">+ Novo Adicional</button>` : ''}
+        </div>
+    </div>
+</div>
+
+<div class="mb-4">
+    <h4 class="font-bold text-sm text-gray-700 mb-3">Todos os Produtos</h4>`;
+    
+    if (PRODS.length === 0) {
+    html += `<div class="bg-white p-8 rounded-[35px] shadow-sm text-center text-gray-500">Nenhum produto cadastrado</div>`;
+    } else {
+    PRODS.forEach(p => {
+    const cat = CATS.find(c => c.id === p.categoria_id);
+    const catNome = cat ? cat.nome : 'Sem categoria';
+    const isEspecial = catNome === "Bordas" || catNome === "Adicionais";
+    
+    html += `
+    <div class="bg-white p-4 rounded-[25px] shadow-sm mb-3 flex justify-between items-center ${isEspecial ? 'border-l-4 border-red-500' : ''}">
+        <div class="flex-1">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl ${isEspecial ? 'bg-red-100' : 'bg-gray-100'}">
+                    <img src="${p.imagem_url || 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png'}" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3075/3075977.png'">
+                </div>
+                <div>
+                    <div class="font-black text-[11px] uppercase text-gray-800">${p.nome} ${isEspecial ? '🔧' : ''}</div>
+                    <div class="text-[9px] text-gray-400 line-clamp-1">${p.descricao || ''}</div>
+                    <div class="flex gap-2 mt-1">
+                        <span class="text-[8px] ${isEspecial ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'} px-2 py-1 rounded-full">${catNome}</span>
+                        <span class="text-[8px] ${p.disponivel !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded-full">${p.disponivel !== false ? 'Disponível' : 'Indisponível'}</span>
                     </div>
-                    
-                    <div class="mb-6">
-                        <h4 class="font-bold text-sm text-gray-700 mb-3">Categorias Especiais</h4>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="bg-red-50 p-4 rounded-xl">
-                                <div class="font-black text-[10px] uppercase text-red-600 mb-1">BORDAS</div>
-                                ${catBordas ? `<div class="text-xs">${PRODS.filter(p => p.categoria_id === catBordas.id).length} itens</div>` : '<div class="text-xs text-gray-500">Categoria não criada</div>'}
-                                ${catBordas ? `<button onclick="novoProdutoEspecial('${catBordas.id}')" class="mt-2 text-[10px] bg-red-100 text-red-700 px-3 py-1 rounded-lg font-bold hover:bg-red-200 transition">+ Nova Borda</button>` : ''}
-                            </div>
-                            <div class="bg-blue-50 p-4 rounded-xl">
-                                <div class="font-black text-[10px] uppercase text-blue-600 mb-1">ADICIONAIS</div>
-                                ${catAdicionais ? `<div class="text-xs">${PRODS.filter(p => p.categoria_id === catAdicionais.id).length} itens</div>` : '<div class="text-xs text-gray-500">Categoria não criada</div>'}
-                                ${catAdicionais ? `<button onclick="novoProdutoEspecial('${catAdicionais.id}')" class="mt-2 text-[10px] bg-blue-100 text-blue-700 px-3 py-1 rounded-lg font-bold hover:bg-blue-200 transition">+ Novo Adicional</button>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <h4 class="font-bold text-sm text-gray-700 mb-3">Todos os Produtos</h4>`;
+                </div>
+            </div>
+        </div>
+        <div class="text-right">
+            <div class="font-black text-lg ${isEspecial ? 'text-red-600' : 'text-gray-800'} mb-1">R$ ${Number(p.preco || 0).toFixed(2).replace('.',',')}</div>
+            <div class="flex gap-1">
+                <button onclick="editarProduto('${p.id}')" class="bg-red-100 text-red-700 p-2 rounded-lg hover:bg-red-200 transition"><i class="fas fa-edit text-xs"></i></button>
                 
-                if (PRODS.length === 0) {
-                    html += `<div class="bg-white p-8 rounded-[35px] shadow-sm text-center text-gray-500">Nenhum produto cadastrado</div>`;
-                } else {
-                    PRODS.forEach(p => {
-                        const cat = CATS.find(c => c.id === p.categoria_id);
-                        const catNome = cat ? cat.nome : 'Sem categoria';
-                        const isEspecial = catNome === "Bordas" || catNome === "Adicionais";
-                        
-                        html += `
-                        <div class="bg-white p-4 rounded-[25px] shadow-sm mb-3 flex justify-between items-center ${isEspecial ? 'border-l-4 border-red-500' : ''}">
-                            <div class="flex-1">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 rounded-xl ${isEspecial ? 'bg-red-100' : 'bg-gray-100'}">
-                                        <img src="${p.imagem_url || 'https://cdn-icons-png.flaticon.com/512/3075/3075977.png'}" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3075/3075977.png'">
-                                    </div>
-                                    <div>
-                                        <div class="font-black text-[11px] uppercase text-gray-800">${p.nome} ${isEspecial ? '🔧' : ''}</div>
-                                        <div class="text-[9px] text-gray-400 line-clamp-1">${p.descricao || ''}</div>
-                                        <div class="flex gap-2 mt-1">
-                                            <span class="text-[8px] ${isEspecial ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'} px-2 py-1 rounded-full">${catNome}</span>
-                                            <span class="text-[8px] ${p.disponivel !== false ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded-full">${p.disponivel !== false ? 'Disponível' : 'Indisponível'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-black text-lg ${isEspecial ? 'text-red-600' : 'text-gray-800'} mb-1">R$ ${Number(p.preco || 0).toFixed(2).replace('.',',')}</div>
-                                <div class="flex gap-1">
-                                    <button onclick="editarProduto('${p.id}')" class="bg-red-100 text-red-700 p-2 rounded-lg hover:bg-red-200 transition"><i class="fas fa-edit text-xs"></i></button>
-                                    <button onclick="toggleDisponibilidade('${p.id}', ${p.disponivel !== false})" class="bg-gray-100 text-gray-700 p-2 rounded-lg hover:bg-gray-200 transition">
-                                        <i class="fas ${p.disponivel !== false ? 'fa-toggle-on text-green-500' : 'fa-toggle-off text-gray-400'}"></i>
-                                    </button>
-                                    <button onclick="excluirProduto('${p.id}')" class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition"><i class="fas fa-trash text-xs"></i></button>
-                                </div>
-                            </div>
-                        </div>`;
-                    });
-                }
+                <!-- ESTE É O BOTÃO QUE ALTERAMOS (adicionamos 'this') -->
+                <button onclick="toggleDisponibilidade('${p.id}', ${p.disponivel !== false}, this)" class="bg-gray-100 text-gray-700 p-2 rounded-lg hover:bg-gray-200 transition">
+                    <i class="fas ${p.disponivel !== false ? 'fa-toggle-on text-green-500' : 'fa-toggle-off text-gray-400'}"></i>
+                </button>
                 
-                sec.innerHTML = html;
-            } catch (error) {
-                console.error("Erro ao renderizar produtos:", error);
-                sec.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl">Erro ao carregar produtos: ${error.message}</div>`;
-            }
-        }
+                <button onclick="excluirProduto('${p.id}')" class="bg-red-100 text-red-600 p-2 rounded-lg hover:bg-red-200 transition"><i class="fas fa-trash text-xs"></i></button>
+            </div>
+        </div>
+    </div>`;
+    });
+    }
+    
+    sec.innerHTML = html;
+    } catch (error) {
+    console.error("Erro ao renderizar produtos:", error);
+    sec.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl">Erro ao carregar produtos: ${error.message}</div>`;
+    }
+    }
 
         async function novoProdutoEspecial(categoriaId) {
             try {
@@ -2842,11 +3035,24 @@
                 };
                 
                 const docRef = await firestore.addDoc(firestore.collection(db, "produtos"), novoProd);
-                alert(`${categoria.nome} criada com sucesso! R$ ${preco.toFixed(2).replace('.',',')}`);
+                
+                Swal.fire({
+                    title: 'Sucesso!',
+                    html: `${categoria.nome} criada com sucesso!<br><strong>R$ ${preco.toFixed(2).replace('.',',')}</strong>`,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
                 renderProdutosADM();
             } catch (error) {
                 console.error("Erro ao criar produto especial:", error);
-                alert("Erro ao criar produto!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao criar produto!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -2863,11 +3069,24 @@
                 };
                 
                 const docRef = await firestore.addDoc(firestore.collection(db, "produtos"), novoProd);
-                alert("Produto criado! Edite as informações.");
+                
+                Swal.fire({
+                    title: 'Produto Criado!',
+                    text: 'Produto criado! Edite as informações.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
                 renderProdutosADM();
             } catch (error) {
                 console.error("Erro ao criar produto:", error);
-                alert("Erro ao criar produto!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao criar produto!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -2899,7 +3118,12 @@
                 document.getElementById('modal-editar-prod').classList.remove('hidden');
             } catch (error) {
                 console.error("Erro ao editar produto:", error);
-                alert("Erro ao carregar produto!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao carregar produto!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -2920,10 +3144,22 @@
                 
                 fecharModalEditar();
                 renderProdutosADM();
-                alert("Produto atualizado com sucesso!");
+                
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: 'Produto atualizado com sucesso!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } catch (error) {
                 console.error("Erro ao salvar edição:", error);
-                alert("Erro ao salvar edição!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao salvar edição!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -2931,41 +3167,64 @@
             document.getElementById('modal-editar-prod').classList.add('hidden');
         }
 
-        async function toggleDisponibilidade(id, atual) {
-            try {
-                const { db, firestore } = getFirebaseRefs();
-                const produtoRef = firestore.doc(db, "produtos", id);
-                await firestore.updateDoc(produtoRef, {
-                    disponivel: !atual
-                });
-                
-                // Atualizar lista
-                const produto = PRODS.find(p => p.id === id);
-                if (produto) {
-                    produto.disponivel = !atual;
-                }
-                
-                // Feedback visual
-                const btn = event.target.closest('button');
-                if (btn) {
-                    const icon = btn.querySelector('i');
-                    if (icon) {
-                        if (!atual) {
-                            icon.className = "fas fa-toggle-on text-green-500";
-                        } else {
-                            icon.className = "fas fa-toggle-off text-gray-400";
-                        }
-                    }
-                }
-                
-            } catch (error) {
-                console.error("Erro ao alternar disponibilidade:", error);
-                alert("Erro ao alterar disponibilidade!");
+        async function toggleDisponibilidade(id, atual, elemento) {
+    try {
+        const { db, firestore } = getFirebaseRefs();
+        const produtoRef = firestore.doc(db, "produtos", id);
+        
+        // Desabilita o clique temporariamente para evitar cliques duplos
+        elemento.style.pointerEvents = 'none';
+        elemento.style.opacity = '0.5';
+        
+        await firestore.updateDoc(produtoRef, {
+            disponivel: !atual
+        });
+        
+        // Atualiza a lista local PRODS
+        const idx = PRODS.findIndex(p => p.id === id);
+        if (idx !== -1) PRODS[idx].disponivel = !atual;
+        
+        // Feedback visual no ícone usando o elemento passado por parâmetro
+        const icon = elemento.querySelector('i');
+        if (icon) {
+            if (!atual) { // Se era falso e virou verdadeiro
+                icon.className = "fas fa-toggle-on text-green-500";
+            } else {
+                icon.className = "fas fa-toggle-off text-gray-400";
             }
         }
+        
+        // Reabilita o botão
+        elemento.style.pointerEvents = 'auto';
+        elemento.style.opacity = '1';
+        
+        console.log("Status atualizado com sucesso!");
+    } catch (error) {
+        console.error("Erro ao alternar disponibilidade:", error);
+        Swal.fire({
+            title: 'Erro',
+            text: 'Erro ao salvar no banco. Verifique se as Regras do Firestore estão ativas.',
+            icon: 'error',
+            confirmButtonColor: '#dc2626'
+        });
+        elemento.style.pointerEvents = 'auto';
+        elemento.style.opacity = '1';
+    }
+}
 
         async function excluirProduto(id) {
-            if (!confirm("Tem certeza que deseja excluir este produto?")) {
+            const result = await Swal.fire({
+                title: 'Tem certeza?',
+                text: 'Esta ação não poderá ser desfeita!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sim, excluir!',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
             
@@ -2977,10 +3236,22 @@
                 PRODS = PRODS.filter(p => p.id !== id);
                 
                 renderProdutosADM();
-                alert("Produto excluído com sucesso!");
+                
+                Swal.fire({
+                    title: 'Excluído!',
+                    text: 'Produto excluído com sucesso!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } catch (error) {
                 console.error("Erro ao excluir produto:", error);
-                alert("Erro ao excluir produto!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao excluir produto!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3047,12 +3318,25 @@
                 };
                 
                 await firestore.addDoc(firestore.collection(db, "categorias"), novaCat);
-                alert("Categoria criada!");
+                
+                Swal.fire({
+                    title: 'Categoria Criada!',
+                    text: 'Categoria criada com sucesso!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
                 await loadData();
                 renderCategoriasADM();
             } catch (error) {
                 console.error("Erro ao criar categoria:", error);
-                alert("Erro ao criar categoria!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao criar categoria!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3073,17 +3357,40 @@
                     ordem: novaOrdem || 999
                 });
                 
-                alert("Categoria atualizada!");
+                Swal.fire({
+                    title: 'Categoria Atualizada!',
+                    text: 'Categoria atualizada com sucesso!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
                 await loadData();
                 renderCategoriasADM();
             } catch (error) {
                 console.error("Erro ao editar categoria:", error);
-                alert("Erro ao editar categoria!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao editar categoria!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
         async function excluirCategoria(id) {
-            if (!confirm("ATENÇÃO: Ao excluir esta categoria, todos os produtos relacionados serão movidos para 'Sem categoria'. Continuar?")) {
+            const result = await Swal.fire({
+                title: 'ATENÇÃO!',
+                text: 'Ao excluir esta categoria, todos os produtos relacionados serão movidos para "Sem categoria". Continuar?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sim, excluir!',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
             
@@ -3108,13 +3415,25 @@
                 // Excluir categoria
                 await firestore.deleteDoc(firestore.doc(db, "categorias", id));
                 
-                alert("Categoria excluída!");
+                Swal.fire({
+                    title: 'Categoria Excluída!',
+                    text: 'Categoria excluída com sucesso!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
                 await loadData();
                 renderCategoriasADM();
                 renderProdutosADM();
             } catch (error) {
                 console.error("Erro ao excluir categoria:", error);
-                alert("Erro ao excluir categoria!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao excluir categoria!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3181,7 +3500,14 @@
                 };
                 
                 await firestore.addDoc(firestore.collection(db, "cupons"), novoCupom);
-                alert("Cupom criado!");
+                
+                Swal.fire({
+                    title: 'Cupom Criado!',
+                    text: 'Cupom criado com sucesso!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
                 
                 // Recarregar cupons
                 const cuponsSnap = await firestore.getDocs(firestore.collection(db, "cupons"));
@@ -3190,7 +3516,12 @@
                 renderCuponsADM();
             } catch (error) {
                 console.error("Erro ao criar cupom:", error);
-                alert("Erro ao criar cupom!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao criar cupom!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3211,12 +3542,28 @@
                 renderCuponsADM();
             } catch (error) {
                 console.error("Erro ao alternar cupom:", error);
-                alert("Erro ao alterar cupom!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao alterar cupom!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
         async function excluirCupom(id) {
-            if (!confirm("Tem certeza que deseja excluir este cupom?")) {
+            const result = await Swal.fire({
+                title: 'Tem certeza?',
+                text: 'Esta ação não poderá ser desfeita!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sim, excluir!',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
             
@@ -3228,10 +3575,22 @@
                 CUPONS = CUPONS.filter(c => c.id !== id);
                 
                 renderCuponsADM();
-                alert("Cupom excluído!");
+                
+                Swal.fire({
+                    title: 'Cupom Excluído!',
+                    text: 'Cupom excluído com sucesso!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } catch (error) {
                 console.error("Erro ao excluir cupom:", error);
-                alert("Erro ao excluir cupom!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao excluir cupom!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3350,7 +3709,12 @@
         // NOVA FUNÇÃO: Obter localização da loja
         async function obterLocalizacaoLoja() {
             if (!navigator.geolocation) {
-                alert("Seu navegador não suporta geolocalização.");
+                Swal.fire({
+                    title: 'Erro de Localização',
+                    text: 'Seu navegador não suporta geolocalização.',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
                 return;
             }
             
@@ -3374,7 +3738,13 @@
                     btn.innerHTML = textoOriginal;
                     btn.disabled = false;
                     
-                    alert(`Localização da pizzaria definida!\nLat: ${lat.toFixed(6)}\nLng: ${lng.toFixed(6)}`);
+                    Swal.fire({
+                        title: 'Localização Obtida!',
+                        html: `Localização da pizzaria definida!<br><strong>Lat:</strong> ${lat.toFixed(6)}<br><strong>Lng:</strong> ${lng.toFixed(6)}`,
+                        icon: 'success',
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
                 },
                 (error) => {
                     let mensagem = "Erro ao obter localização: ";
@@ -3391,7 +3761,12 @@
                         default:
                             mensagem = "Erro desconhecido.";
                     }
-                    alert(mensagem);
+                    Swal.fire({
+                        title: 'Erro de Localização',
+                        text: mensagem,
+                        icon: 'error',
+                        confirmButtonColor: '#dc2626'
+                    });
                     btn.innerHTML = textoOriginal;
                     btn.disabled = false;
                 },
@@ -3462,10 +3837,23 @@
                     document.getElementById('cli-logo').src = CONFIG.logo_url;
                 }
                 
-                alert("Configurações salvas com sucesso!");
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: 'Configurações salvas com sucesso!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    toast: true,
+                    position: 'top-end'
+                });
             } catch (error) {
                 console.error("Erro ao salvar configurações:", error);
-                alert("Erro ao salvar configurações!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao salvar configurações!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3624,10 +4012,22 @@
                 renderPromocoesADM();
                 
                 fecharModalPromocao();
-                alert("Promoção salva com sucesso!");
+                
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: 'Promoção salva com sucesso!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } catch (error) {
                 console.error("Erro ao salvar promoção:", error);
-                alert("Erro ao salvar promoção!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao salvar promoção!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3645,10 +4045,20 @@
                 // Atualizar UI do cliente
                 renderPromocaoCliente();
                 
-                alert(`Promoção ${novoStatus ? 'ativada' : 'desativada'}!`);
+                Swal.fire({
+                    title: `Promoção ${novoStatus ? 'ativada' : 'desativada'}!`,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } catch (error) {
                 console.error("Erro ao alternar status da promoção:", error);
-                alert("Erro ao alterar status!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao alterar status!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3721,11 +4131,24 @@
                 };
                 
                 const docRef = await firestore.addDoc(firestore.collection(db, "tamanhos_pizza"), novoTam);
-                alert("Tamanho criado! Edite as informações.");
+                
+                Swal.fire({
+                    title: 'Tamanho Criado!',
+                    text: 'Tamanho criado! Edite as informações.',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
                 renderTamanhosADM();
             } catch (error) {
                 console.error("Erro ao criar tamanho:", error);
-                alert("Erro ao criar tamanho!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao criar tamanho!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3744,7 +4167,12 @@
                 document.getElementById('modal-editar-tamanho').classList.remove('hidden');
             } catch (error) {
                 console.error("Erro ao editar tamanho:", error);
-                alert("Erro ao carregar tamanho!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao carregar tamanho!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3765,10 +4193,22 @@
                 fecharModalEditarTamanho();
                 await carregarTamanhos();
                 renderTamanhosADM();
-                alert("Tamanho atualizado com sucesso!");
+                
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: 'Tamanho atualizado com sucesso!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } catch (error) {
                 console.error("Erro ao salvar edição do tamanho:", error);
-                alert("Erro ao salvar edição do tamanho!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao salvar edição do tamanho!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3805,12 +4245,28 @@
                 
             } catch (error) {
                 console.error("Erro ao alternar disponibilidade do tamanho:", error);
-                alert("Erro ao alterar disponibilidade do tamanho!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao alterar disponibilidade do tamanho!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
         async function excluirTamanho(id) {
-            if (!confirm("Tem certeza que deseja excluir este tamanho?")) {
+            const result = await Swal.fire({
+                title: 'Tem certeza?',
+                text: 'Esta ação não poderá ser desfeita!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'Sim, excluir!',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
             
@@ -3822,10 +4278,22 @@
                 TAMANHOS = TAMANHOS.filter(t => t.id !== id);
                 
                 renderTamanhosADM();
-                alert("Tamanho excluído com sucesso!");
+                
+                Swal.fire({
+                    title: 'Tamanho Excluído!',
+                    text: 'Tamanho excluído com sucesso!',
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             } catch (error) {
                 console.error("Erro ao excluir tamanho:", error);
-                alert("Erro ao excluir tamanho!");
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao excluir tamanho!',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
@@ -3948,13 +4416,25 @@
         function aplicarCupom() {
             const codigo = document.getElementById('f-cupom').value.trim().toUpperCase();
             if (!codigo) {
-                alert("Digite um código de cupom!");
+                Swal.fire({
+                    title: 'Cupom Inválido',
+                    text: 'Digite um código de cupom!',
+                    icon: 'warning',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
                 return;
             }
             
             const cupom = CUPONS.find(c => c.codigo === codigo && c.ativo !== false);
             if (!cupom) {
-                alert("Cupom inválido ou expirado!");
+                Swal.fire({
+                    title: 'Cupom Inválido',
+                    text: 'Código não encontrado ou expirado!',
+                    icon: 'error',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
                 return;
             }
             
@@ -3964,6 +4444,14 @@
             document.getElementById('f-cupom').value = "";
             document.getElementById('f-cupom').placeholder = `Cupom ${codigo} aplicado!`;
             renderCheckoutTotal();
+            
+            Swal.fire({
+                title: 'Cupom Aplicado!',
+                html: `Desconto de <strong>R$ ${vCUPOM.toFixed(2).replace('.',',')}</strong>`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
         }
 
         // ==================== EXPORTA FUNÇÕES PARA O ESCOPO GLOBAL ====================
